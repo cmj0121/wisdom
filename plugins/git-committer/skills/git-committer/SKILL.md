@@ -15,7 +15,7 @@ allowed-tools:
   - Glob
 metadata:
   author: cmj@cmj.tw
-  version: 0.1.0
+  version: 0.1.1
 ---
 
 # Git Committer Skill
