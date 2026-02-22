@@ -4,6 +4,7 @@ description: Auto-dispatch skills and commands when the user types a magic word.
 license: MIT
 allowed-tools:
   - Bash(ls:*)
+  - Bash(find:*)
   - Read
   - Glob
 metadata:
