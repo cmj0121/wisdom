@@ -5,12 +5,40 @@
     "url": "https://github.com/cmj0121"
   },
   "plugins": [
-    "shortcut",
-    "git-committer",
-    "context-checker",
-    "spec-writer",
-    "code-reviewer",
-    "code-partner",
-    "proj-ideatender"
+    {
+      "name": "shortcut",
+      "description": "AI agent can be triggered automatically when you type a specific shortcut.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "git-committer",
+      "description": "Assists in creating clear and concise git commit messages following conventional commit format.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "context-checker",
+      "description": "The check policy to ensure the Agent understands the guidelines.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "spec-writer",
+      "description": "Write technical specifications for software projects.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "code-reviewer",
+      "description": "Provides feedback and suggestions for improving code quality.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "code-partner",
+      "description": "The code partner to help you code together with the AI agent.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "proj-ideatender",
+      "description": "The project idea tender to help you generate project ideas.",
+      "version": "0.1.0"
+    }
   ]
 }
