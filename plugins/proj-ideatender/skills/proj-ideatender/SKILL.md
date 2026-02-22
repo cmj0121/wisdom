@@ -36,7 +36,8 @@ This skill is triggered when the user's prompt contains `analyze`.
 3. **Review git history**: Use `git log` to review recent commits and understand the project's development trajectory,
    active areas, and recent changes.
 4. **Scan project structure**: Use the Glob tool to map out the directory layout and identify key modules, packages,
-   and configuration files.
+   and configuration files. Use Grep to detect `TODO`/`FIXME` comments, deprecated API usage, and duplicated
+   code patterns that may indicate improvement opportunities.
 
 ### Phase 2: Idea Generation
 
@@ -68,7 +69,10 @@ A numbered list of ideas, each containing:
 - **Title**: A short, descriptive name
 - **Category**: One of the categories listed above
 - **Description**: What the idea entails and why it would be valuable
-- **Effort estimate**: Low, Medium, or High
+- **Impact**: Low, Medium, or High -- the potential value or risk reduction
+- **Effort**: Low, Medium, or High
+
+Rank ideas by impact-to-effort ratio (High impact / Low effort first).
 
 ## Guidelines
 
