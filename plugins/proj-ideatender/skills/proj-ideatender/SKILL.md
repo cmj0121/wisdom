@@ -11,6 +11,7 @@ allowed-tools:
   - Glob
   - Grep
   - WebFetch
+  - WebSearch
 metadata:
   author: cmj@cmj.tw
   version: 0.2.0
