@@ -1,5 +1,5 @@
 ---
-name: code-parner
+name: code-partner
 description: The code partner to help you code together with the AI agent.
 license: MIT
 allowed-tools:

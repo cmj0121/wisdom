@@ -25,7 +25,7 @@ code more efficiently and effectively, just like me.
 | spec-writer     | The spec writer to help you write the spec for your code.                  |
 | code-reviewer   | The code reviewer to help you review your code.                            |
 | git-committer   | The git committer to help you commit your code.                            |
-| code-parner     | The code partner to help you code together with the AI agent.              |
+| code-partner    | The code partner to help you code together with the AI agent.              |
 | proj-ideatender | The project idea tender to help you generate project ideas.                |
 
 ## DDD (Dream-Driven Development)

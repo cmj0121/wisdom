@@ -2,7 +2,7 @@
 
 > The code partner to help you code together with the AI agent.
 
-The code-parner plugin provides an AI pair programming experience. It reads your project's
+The code-partner plugin provides an AI pair programming experience. It reads your project's
 documentation, discusses the design with you, presents a step-by-step plan, and implements
 the code collaboratively with your approval at every stage.
 
@@ -11,7 +11,7 @@ the code collaboratively with your approval at every stage.
 Install via the wisdom marketplace:
 
 ```bash
-/plugin install code-parner
+/plugin install code-partner
 ```
 
 ## How It Works
