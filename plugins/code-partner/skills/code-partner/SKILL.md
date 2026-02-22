@@ -17,6 +17,8 @@ allowed-tools:
   - Read
   - Glob
   - Grep
+  - Write
+  - Edit
 metadata:
   author: cmj@cmj.tw
   version: 0.1.1
