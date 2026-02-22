@@ -33,7 +33,7 @@ user to confirm before proceeding.
 
 ## Shortcut
 
-This skill is triggered when the user's prompt contains `develop`.
+This skill is triggered when the user's prompt contains `develop`, `implement` or `fix`.
 
 ## How It Works
 
@@ -44,6 +44,10 @@ This skill is triggered when the user's prompt contains `develop`.
 5. **Test** and verify the implementation meets the requirements
 
 ## Epilogue
+
+After your task is completed, you should give the summary of the implementation in brief and concise manner, to
+help the user understand what has been done and how it works. It should be a table-like format and give the user a clear
+overview of the implementation.
 
 ## Your Task
 
