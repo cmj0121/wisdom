@@ -38,13 +38,31 @@ When performing a code review, follow these steps:
    - Naming conventions and consistency
    - Error handling and edge cases
    - Performance considerations
-   - Security concerns
+   - Security concerns (see Security Checklist below)
    - Test coverage
 4. **Provide feedback**: Present a structured review with actionable suggestions. Categorize findings
    by severity and include specific file paths and line references where applicable.
    - **Critical**: Bugs, security vulnerabilities, data loss risks, or broken functionality
    - **Warning**: Performance issues, poor error handling, or maintainability concerns
    - **Suggestion**: Style improvements, readability enhancements, or minor refactors
+
+## Security Checklist
+
+Use Grep to scan changed files for the following patterns. Flag any match as **Critical**.
+
+- **Secrets & credentials**: Hardcoded passwords, API keys, tokens, or connection strings
+  (e.g., `password\s*=`, `SECRET_KEY`, `Bearer`, `-----BEGIN .* KEY-----`)
+- **Injection risks**: Unsanitized input used in SQL queries, shell commands, or template
+  rendering (e.g., `exec(`, `eval(`, `subprocess.call(.*shell=True`, `innerHTML`,
+  string-concatenated SQL)
+- **Insecure communication**: HTTP URLs where HTTPS is expected, disabled TLS verification
+  (e.g., `verify=False`, `NODE_TLS_REJECT_UNAUTHORIZED`)
+- **Dangerous functions**: Use of `dangerouslySetInnerHTML`, `pickle.loads`, `yaml.load`
+  without `SafeLoader`, `Math.random` for security purposes
+- **Missing auth/access control**: Endpoints or routes without authentication middleware,
+  overly permissive CORS configurations
+- **Sensitive data exposure**: Logging or returning sensitive fields (passwords, tokens, PII)
+  in responses or console output
 
 ## Important
 
