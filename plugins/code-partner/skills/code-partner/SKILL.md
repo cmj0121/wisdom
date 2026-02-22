@@ -88,6 +88,24 @@ In general, your implementation should include:
 - Proper error handling and input validation.
 - Performance optimizations where necessary.
 
+### Debugging Methodology
+
+When the task involves fixing a bug, follow this structured approach instead of jumping
+straight to a fix:
+
+1. **Reproduce** -- Confirm the bug exists. Run the failing test, trigger the error, or
+   follow the user's reproduction steps. If you cannot reproduce it, ask the user for more
+   details before proceeding.
+2. **Write a regression test** -- Before writing any fix, create a unit test that captures
+   the bug. The test must fail on the current code, proving the issue is real and
+   reproducible. This test becomes the acceptance criterion for the fix.
+3. **Hypothesize** -- State your hypothesis about the root cause. Present it to the user
+   before making changes.
+4. **Isolate and fix** -- Use Grep and Read to narrow down the root cause. Make one minimal
+   change at a time. Do not fix multiple things simultaneously.
+5. **Verify** -- Run the regression test to confirm it now passes. Run the full related test
+   suite to ensure no existing functionality is broken.
+
 ### Team Coordination
 
 As the lead developer, you coordinate with other skills in the wisdom plugin suite.
