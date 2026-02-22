@@ -54,6 +54,14 @@ This skill is triggered when the user's prompt contains `develop`, `implement` o
 7. **Review & commit** -- After each logical unit of work, invoke the `code-reviewer` skill
    (`/review`) to check code quality, then invoke the `git-committer` skill (`/commit`) to
    craft and execute the commit
+8. **Final verification** -- Before presenting the Epilogue, run a final checklist:
+   - Run the full test suite. All tests must pass.
+   - Run `git status` to confirm no uncommitted changes remain.
+   - Use Grep to scan for debug artifacts (`console.log`, `debugger`, `print(`, `TODO`)
+     that should not be in the final deliverable.
+   - Compare the implementation against the plan from step 4. Flag anything that was
+     planned but not delivered, or delivered but not planned.
+   - If any check fails, fix the issue and loop back to step 7 before continuing.
 
 ## Epilogue
 
