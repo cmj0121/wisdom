@@ -1,4 +1,4 @@
-# Code Parner Plugin
+# Code Partner Plugin
 
 > The code partner to help you code together with the AI agent.
 
