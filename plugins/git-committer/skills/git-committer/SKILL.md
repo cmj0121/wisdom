@@ -12,6 +12,7 @@ allowed-tools:
   - Bash(git diff:*)
   - Bash(git config:*)
   - Read
+  - Glob
 metadata:
   author: cmj@cmj.tw
   version: 0.1.0

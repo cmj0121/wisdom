@@ -10,6 +10,7 @@ allowed-tools:
   - Bash(git diff:*)
   - Read
   - Glob
+  - Grep
 metadata:
   author: cmj@cmj.tw
   version: 0.1.0

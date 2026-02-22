@@ -5,8 +5,11 @@ license: MIT
 allowed-tools:
   - Bash(git log:*)
   - Bash(git show:*)
+  - Bash(find:*)
+  - Bash(ls:*)
   - Read
   - Glob
+  - Grep
   - WebFetch
 metadata:
   author: cmj@cmj.tw

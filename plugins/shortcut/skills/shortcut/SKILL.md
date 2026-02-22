@@ -7,6 +7,12 @@ allowed-tools:
   - Bash(find:*)
   - Read
   - Glob
+  - Search(pattern:~/.claude/plugins)
+  - Search(pattern:~/.claude/skills)
+  - Search(pattern:~/.claude/commands)
+  - Search(pattern:.claude/skills)
+  - Search(pattern:.claude/commands)
+  - Search(pattern:plugins)
 metadata:
   author: cmj@cmj.tw
   version: 0.1.0

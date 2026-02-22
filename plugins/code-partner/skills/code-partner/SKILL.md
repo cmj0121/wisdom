@@ -12,8 +12,11 @@ allowed-tools:
   - Bash(git stash)
   - Bash(git restore:*)
   - Bash(git diff:*)
+  - Bash(find:*)
+  - Bash(ls:*)
   - Read
   - Glob
+  - Grep
 metadata:
   author: cmj@cmj.tw
   version: 0.1.0
