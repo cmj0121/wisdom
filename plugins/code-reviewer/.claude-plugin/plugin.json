@@ -1,0 +1,10 @@
+{
+  "name": "code-reviewer",
+  "description": "Provides feedback and suggestions for improving code quality.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": {
+    "name": "cmj",
+    "url": "https://github.com/cmj0121"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "spec-writer",
+  "description": "Write technical specifications for software projects.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": {
+    "name": "cmj",
+    "url": "https://github.com/cmj0121"
+  }
+}

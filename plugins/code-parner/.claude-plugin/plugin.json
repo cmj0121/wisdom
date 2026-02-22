@@ -1,0 +1,10 @@
+{
+  "name": "code-parner",
+  "description": "The code partner to help you code together with the AI agent.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": {
+    "name": "cmj",
+    "url": "https://github.com/cmj0121"
+  }
+}

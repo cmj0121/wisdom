@@ -1,0 +1,10 @@
+{
+  "name": "proj-ideatender",
+  "description": "The project idea tender to help you generate project ideas.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": {
+    "name": "cmj",
+    "url": "https://github.com/cmj0121"
+  }
+}

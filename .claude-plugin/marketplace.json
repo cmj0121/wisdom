@@ -4,5 +4,13 @@
     "name": "cmj",
     "url": "https://github.com/cmj0121"
   },
-  "plugins": ["shortcut", "git-committer"]
+  "plugins": [
+    "shortcut",
+    "git-committer",
+    "context-checker",
+    "spec-writer",
+    "code-reviewer",
+    "code-parner",
+    "proj-ideatender"
+  ]
 }

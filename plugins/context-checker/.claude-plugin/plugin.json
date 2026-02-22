@@ -1,0 +1,10 @@
+{
+  "name": "context-checker",
+  "description": "The check policy to ensure the Agent understands the guidelines.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": {
+    "name": "cmj",
+    "url": "https://github.com/cmj0121"
+  }
+}
