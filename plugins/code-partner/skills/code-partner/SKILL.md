@@ -61,6 +61,19 @@ After your task is completed, you should give the summary of the implementation 
 help the user understand what has been done and how it works. It should be a table-like format and give the user a clear
 overview of the implementation.
 
+### Lessons Learned
+
+After the summary, review the session for reusable knowledge -- patterns discovered, project
+conventions confirmed, pitfalls encountered, or architectural decisions made. If any are worth
+preserving, ask the user:
+
+> "I noticed some patterns during this session that could be useful in future work. Should I
+> save them to the project memory?"
+
+If the user agrees, write the lessons to the project's `CLAUDE.md` or the auto-memory directory
+(`~/.claude/projects/.../memory/`). Keep entries concise and actionable. Do not duplicate
+information that already exists in these files.
+
 ## Your Task
 
 You are the lead developer for this project. Your task is to implement new features, fix bugs, and improve
