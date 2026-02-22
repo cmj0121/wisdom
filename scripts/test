@@ -1,0 +1,158 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+MARKETPLACE="$REPO_ROOT/.claude-plugin/marketplace.json"
+ERRORS=0
+
+pass() { printf "  \033[32mPASS\033[0m %s\n" "$1"; }
+fail() {
+	printf "  \033[31mFAIL\033[0m %s\n" "$1"
+	ERRORS=$((ERRORS + 1))
+}
+
+echo "==> Validating marketplace.json"
+
+if ! python3 -c "import json, sys; json.load(open(sys.argv[1]))" "$MARKETPLACE" 2>/dev/null; then
+	fail "marketplace.json is not valid JSON"
+	exit 1
+fi
+pass "marketplace.json is valid JSON"
+
+# Check required top-level fields
+for field in name owner plugins; do
+	if python3 -c "
+import json, sys
+data = json.load(open(sys.argv[1]))
+assert '$field' in data
+" "$MARKETPLACE" 2>/dev/null; then
+		pass "marketplace.json has '$field' field"
+	else
+		fail "marketplace.json missing '$field' field"
+	fi
+done
+
+# Extract plugin list
+PLUGIN_COUNT=$(python3 -c "
+import json, sys
+data = json.load(open(sys.argv[1]))
+print(len(data['plugins']))
+" "$MARKETPLACE")
+
+echo ""
+echo "==> Found $PLUGIN_COUNT plugins"
+
+# Validate each plugin entry in marketplace.json
+for i in $(seq 0 $((PLUGIN_COUNT - 1))); do
+	PLUGIN_INFO=$(python3 -c "
+import json, sys
+data = json.load(open(sys.argv[1]))
+p = data['plugins'][$i]
+print(p.get('name', ''))
+print(p.get('description', ''))
+print(p.get('version', ''))
+print(p.get('source', ''))
+" "$MARKETPLACE")
+
+	PLUGIN_NAME=$(echo "$PLUGIN_INFO" | sed -n '1p')
+	PLUGIN_VER=$(echo "$PLUGIN_INFO" | sed -n '3p')
+	PLUGIN_SRC=$(echo "$PLUGIN_INFO" | sed -n '4p')
+
+	echo ""
+	echo "--- plugin: $PLUGIN_NAME ---"
+
+	# Check required fields
+	for field in name description version source; do
+		val=$(echo "$PLUGIN_INFO" | sed -n "$(($(echo "name description version source" | tr ' ' '\n' | grep -n "^${field}$" | cut -d: -f1)))p")
+		if [ -n "$val" ]; then
+			pass "has '$field'"
+		else
+			fail "missing '$field'"
+		fi
+	done
+
+	# Resolve source directory
+	PLUGIN_DIR="$REPO_ROOT/${PLUGIN_SRC#./}"
+
+	if [ ! -d "$PLUGIN_DIR" ]; then
+		fail "source directory does not exist: $PLUGIN_SRC"
+		continue
+	fi
+	pass "source directory exists"
+
+	# Check plugin.json
+	PLUGIN_JSON="$PLUGIN_DIR/.claude-plugin/plugin.json"
+	if [ ! -f "$PLUGIN_JSON" ]; then
+		fail "missing .claude-plugin/plugin.json"
+	elif ! python3 -c "import json, sys; json.load(open(sys.argv[1]))" "$PLUGIN_JSON" 2>/dev/null; then
+		fail ".claude-plugin/plugin.json is not valid JSON"
+	else
+		pass ".claude-plugin/plugin.json is valid JSON"
+
+		# Cross-check name and version
+		PJ_NAME=$(python3 -c "import json, sys; print(json.load(open(sys.argv[1])).get('name',''))" "$PLUGIN_JSON")
+		PJ_VER=$(python3 -c "import json, sys; print(json.load(open(sys.argv[1])).get('version',''))" "$PLUGIN_JSON")
+
+		if [ "$PJ_NAME" = "$PLUGIN_NAME" ]; then
+			pass "plugin.json name matches marketplace.json"
+		else
+			fail "plugin.json name '$PJ_NAME' != marketplace.json name '$PLUGIN_NAME'"
+		fi
+
+		if [ "$PJ_VER" = "$PLUGIN_VER" ]; then
+			pass "plugin.json version matches marketplace.json"
+		else
+			fail "plugin.json version '$PJ_VER' != marketplace.json version '$PLUGIN_VER'"
+		fi
+	fi
+
+	# Check SKILL.md with YAML frontmatter
+	SKILL_MD="$PLUGIN_DIR/skills/$PLUGIN_NAME/SKILL.md"
+	if [ ! -f "$SKILL_MD" ]; then
+		fail "missing skills/$PLUGIN_NAME/SKILL.md"
+	else
+		pass "skills/$PLUGIN_NAME/SKILL.md exists"
+		# Verify YAML frontmatter (starts with ---)
+		FIRST_LINE=$(awk 'NR==1{print; exit}' "$SKILL_MD")
+		if [ "$FIRST_LINE" = "---" ]; then
+			pass "SKILL.md has YAML frontmatter"
+		else
+			fail "SKILL.md missing YAML frontmatter (first line should be '---')"
+		fi
+	fi
+
+	# Check commands directory has at least one .md file
+	COMMANDS_DIR="$PLUGIN_DIR/commands"
+	if [ ! -d "$COMMANDS_DIR" ]; then
+		fail "missing commands/ directory"
+	else
+		CMD_COUNT=$(find "$COMMANDS_DIR" -maxdepth 1 -name '*.md' | wc -l | tr -d ' ')
+		if [ "$CMD_COUNT" -gt 0 ]; then
+			pass "commands/ has $CMD_COUNT .md file(s)"
+		else
+			fail "commands/ has no .md files"
+		fi
+	fi
+
+	# Check README.md
+	if [ -f "$PLUGIN_DIR/README.md" ]; then
+		pass "README.md exists"
+	else
+		fail "missing README.md"
+	fi
+
+	# Check LICENSE
+	if [ -f "$PLUGIN_DIR/LICENSE" ]; then
+		pass "LICENSE exists"
+	else
+		fail "missing LICENSE"
+	fi
+done
+
+echo ""
+if [ "$ERRORS" -gt 0 ]; then
+	echo "==> $ERRORS error(s) found"
+	exit 1
+else
+	echo "==> All checks passed"
+fi
