@@ -8,9 +8,10 @@ allowed-tools:
   - Read
   - Glob
   - Grep
+  - Write
 metadata:
   author: cmj@cmj.tw
-  version: 0.1.1
+  version: 0.2.0
 ---
 
 # Spec Writer Skill
@@ -41,6 +42,81 @@ When writing technical specifications, follow these steps:
 
 If a specification grows too large for a single file, split it into multiple files inside the `docs/` directory.
 Include reference links in each file pointing to related documents so readers can navigate between them easily.
+
+## Document Templates
+
+Use the following starter structures when creating new documents.
+
+### README.md
+
+```markdown
+# Project Name
+
+Brief description of the project.
+
+## Features
+
+- Feature 1
+- Feature 2
+
+## Getting Started
+
+### Prerequisites
+
+### Installation
+
+### Usage
+
+## Contributing
+
+## License
+```
+
+### CONCEPTS.md
+
+```markdown
+# Concepts
+
+## Overview
+
+High-level description of the system and its goals.
+
+## Architecture
+
+Describe the overall architecture and how components interact.
+
+## Core Concepts
+
+### Concept 1
+
+### Concept 2
+
+## Design Decisions
+```
+
+### docs/ Specification
+
+```markdown
+# Specification Title
+
+## Status
+
+Draft | Review | Approved
+
+## Context
+
+Why this specification exists and what problem it solves.
+
+## Requirements
+
+### Functional Requirements
+
+### Non-Functional Requirements
+
+## Design
+
+## Open Questions
+```
 
 ## Important
 

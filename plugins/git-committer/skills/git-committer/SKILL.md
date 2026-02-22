@@ -13,9 +13,10 @@ allowed-tools:
   - Bash(git config:*)
   - Read
   - Glob
+  - Grep
 metadata:
   author: cmj@cmj.tw
-  version: 0.1.1
+  version: 0.2.0
 ---
 
 # Git Committer Skill
@@ -35,8 +36,10 @@ When crafting a git commit message, follow these steps:
    If a template file is configured, read it with the Read tool and follow its format.
 2. **Stage changes**: Ensure all relevant changes are properly staged. Use `git status` to review
    the working tree and `git add` to stage files as needed.
-3. **Review diffs**: Use `git diff --staged` to review what will be committed. Understand the
-   changes before writing the message.
+3. **Review diffs**: Use `git diff --staged` to review what will be committed. Use Grep to scan
+   staged files for debug artifacts (`console.log`, `debugger`, `TODO`) that should not be
+   committed. If the changeset spans multiple unrelated concerns, recommend splitting into
+   separate commits before proceeding.
 4. **Draft the message**: Write a commit message following the template or the conventional commit
    format described below.
 5. **Confirm with user**: Always present the draft message and ask for confirmation before

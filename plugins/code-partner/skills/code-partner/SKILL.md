@@ -17,9 +17,11 @@ allowed-tools:
   - Read
   - Glob
   - Grep
+  - Write
+  - Edit
 metadata:
   author: cmj@cmj.tw
-  version: 0.1.1
+  version: 0.2.0
 ---
 
 # Pair Programming Skill
