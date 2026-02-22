@@ -14,7 +14,7 @@ allowed-tools:
   - WebSearch
 metadata:
   author: cmj@cmj.tw
-  version: 0.2.0
+  version: 0.3.0
 ---
 
 # Project Idea Tender Skill
