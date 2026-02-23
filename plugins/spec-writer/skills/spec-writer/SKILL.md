@@ -11,7 +11,7 @@ allowed-tools:
   - Write
 metadata:
   author: cmj@cmj.tw
-  version: 0.3.0
+  version: 0.3.1
 ---
 
 # Spec Writer Skill
@@ -24,19 +24,27 @@ aspects of the project.
 
 This skill is triggered when the user's prompt contains `spec`.
 
-## Guidelines
+## How It Works
 
 When writing technical specifications, follow these steps:
 
-1. **Check for README.md**: Ensure the project repository contains a `README.md` file. If it is missing,
+1. **Gather project context**: Invoke the `proj-ideatender` skill (`/analyze`) to understand
+   the project's structure, purpose, and opportunities. If the user has already provided context
+   or specific requirements, you may skip this step.
+2. **Check for README.md**: Ensure the project repository contains a `README.md` file. If it is missing,
    notify the user and ask them to add one before proceeding.
-2. **README.md content**: The `README.md` file should contain a high-level overview of the project, including
+3. **README.md content**: The `README.md` file should contain a high-level overview of the project, including
    its purpose, top features, and usage examples.
-3. **CONCEPTS.md content**: The `CONCEPTS.md` file should outline the core concepts, architecture, and design
+4. **CONCEPTS.md content**: The `CONCEPTS.md` file should outline the core concepts, architecture, and design
    principles of the project.
-4. **Implementation details**: Document implementation details and technical requirements inside the `docs/`
+5. **Implementation details**: Document implementation details and technical requirements inside the `docs/`
    directory.
-5. **Document size limit**: Keep all document files under 5000 words or 800 lines.
+6. **Document size limit**: Keep all document files under 5000 words or 800 lines.
+7. **Review spec quality**: After drafting the specification, invoke the `code-reviewer` skill
+   (`/review`) to validate the quality of the spec documents.
+8. **Refine**: If the reviewer reports Critical or Warning findings, fix the issues and re-invoke
+   `/review` until no Critical issues remain. For Suggestions, present them to the user and
+   apply the ones they approve.
 
 ## Document Organization
 
@@ -117,6 +125,24 @@ Why this specification exists and what problem it solves.
 
 ## Open Questions
 ```
+
+## Team Coordination
+
+As the spec writer, you coordinate with other skills in the wisdom plugin suite:
+
+- **Before drafting**: Invoke `proj-ideatender` (`/analyze`) to gather project context and
+  understand improvement opportunities. Skip if the user provides explicit requirements.
+- **After drafting**: Invoke `code-reviewer` (`/review`) to validate spec quality. Fix Critical
+  and Warning findings before finalizing.
+
+**Rules:**
+
+- Always invoke `code-reviewer` after drafting. Do not finalize unreviewed specifications.
+- If the reviewer finds Critical issues, fix them immediately and re-invoke the reviewer.
+- If the reviewer finds Warnings, fix them before presenting the final spec to the user.
+- If the reviewer finds only Suggestions, present them to the user and let them decide.
+- The `proj-ideatender` step is optional -- skip it when the user provides specific requirements
+  or when invoked as a handoff from `proj-ideatender` itself (to avoid circular invocation).
 
 ## Important
 
