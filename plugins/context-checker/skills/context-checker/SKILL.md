@@ -39,7 +39,6 @@ When this skill is triggered, perform the following steps:
    For each plugin entry, use Glob to confirm that the plugin's expected files exist on disk:
    - `<source>/.claude-plugin/plugin.json`
    - `<source>/skills/<name>/SKILL.md`
-   - `<source>/commands/*.md` (at least one command file)
 2. **Check version consistency** - For each plugin, compare the version declared in
    `marketplace.json`, `plugin.json`, and the SKILL.md frontmatter `metadata.version`. Flag any
    mismatches.
