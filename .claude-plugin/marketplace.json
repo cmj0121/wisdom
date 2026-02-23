@@ -8,13 +8,13 @@
     {
       "name": "shortcut",
       "description": "AI agent can be triggered automatically when you type a specific shortcut.",
-      "version": "0.3.0",
+      "version": "0.3.1",
       "source": "./plugins/shortcut"
     },
     {
       "name": "git-committer",
       "description": "Assists in creating clear and concise git commit messages following conventional commit format.",
-      "version": "0.3.0",
+      "version": "0.3.1",
       "source": "./plugins/git-committer"
     },
     {
