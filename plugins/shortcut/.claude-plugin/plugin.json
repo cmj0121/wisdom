@@ -1,7 +1,7 @@
 {
   "name": "shortcut",
   "description": "AI agent can be triggered automatically when you type a specific shortcut.",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "license": "MIT",
   "author": {
     "name": "cmj",

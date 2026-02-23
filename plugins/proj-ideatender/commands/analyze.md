@@ -41,4 +41,7 @@ Analyze the current project and generate ideas for improvements or new features.
 10. If the user selects ideas for specification, invoke `/spec` and pass the selected idea details
     as context.
 
-11. This command is **read-only**. Do not modify any files or write any code.
+11. Emit an `__IDEAS_GENERATED__` block summarizing the total number of ideas, per-category
+    counts, whether a spec-writer handoff occurred, and the status (COMPLETE or PARTIAL).
+
+12. This command is **read-only**. Do not modify any files or write any code.

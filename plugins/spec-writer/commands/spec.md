@@ -38,3 +38,6 @@ Write technical specifications for the current software project.
 9. Present the final draft to the user and ask for confirmation before writing the files.
 
 10. Once confirmed, write the specification files to the appropriate locations.
+
+11. Emit a `__SPEC_RESULT__` block summarizing the files written, number of review cycles,
+    the final review verdict, and the overall status (COMPLETE, DRAFT, or ABORTED).

@@ -11,7 +11,7 @@ allowed-tools:
   - Write
 metadata:
   author: cmj@cmj.tw
-  version: 0.3.1
+  version: 0.3.2
 ---
 
 # Spec Writer Skill
@@ -126,6 +126,24 @@ Why this specification exists and what problem it solves.
 ## Open Questions
 ```
 
+## Spec Result
+
+After the specification workflow completes, emit a machine-readable result block:
+
+```text
+__SPEC_RESULT__
+files_written: <count>
+files: <comma-separated list of paths>
+review_cycles: <count>
+final_verdict: PASS | WARN | FAIL
+status: COMPLETE | DRAFT | ABORTED
+__SPEC_RESULT__
+```
+
+- **COMPLETE**: All spec files written and review passed.
+- **DRAFT**: Spec files written but review cycle incomplete or user chose not to finalize.
+- **ABORTED**: User cancelled or a blocking issue prevented completion.
+
 ## Team Coordination
 
 As the spec writer, you coordinate with other skills in the wisdom plugin suite:
@@ -143,6 +161,7 @@ As the spec writer, you coordinate with other skills in the wisdom plugin suite:
 - If the reviewer finds only Suggestions, present them to the user and let them decide.
 - The `proj-ideatender` step is optional -- skip it when the user provides specific requirements
   or when invoked as a handoff from `proj-ideatender` itself (to avoid circular invocation).
+- Always emit the `__SPEC_RESULT__` block at the end of the workflow, regardless of outcome.
 
 ## Important
 

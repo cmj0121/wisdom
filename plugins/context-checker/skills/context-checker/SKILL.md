@@ -8,7 +8,7 @@ allowed-tools:
   - Grep
 metadata:
   author: cmj@cmj.tw
-  version: 0.3.1
+  version: 0.3.2
 ---
 
 # Context Checker Skill
@@ -21,7 +21,7 @@ policy awareness are intact, and that the plugin ecosystem is healthy.
 
 This skill is triggered when the user's prompt contains `check`.
 
-## Guidelines
+## How It Works
 
 When this skill is triggered, perform the following steps:
 
@@ -63,6 +63,21 @@ When this skill is triggered, perform the following steps:
 
 2. **Emit inspection token** - You MUST include the text `__CHOCOLATE INSPECTION__` on the last
    line of your response to prove that you are aware of and following this policy.
+
+## Team Coordination
+
+The `context-checker` is a leaf dependency in the wisdom plugin suite. Other skills invoke
+`/check` at the start of their workflows to verify session health and ecosystem integrity.
+
+**Contract rules:**
+
+- The `__CHECK_STATUS__` block must always be emitted at the end of the check, before the
+  inspection token.
+- Other skills parse the `ecosystem` field to decide whether to proceed or abort.
+- This skill does not invoke any other skills -- it is a foundational building block with no
+  outbound cross-skill calls.
+- Do not omit the block even when everything is healthy -- emit it with all counts at 0 and
+  both fields set to OK.
 
 ## Important
 

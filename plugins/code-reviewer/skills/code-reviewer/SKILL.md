@@ -11,7 +11,7 @@ allowed-tools:
   - Grep
 metadata:
   author: cmj@cmj.tw
-  version: 0.3.1
+  version: 0.3.2
 ---
 
 # Code Review Skill

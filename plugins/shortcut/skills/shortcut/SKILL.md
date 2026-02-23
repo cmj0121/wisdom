@@ -15,7 +15,7 @@ allowed-tools:
   - Search(pattern:plugins)
 metadata:
   author: cmj@cmj.tw
-  version: 0.3.1
+  version: 0.3.2
 ---
 
 # Shortcut Skill
@@ -76,6 +76,36 @@ The magic word extracted is `review`.
 - If multiple magic words match, dispatch the one with the highest priority source. If they share
   the same priority, dispatch the first match found.
 - After dispatching, inform the user which shortcut was triggered.
+
+## Dispatch Result
+
+After processing a user prompt, emit a machine-readable result block:
+
+```text
+__DISPATCH_RESULT__
+matched: true | false
+magic_word: <word or none>
+skill: <skill name or none>
+source: user | project | plugin | none
+status: DISPATCHED | NO_MATCH | ERROR
+__DISPATCH_RESULT__
+```
+
+- **DISPATCHED**: A magic word was matched and the corresponding skill was invoked.
+- **NO_MATCH**: No magic word matched the user's prompt.
+- **ERROR**: A magic word matched but the dispatch failed (e.g., skill not found).
+
+## Team Coordination
+
+The `shortcut` skill is a meta-dispatcher in the wisdom plugin suite. It routes user prompts
+to the correct skill based on magic words but does not chain into multi-skill workflows itself.
+
+**Contract rules:**
+
+- Always emit the `__DISPATCH_RESULT__` block after processing, whether or not a match was found.
+- The dispatched skill is responsible for its own output contracts -- `shortcut` does not
+  aggregate or relay downstream result blocks.
+- This skill does not invoke `/check` or any other workflow skills. It is a routing layer only.
 
 ## Direct Invocation
 

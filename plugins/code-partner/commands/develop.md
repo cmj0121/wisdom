@@ -43,3 +43,7 @@ Start a pair programming session to develop a feature or fix a bug collaborative
 
 7. Commit the changes following the project's commit template or conventional commit format.
    Always confirm the commit message with the user before executing `git commit`.
+
+8. Emit a `__SESSION_RESULT__` block summarizing the session: steps planned vs completed,
+   review cycles, final verdict, commit hash, whether tests passed, and the overall status
+   (COMPLETE, PARTIAL, or ABORTED).

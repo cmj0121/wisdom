@@ -21,7 +21,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: 0.3.1
+  version: 0.3.2
 ---
 
 # Pair Programming Skill
@@ -74,6 +74,26 @@ This skill is triggered when the user's prompt contains `develop`, `implement` o
 After your task is completed, you should give the summary of the implementation in brief and concise manner, to
 help the user understand what has been done and how it works. It should be a table-like format and give the user a clear
 overview of the implementation.
+
+### Session Result
+
+After the summary, emit a machine-readable result block:
+
+```text
+__SESSION_RESULT__
+steps_planned: <count>
+steps_completed: <count>
+review_cycles: <count>
+final_verdict: PASS | WARN | FAIL
+commit_hash: <short hash or none>
+tests_passed: true | false | skipped
+status: COMPLETE | PARTIAL | ABORTED
+__SESSION_RESULT__
+```
+
+- **COMPLETE**: All planned steps implemented, reviewed, tested, and committed.
+- **PARTIAL**: Some steps completed but the session ended before finishing all work.
+- **ABORTED**: User cancelled or a blocking issue prevented meaningful progress.
 
 ### Lessons Learned
 
@@ -155,6 +175,7 @@ Invoke them via the Skill tool at the appropriate moments:
   whether to apply now or defer.
 - The `proj-ideatender` step is optional -- skip it when the user's request is specific and
   well-scoped.
+- Always emit the `__SESSION_RESULT__` block in the Epilogue, regardless of outcome.
 
 ### Git Workflow
 

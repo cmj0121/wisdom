@@ -14,7 +14,7 @@ allowed-tools:
   - WebSearch
 metadata:
   author: cmj@cmj.tw
-  version: 0.3.1
+  version: 0.3.2
 ---
 
 # Project Idea Tender Skill
@@ -91,6 +91,26 @@ A numbered list of ideas, each containing:
 
 Rank ideas by impact-to-effort ratio (High impact / Low effort first).
 
+### Result Block
+
+After the ideas list, emit a machine-readable summary block:
+
+```text
+__IDEAS_GENERATED__
+total: <count>
+features: <count>
+improvements: <count>
+refactoring: <count>
+documentation: <count>
+testing: <count>
+handoff: none | spec-writer
+status: COMPLETE | PARTIAL
+__IDEAS_GENERATED__
+```
+
+- **COMPLETE**: All analysis phases finished and ideas were generated.
+- **PARTIAL**: Analysis was cut short (e.g., missing README, inaccessible files).
+
 ## Team Coordination
 
 As the project analyst, you coordinate with other skills in the wisdom plugin suite:
@@ -106,6 +126,7 @@ As the project analyst, you coordinate with other skills in the wisdom plugin su
 - Do not write files. This skill is strictly read-only. The `spec-writer` handles all file output.
 - When handing off to `spec-writer`, pass the selected idea details (title, description, category)
   as context so the spec-writer can draft without re-analyzing the project.
+- Always emit the `__IDEAS_GENERATED__` block after the ideas list, even when no handoff occurs.
 
 ## Guidelines
 

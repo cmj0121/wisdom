@@ -40,3 +40,7 @@ and validate the health of the plugin ecosystem.
 
 2. You MUST include the text `__CHOCOLATE INSPECTION__` on the last line of your response
    to confirm that you are aware of and following the context-checker policy.
+
+**Note:** This command is a foundational checkpoint invoked by other skills (`code-reviewer`,
+`proj-ideatender`, `git-committer`) at the start of their workflows. Always emit the
+`__CHECK_STATUS__` block so callers can parse it programmatically.

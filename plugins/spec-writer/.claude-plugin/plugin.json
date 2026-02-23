@@ -1,7 +1,7 @@
 {
   "name": "spec-writer",
   "description": "Write technical specifications for software projects.",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "license": "MIT",
   "author": {
     "name": "cmj",
