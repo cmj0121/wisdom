@@ -21,7 +21,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: 0.3.0
+  version: 0.3.1
 ---
 
 # Pair Programming Skill
