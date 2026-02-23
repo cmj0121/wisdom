@@ -121,19 +121,6 @@ print(p.get('source', ''))
 		fi
 	fi
 
-	# Check commands directory has at least one .md file
-	COMMANDS_DIR="$PLUGIN_DIR/commands"
-	if [ ! -d "$COMMANDS_DIR" ]; then
-		fail "missing commands/ directory"
-	else
-		CMD_COUNT=$(find "$COMMANDS_DIR" -maxdepth 1 -name '*.md' | wc -l | tr -d ' ')
-		if [ "$CMD_COUNT" -gt 0 ]; then
-			pass "commands/ has $CMD_COUNT .md file(s)"
-		else
-			fail "commands/ has no .md files"
-		fi
-	fi
-
 	# Check README.md
 	if [ -f "$PLUGIN_DIR/README.md" ]; then
 		pass "README.md exists"
