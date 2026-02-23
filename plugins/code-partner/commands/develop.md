@@ -41,8 +41,9 @@ Start a pair programming session to develop a feature or fix a bug collaborative
    applicable. Invoke `/review` one final time on the complete changeset to catch cross-step
    issues.
 
-7. Commit the changes following the project's commit template or conventional commit format.
-   Always confirm the commit message with the user before executing `git commit`.
+7. Invoke `/commit` (git-committer) to craft and execute the commit. The git-committer will
+   handle staging, review (which it skips since code-partner already reviewed), message
+   drafting, and user confirmation.
 
 8. Emit a `__SESSION_RESULT__` block summarizing the session: steps planned vs completed,
    review cycles, final verdict, commit hash, whether tests passed, and the overall status
