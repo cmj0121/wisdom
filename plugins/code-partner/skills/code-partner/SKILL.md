@@ -49,11 +49,17 @@ This skill is triggered when the user's prompt contains `develop`, `implement` o
 2. **Understand** the project by reading README.md and relevant documentation
 3. **Discuss** the high-level design and approach with the user
 4. **Present** a brief implementation plan in table format for user approval
-5. **Implement** the code step by step, confirming at each stage
+5. **Implement & Review** -- Write code step by step. After each logical unit of work:
+   a. Confirm the implementation with the user.
+   b. Invoke the `code-reviewer` skill (`/review`) to check code quality.
+   c. **Refine** -- If the reviewer reports Critical or Warning findings, fix them
+   immediately and re-invoke `/review` until no Critical issues remain. For Suggestions,
+   present them to the user and apply the ones they approve.
+   d. Proceed to the next step only after the review cycle is clean.
 6. **Test** and verify the implementation meets the requirements
-7. **Review & commit** -- After each logical unit of work, invoke the `code-reviewer` skill
-   (`/review`) to check code quality, then invoke the `git-committer` skill (`/commit`) to
-   craft and execute the commit
+7. **Final review & commit** -- After all steps are implemented and tested, invoke
+   `code-reviewer` (`/review`) one final time on the complete changeset to catch cross-step
+   issues. Then invoke the `git-committer` skill (`/commit`) to craft and execute the commit.
 8. **Final verification** -- Before presenting the Epilogue, run a final checklist:
    - Run the full test suite. All tests must pass.
    - Run `git status` to confirm no uncommitted changes remain.
@@ -134,17 +140,19 @@ Invoke them via the Skill tool at the appropriate moments:
 
 - **Before planning**: If the scope is vague or too broad, invoke `proj-ideatender` (`/analyze`)
   to clarify requirements with the user.
-- **After implementation**: When a commit-worthy unit of work is complete, invoke `code-reviewer`
-  (`/review`) to check code quality.
-- **After review**: Once the review passes, invoke `git-committer` (`/commit`) to craft and
-  execute the commit.
+- **During implementation**: After each logical unit of work, invoke `code-reviewer` (`/review`)
+  to check code quality. Fix Critical and Warning issues before proceeding to the next step.
+- **After all steps complete**: Invoke `code-reviewer` (`/review`) one final time on the
+  complete changeset, then invoke `git-committer` (`/commit`) to craft and execute the commit.
 
 **Rules:**
 
 - Always invoke `code-reviewer` before `git-committer`. Do not commit unreviewed code.
-- If the reviewer finds Critical issues, fix them before committing.
-- If the reviewer finds only Warnings or Suggestions, present them to the user and let them
-  decide whether to fix now or commit as-is.
+- Invoke `code-reviewer` after each implementation step, not just at the end.
+- If the reviewer finds Critical issues, fix them immediately and re-invoke the reviewer.
+- If the reviewer finds Warnings, fix them before proceeding to the next step.
+- If the reviewer finds only Suggestions, present them to the user and let them decide
+  whether to apply now or defer.
 - The `proj-ideatender` step is optional -- skip it when the user's request is specific and
   well-scoped.
 

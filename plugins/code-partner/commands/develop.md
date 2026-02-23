@@ -31,8 +31,15 @@ Start a pair programming session to develop a feature or fix a bug collaborative
    - Explain what you are about to do
    - Write clean, modular code with proper naming conventions
    - Confirm with the user before moving to the next step
+   - Invoke `/review` (code-reviewer) to check the step's code quality
+   - **Refine**: Fix any Critical or Warning issues reported by the reviewer. Re-invoke
+     `/review` until no Critical issues remain. Present Suggestions to the user and apply
+     the ones they approve.
+   - Proceed to the next step only after the review cycle is clean
 
-6. After implementation, review the changes with `git diff` and write tests if applicable.
+6. After all steps are implemented, review the changes with `git diff` and write tests if
+   applicable. Invoke `/review` one final time on the complete changeset to catch cross-step
+   issues.
 
 7. Commit the changes following the project's commit template or conventional commit format.
    Always confirm the commit message with the user before executing `git commit`.
