@@ -38,7 +38,8 @@ user to confirm before proceeding.
 
 ## Shortcut
 
-This skill is triggered when the user's prompt contains `develop`, `implement` or `fix`.
+This skill is triggered when the user's prompt contains `develop`, `implement`, `fix`
+or `commit it`.
 
 ## How It Works
 
@@ -68,6 +69,17 @@ This skill is triggered when the user's prompt contains `develop`, `implement` o
    - Compare the implementation against the plan from step 4. Flag anything that was
      planned but not delivered, or delivered but not planned.
    - If any check fails, fix the issue and loop back to step 7 before continuing.
+
+## Commit-It Workflow
+
+When triggered by the `commit it` shortcut (or invoked via `wisdom:commit-it`), run a streamlined
+git-flow-only path instead of the full develop workflow:
+
+1. **Review** -- Invoke `code-reviewer` (`wisdom:review`) on the current changeset.
+2. **Commit** -- If no Critical findings, invoke `git-committer` (`wisdom:commit`) to stage,
+   draft the message, and execute the commit. If Critical findings exist, present them
+   and let the user decide whether to fix or abort.
+3. **Epilogue** -- Emit the summary table and `__SESSION_RESULT__` block as usual.
 
 ## Epilogue
 
