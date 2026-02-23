@@ -5,7 +5,7 @@ review, commit, and session summary.
 
 ## Instructions
 
-1. **Review** -- Invoke `wisdom:review` (code-reviewer) on the current changeset.
+1. **Review** -- Invoke `code-reviewer:review` (code-reviewer) on the current changeset.
    Use `git diff` and `git diff --staged` to identify the scope of changes.
 
 2. **Evaluate findings** -- Inspect the review results:
@@ -15,7 +15,7 @@ review, commit, and session summary.
    - If only **Warnings** or **Suggestions** exist, present them briefly and proceed to
      commit.
 
-3. **Commit** -- Invoke `wisdom:commit` (git-committer) to handle staging, message drafting,
+3. **Commit** -- Invoke `git-committer:commit` (git-committer) to handle staging, message drafting,
    and user confirmation. The git-committer will skip its own review step since we already
    reviewed above.
 

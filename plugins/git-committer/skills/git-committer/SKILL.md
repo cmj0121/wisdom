@@ -16,7 +16,7 @@ allowed-tools:
   - Grep
 metadata:
   author: cmj@cmj.tw
-  version: 0.3.2
+  version: 0.3.3
 ---
 
 # Git Committer Skill
@@ -32,7 +32,7 @@ This skill is triggered when the user's prompt contains `commit`.
 
 When crafting a git commit message, follow these steps:
 
-1. **Context check**: Invoke the `context-checker` skill (`/check`) to verify session health
+1. **Context check**: Invoke the `context-checker` skill (`context-checker:check`) to verify session health
    and plugin ecosystem integrity before starting the commit workflow.
 2. **Check commit template**: Read the `git.commit.template` config via `git config git.commit.template`.
    If a template file is configured, read it with the Read tool and follow its format.
@@ -42,11 +42,11 @@ When crafting a git commit message, follow these steps:
    staged files for debug artifacts (`console.log`, `debugger`, `TODO`) that should not be
    committed. If the changeset spans multiple unrelated concerns, recommend splitting into
    separate commits before proceeding.
-5. **Quality gate**: Invoke the `code-reviewer` skill (`/review`) to validate the staged changes.
+5. **Quality gate**: Invoke the `code-reviewer` skill (`code-reviewer:review`) to validate the staged changes.
    If the reviewer reports Critical findings, abort the commit and ask the user to fix the issues
    first. If the reviewer reports Warnings, present them to the user and let them decide whether
    to proceed. **Skip this step when invoked by `code-partner`** -- the code-partner already
-   runs its own review cycle before calling `/commit`.
+   runs its own review cycle before calling `git-committer:commit`.
 6. **Draft the message**: Write a commit message following the template or the conventional commit
    format described below.
 7. **Confirm with user**: Always present the draft message and ask for confirmation before
@@ -98,15 +98,15 @@ __COMMIT_RESULT__
 ## Team Coordination
 
 The `git-committer` is the final step in the development workflow. It is typically invoked
-by `code-partner` (`/commit`) after all implementation and review cycles are complete.
+by `code-partner` (`git-committer:commit`) after all implementation and review cycles are complete.
 
 **Contract rules:**
 
-- Always invoke `context-checker` (`/check`) at the start of the workflow.
+- Always invoke `context-checker` (`context-checker:check`) at the start of the workflow.
 - Always emit the `__COMMIT_RESULT__` block at the end, regardless of outcome.
-- When invoked by `code-partner`, skip the `/review` quality gate (set `review_skipped: true`)
+- When invoked by `code-partner`, skip the `code-reviewer:review` quality gate (set `review_skipped: true`)
   because `code-partner` already performed its own review cycle.
-- When invoked directly by the user, always run the `/review` quality gate
+- When invoked directly by the user, always run the `code-reviewer:review` quality gate
   (set `review_skipped: false`).
 
 ## Important

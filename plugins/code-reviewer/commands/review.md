@@ -4,7 +4,7 @@ Perform a code review on the current branch and provide feedback on code quality
 
 ## Instructions
 
-1. Invoke `/check` (context-checker) to verify session health and ecosystem integrity.
+1. Invoke `context-checker:check` (context-checker) to verify session health and ecosystem integrity.
 
 2. Run `git status` to check the current branch and working tree state. Run `git log --oneline -10`
    to understand the recent commit history.

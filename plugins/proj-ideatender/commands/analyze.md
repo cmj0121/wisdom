@@ -4,7 +4,7 @@ Analyze the current project and generate ideas for improvements or new features.
 
 ## Instructions
 
-1. Invoke `/check` (context-checker) to verify session health and ecosystem integrity.
+1. Invoke `context-checker:check` (context-checker) to verify session health and ecosystem integrity.
 
 2. Read `README.md` and all `.md` files in the project's root directory to understand the project's
    purpose, scope, and guidelines.
@@ -35,10 +35,10 @@ Analyze the current project and generate ideas for improvements or new features.
 
 8. Present each idea with a title, category, description, and effort estimate (Low / Medium / High).
 
-9. After presenting the ideas, ask the user if they would like to invoke `/spec` (spec-writer)
+9. After presenting the ideas, ask the user if they would like to invoke `spec-writer:spec` (spec-writer)
    to draft a formal specification for any of the ideas.
 
-10. If the user selects ideas for specification, invoke `/spec` and pass the selected idea details
+10. If the user selects ideas for specification, invoke `spec-writer:spec` and pass the selected idea details
     as context.
 
 11. Emit an `__IDEAS_GENERATED__` block summarizing the total number of ideas, per-category

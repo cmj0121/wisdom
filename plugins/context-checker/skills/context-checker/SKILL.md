@@ -8,7 +8,7 @@ allowed-tools:
   - Grep
 metadata:
   author: cmj@cmj.tw
-  version: 0.3.2
+  version: 0.3.3
 ---
 
 # Context Checker Skill
@@ -67,7 +67,7 @@ When this skill is triggered, perform the following steps:
 ## Team Coordination
 
 The `context-checker` is a leaf dependency in the wisdom plugin suite. Other skills invoke
-`/check` at the start of their workflows to verify session health and ecosystem integrity.
+`context-checker:check` at the start of their workflows to verify session health and ecosystem integrity.
 
 **Contract rules:**
 

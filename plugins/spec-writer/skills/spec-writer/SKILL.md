@@ -11,7 +11,7 @@ allowed-tools:
   - Write
 metadata:
   author: cmj@cmj.tw
-  version: 0.3.2
+  version: 0.3.3
 ---
 
 # Spec Writer Skill
@@ -28,7 +28,7 @@ This skill is triggered when the user's prompt contains `spec`.
 
 When writing technical specifications, follow these steps:
 
-1. **Gather project context**: Invoke the `proj-ideatender` skill (`/analyze`) to understand
+1. **Gather project context**: Invoke the `proj-ideatender` skill (`proj-ideatender:analyze`) to understand
    the project's structure, purpose, and opportunities. If the user has already provided context
    or specific requirements, you may skip this step.
 2. **Check for README.md**: Ensure the project repository contains a `README.md` file. If it is missing,
@@ -41,9 +41,9 @@ When writing technical specifications, follow these steps:
    directory.
 6. **Document size limit**: Keep all document files under 5000 words or 800 lines.
 7. **Review spec quality**: After drafting the specification, invoke the `code-reviewer` skill
-   (`/review`) to validate the quality of the spec documents.
+   (`code-reviewer:review`) to validate the quality of the spec documents.
 8. **Refine**: If the reviewer reports Critical or Warning findings, fix the issues and re-invoke
-   `/review` until no Critical issues remain. For Suggestions, present them to the user and
+   `code-reviewer:review` until no Critical issues remain. For Suggestions, present them to the user and
    apply the ones they approve.
 
 ## Document Organization
@@ -148,9 +148,9 @@ __SPEC_RESULT__
 
 As the spec writer, you coordinate with other skills in the wisdom plugin suite:
 
-- **Before drafting**: Invoke `proj-ideatender` (`/analyze`) to gather project context and
+- **Before drafting**: Invoke `proj-ideatender` (`proj-ideatender:analyze`) to gather project context and
   understand improvement opportunities. Skip if the user provides explicit requirements.
-- **After drafting**: Invoke `code-reviewer` (`/review`) to validate spec quality. Fix Critical
+- **After drafting**: Invoke `code-reviewer` (`code-reviewer:review`) to validate spec quality. Fix Critical
   and Warning findings before finalizing.
 
 **Rules:**

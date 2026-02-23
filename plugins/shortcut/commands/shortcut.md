@@ -31,5 +31,5 @@ skill and command files.
 
 5. Emit a `__DISPATCH_RESULT__` block summarizing whether a match was found, which magic word
    and skill were involved, the source level, and the status (DISPATCHED, NO_MATCH, or ERROR).
-   For direct `/shortcut` invocation (listing mode), emit with `matched: false` and
+   For direct `shortcut:shortcut` invocation (listing mode), emit with `matched: false` and
    `status: NO_MATCH`.

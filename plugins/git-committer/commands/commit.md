@@ -4,7 +4,7 @@ Create a git commit with a well-structured message following conventional commit
 
 ## Instructions
 
-1. Invoke `/check` (context-checker) to verify session health and ecosystem integrity.
+1. Invoke `context-checker:check` (context-checker) to verify session health and ecosystem integrity.
 
 2. Check if a commit template is configured via `git config git.commit.template`. If set,
    read the template file and follow its format.
@@ -16,9 +16,9 @@ Create a git commit with a well-structured message following conventional commit
    staged files for debug artifacts (`console.log`, `debugger`, `TODO`) that should not be
    committed. Understand the full scope of the changes.
 
-5. **Quality gate**: Invoke `/review` (code-reviewer) to validate the staged changes. If the
+5. **Quality gate**: Invoke `code-reviewer:review` (code-reviewer) to validate the staged changes. If the
    reviewer reports Critical findings, abort the commit. If the reviewer reports Warnings,
-   present them to the user. **Skip this step when invoked by `/develop` (code-partner)**,
+   present them to the user. **Skip this step when invoked by `code-partner:develop` (code-partner)**,
    which already runs its own review cycle.
 
 6. Draft a commit message following the configured template or the conventional commit format:

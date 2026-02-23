@@ -14,7 +14,7 @@ allowed-tools:
   - WebSearch
 metadata:
   author: cmj@cmj.tw
-  version: 0.3.2
+  version: 0.3.3
 ---
 
 # Project Idea Tender Skill
@@ -30,7 +30,7 @@ This skill is triggered when the user's prompt contains `analyze`.
 
 ### Phase 1: Project Analysis
 
-1. **Context check**: Invoke the `context-checker` skill (`/check`) to verify session health
+1. **Context check**: Invoke the `context-checker` skill (`context-checker:check`) to verify session health
    and plugin ecosystem integrity before starting the analysis.
 2. **Read project overview**: Read `README.md` and all `.md` files in the project's root directory to understand the
    project's purpose, scope, and any documented guidelines.
@@ -59,10 +59,10 @@ After presenting the ideas to the user:
 1. **Offer spec-writer handoff**: Ask the user if they would like to turn any of the ideas into a
    formal specification. For example:
 
-   > "Would you like me to invoke `/spec` to draft a technical specification for any of these ideas?"
+   > "Would you like me to invoke `spec-writer:spec` to draft a technical specification for any of these ideas?"
 
 2. **Invoke spec-writer**: If the user selects one or more ideas, invoke the `spec-writer` skill
-   (`/spec`) and pass the selected idea(s) as context. The spec-writer will handle all file writing.
+   (`spec-writer:spec`) and pass the selected idea(s) as context. The spec-writer will handle all file writing.
 3. **Stay read-only**: This skill must not write any files itself. All file creation is delegated
    to the spec-writer.
 
@@ -115,8 +115,8 @@ __IDEAS_GENERATED__
 
 As the project analyst, you coordinate with other skills in the wisdom plugin suite:
 
-- **At session start**: Invoke `context-checker` (`/check`) to verify the environment is healthy.
-- **After idea generation**: Offer to hand off selected ideas to `spec-writer` (`/spec`) for
+- **At session start**: Invoke `context-checker` (`context-checker:check`) to verify the environment is healthy.
+- **After idea generation**: Offer to hand off selected ideas to `spec-writer` (`spec-writer:spec`) for
   formal specification drafting.
 
 **Rules:**

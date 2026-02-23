@@ -21,7 +21,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: 0.3.2
+  version: 0.3.3
 ---
 
 # Pair Programming Skill
@@ -45,22 +45,22 @@ or `commit it`.
 
 1. **Scope check** -- Evaluate whether the user's request is well-defined and reasonably sized.
    If the task is vague, too broad, or would benefit from project context, invoke the
-   `proj-ideatender` skill (`/analyze`) to analyze the project and discuss scope with the user
+   `proj-ideatender` skill (`proj-ideatender:analyze`) to analyze the project and discuss scope with the user
    before proceeding.
 2. **Understand** the project by reading README.md and relevant documentation
 3. **Discuss** the high-level design and approach with the user
 4. **Present** a brief implementation plan in table format for user approval
 5. **Implement & Review** -- Write code step by step. After each logical unit of work:
    a. Confirm the implementation with the user.
-   b. Invoke the `code-reviewer` skill (`/review`) to check code quality.
+   b. Invoke the `code-reviewer` skill (`code-reviewer:review`) to check code quality.
    c. **Refine** -- If the reviewer reports Critical or Warning findings, fix them
-   immediately and re-invoke `/review` until no Critical issues remain. For Suggestions,
+   immediately and re-invoke `code-reviewer:review` until no Critical issues remain. For Suggestions,
    present them to the user and apply the ones they approve.
    d. Proceed to the next step only after the review cycle is clean.
 6. **Test** and verify the implementation meets the requirements
 7. **Final review & commit** -- After all steps are implemented and tested, invoke
-   `code-reviewer` (`/review`) one final time on the complete changeset to catch cross-step
-   issues. Then invoke the `git-committer` skill (`/commit`) to craft and execute the commit.
+   `code-reviewer` (`code-reviewer:review`) one final time on the complete changeset to catch cross-step
+   issues. Then invoke the `git-committer` skill (`git-committer:commit`) to craft and execute the commit.
 8. **Final verification** -- Before presenting the Epilogue, run a final checklist:
    - Run the full test suite. All tests must pass.
    - Run `git status` to confirm no uncommitted changes remain.
@@ -72,11 +72,11 @@ or `commit it`.
 
 ## Commit-It Workflow
 
-When triggered by the `commit it` shortcut (or invoked via `wisdom:commit-it`), run a streamlined
+When triggered by the `commit it` shortcut (or invoked via `code-partner:commit-it`), run a streamlined
 git-flow-only path instead of the full develop workflow:
 
-1. **Review** -- Invoke `code-reviewer` (`wisdom:review`) on the current changeset.
-2. **Commit** -- If no Critical findings, invoke `git-committer` (`wisdom:commit`) to stage,
+1. **Review** -- Invoke `code-reviewer` (`code-reviewer:review`) on the current changeset.
+2. **Commit** -- If no Critical findings, invoke `git-committer` (`git-committer:commit`) to stage,
    draft the message, and execute the commit. If Critical findings exist, present them
    and let the user decide whether to fix or abort.
 3. **Epilogue** -- Emit the summary table and `__SESSION_RESULT__` block as usual.
@@ -170,12 +170,12 @@ straight to a fix:
 As the lead developer, you coordinate with other skills in the wisdom plugin suite.
 Invoke them via the Skill tool at the appropriate moments:
 
-- **Before planning**: If the scope is vague or too broad, invoke `proj-ideatender` (`/analyze`)
+- **Before planning**: If the scope is vague or too broad, invoke `proj-ideatender` (`proj-ideatender:analyze`)
   to clarify requirements with the user.
-- **During implementation**: After each logical unit of work, invoke `code-reviewer` (`/review`)
+- **During implementation**: After each logical unit of work, invoke `code-reviewer` (`code-reviewer:review`)
   to check code quality. Fix Critical and Warning issues before proceeding to the next step.
-- **After all steps complete**: Invoke `code-reviewer` (`/review`) one final time on the
-  complete changeset, then invoke `git-committer` (`/commit`) to craft and execute the commit.
+- **After all steps complete**: Invoke `code-reviewer` (`code-reviewer:review`) one final time on the
+  complete changeset, then invoke `git-committer` (`git-committer:commit`) to craft and execute the commit.
 
 **Rules:**
 

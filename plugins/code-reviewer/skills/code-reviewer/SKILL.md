@@ -11,7 +11,7 @@ allowed-tools:
   - Grep
 metadata:
   author: cmj@cmj.tw
-  version: 0.3.2
+  version: 0.3.3
 ---
 
 # Code Review Skill
@@ -26,7 +26,7 @@ This skill is triggered when the user's prompt contains `review`.
 
 When performing a code review, follow these steps:
 
-1. **Context check**: Invoke the `context-checker` skill (`/check`) to verify session health
+1. **Context check**: Invoke the `context-checker` skill (`context-checker:check`) to verify session health
    and plugin ecosystem integrity before starting the review.
 2. **Check branch**: Run `git status` and `git log` to understand the current branch and recent changes.
    Use `git diff` to identify the modified files and their changes.
@@ -86,7 +86,7 @@ Use Grep to scan changed files for the following patterns. Flag any match as **C
 
 The `__REVIEW_VERDICT__` block is a machine-readable output contract consumed by other skills
 in the wisdom plugin suite (e.g., `code-partner`, `spec-writer`). These skills invoke
-`/review` and parse the verdict to decide whether to proceed or loop back for fixes.
+`code-reviewer:review` and parse the verdict to decide whether to proceed or loop back for fixes.
 
 **Contract rules:**
 

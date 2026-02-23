@@ -4,9 +4,9 @@ Write technical specifications for the current software project.
 
 ## Instructions
 
-1. If the user has not provided specific requirements, invoke `/analyze` (proj-ideatender) to
+1. If the user has not provided specific requirements, invoke `proj-ideatender:analyze` (proj-ideatender) to
    gather project context and understand improvement opportunities. Skip this step if invoked
-   as a handoff from `/analyze` or if the user provides explicit requirements.
+   as a handoff from `proj-ideatender:analyze` or if the user provides explicit requirements.
 
 2. Check whether a `README.md` file exists in the project root. If it is missing, inform the user
    and ask them to create one before proceeding.
@@ -29,10 +29,10 @@ Write technical specifications for the current software project.
    - Include reference links between related documents
    - Be precise about requirements, constraints, and expected behavior
 
-7. Invoke `/review` (code-reviewer) to validate the quality of the drafted specifications.
+7. Invoke `code-reviewer:review` (code-reviewer) to validate the quality of the drafted specifications.
 
 8. If the reviewer reports Critical or Warning findings, fix the issues in the draft and
-   re-invoke `/review` until no Critical issues remain. Present Suggestions to the user
+   re-invoke `code-reviewer:review` until no Critical issues remain. Present Suggestions to the user
    and apply the ones they approve.
 
 9. Present the final draft to the user and ask for confirmation before writing the files.

@@ -15,7 +15,7 @@ allowed-tools:
   - Search(pattern:plugins)
 metadata:
   author: cmj@cmj.tw
-  version: 0.3.2
+  version: 0.3.3
 ---
 
 # Shortcut Skill
@@ -105,11 +105,11 @@ to the correct skill based on magic words but does not chain into multi-skill wo
 - Always emit the `__DISPATCH_RESULT__` block after processing, whether or not a match was found.
 - The dispatched skill is responsible for its own output contracts -- `shortcut` does not
   aggregate or relay downstream result blocks.
-- This skill does not invoke `/check` or any other workflow skills. It is a routing layer only.
+- This skill does not invoke `context-checker:check` or any other workflow skills. It is a routing layer only.
 
 ## Direct Invocation
 
-When the user calls this skill directly (e.g., `/shortcut`), list all discovered shortcuts
+When the user calls this skill directly (e.g., `shortcut:shortcut`), list all discovered shortcuts
 as a table:
 
 | Magic Word | Skill / Command | Source | Description |
