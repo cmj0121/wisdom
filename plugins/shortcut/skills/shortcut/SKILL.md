@@ -105,7 +105,7 @@ to the correct skill based on magic words but does not chain into multi-skill wo
 - Always emit the `__DISPATCH_RESULT__` block after processing, whether or not a match was found.
 - The dispatched skill is responsible for its own output contracts -- `shortcut` does not
   aggregate or relay downstream result blocks.
-- This skill does not invoke `context-checker:check` or any other workflow skills. It is a routing layer only.
+- This skill does not invoke any other workflow skills. It is a routing layer only.
 
 ## Direct Invocation
 

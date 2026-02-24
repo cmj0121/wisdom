@@ -21,7 +21,6 @@ code more efficiently and effectively, just like me.
 | Feature         | Description                                                                |
 | --------------- | -------------------------------------------------------------------------- |
 | shortcut        | AI agent can be triggered automatically when you type a specific shortcut. |
-| context-checker | The check policy to ensure the Agent understands the guidelines.           |
 | spec-writer     | The spec writer to help you write the spec for your code.                  |
 | code-reviewer   | The code reviewer to help you review your code.                            |
 | git-committer   | The git committer to help you commit your code.                            |
