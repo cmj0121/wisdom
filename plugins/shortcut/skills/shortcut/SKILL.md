@@ -15,24 +15,21 @@ allowed-tools:
   - Search(pattern:plugins)
 metadata:
   author: cmj@cmj.tw
-  version: 0.4.0
+  version: 0.5.0
 ---
 
 # Shortcut Skill
 
-You are a skilled AI assistant that recognizes magic words in user prompts and automatically
-dispatches the corresponding skill or command.
-
-## Shortcut
-
-This skill is triggered when the user's prompt contains `shortcut`.
+You are a skilled AI assistant that recognizes magic words in user prompts and automatically dispatches the
+corresponding skill or command. You keep in mind that all the skills and commands that define magic words
+in their `## Shortcut` section are your candidates for dispatching.
 
 ## How It Works
 
-1. **Scan** all skill and command files from three sources (see below)
-2. **Extract** magic words from each file's `## Shortcut` section
-3. **Match** the user's prompt against collected magic words
-4. **Dispatch** the matched skill or command, informing the user what was triggered
+1. **Scan**: all skill and command files from three sources (see below)
+2. **Extract**: magic words from each file's `## Shortcut` section
+3. **Match**: the user's prompt against collected magic words
+4. **Dispatch**: the matched skill or command, informing the user what was triggered
 
 ## Scanning Sources
 
@@ -52,8 +49,7 @@ Also scan command directories for additional magic words:
 
 ## Magic Word Extraction
 
-Inside each `.md` file, look for a `## Shortcut` section. Within that section, find lines
-matching the pattern:
+Inside each `.md` file, look for a `## Shortcut` section. Within that section, find lines matching the pattern:
 
 > prompt contains \`{word}\`
 
@@ -71,49 +67,17 @@ The magic word extracted is `review`.
 
 ## Dispatch Rules
 
-- When the user's prompt contains a recognized magic word, invoke the matching skill or command
-  directly using the Skill tool.
-- If multiple magic words match, dispatch the one with the highest priority source. If they share
-  the same priority, dispatch the first match found.
+- When the user's prompt contains a recognized magic word, invoke the matching skill or command directly.
+- If multiple magic words match, dispatch the one with the highest priority source.
+- If they share the same priority, dispatch the most matching magic word (longest match or earliest in the prompt).
 - After dispatching, inform the user which shortcut was triggered.
-
-## Dispatch Result
-
-After processing a user prompt, emit a machine-readable result block:
-
-```text
-__DISPATCH_RESULT__
-matched: true | false
-magic_word: <word or none>
-skill: <skill name or none>
-source: user | project | plugin | none
-status: DISPATCHED | NO_MATCH | ERROR
-__DISPATCH_RESULT__
-```
-
-- **DISPATCHED**: A magic word was matched and the corresponding skill was invoked.
-- **NO_MATCH**: No magic word matched the user's prompt.
-- **ERROR**: A magic word matched but the dispatch failed (e.g., skill not found).
-
-## Team Coordination
-
-The `shortcut` skill is a meta-dispatcher in the wisdom plugin suite. It routes user prompts
-to the correct skill based on magic words but does not chain into multi-skill workflows itself.
-
-**Contract rules:**
-
-- Always emit the `__DISPATCH_RESULT__` block after processing, whether or not a match was found.
-- The dispatched skill is responsible for its own output contracts -- `shortcut` does not
-  aggregate or relay downstream result blocks.
-- This skill does not invoke any other workflow skills. It is a routing layer only.
 
 ## Direct Invocation
 
-When the user calls this skill directly (e.g., `shortcut:shortcut`), list all discovered shortcuts
-as a table:
+When the user calls this skill directly (e.g., `shortcut:shortcut`), list all discovered shortcuts as a table:
 
 | Magic Word | Skill / Command | Source | Description |
 | ---------- | --------------- | ------ | ----------- |
 
-Populate the table by scanning all three sources and extracting the magic words, skill names,
-source levels, and descriptions from the frontmatter.
+Populate the table by scanning all three sources and extracting the magic words, skill names, source levels, and
+descriptions from the frontmatter.
