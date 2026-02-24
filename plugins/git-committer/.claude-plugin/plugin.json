@@ -1,7 +1,7 @@
 {
   "name": "git-committer",
   "description": "Assists in creating clear and concise git commit messages following conventional commit format.",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "license": "MIT",
   "author": {
     "name": "cmj",

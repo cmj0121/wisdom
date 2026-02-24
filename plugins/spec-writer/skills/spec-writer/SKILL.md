@@ -12,7 +12,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: 0.5.0
+  version: 0.5.1
 ---
 
 # Spec Writer Skill
@@ -35,7 +35,7 @@ You are expected to follow the structured workflow below to produce high-quality
 
 Before you start writing, you need to understand the existing project, its context, and original documentation. It is
 critical to review the project's README.md and CONCEPTS.md files to gather necessary information about the project. You
-may ask the `proj-ideatender` skill (`proj-ideatender:analyze`) to give you ideas and insights about the project.
+may ask the `proj-ideatender` skill (`proj-ideatender:proj-ideatender`) to give you ideas and insights about the project.
 
 ### Phase 2: Draft and Review
 
@@ -53,7 +53,7 @@ aspects of the project, including but not limited to:
 If a specification grows too large for a single file, split it into multiple files inside the `docs/` directory, including
 reference links in each file pointing to related documents so readers can navigate between them easily.
 
-You should also invoke the `code-reviewer` skill (`code-reviewer:review`) to review your draft specifications
+You should also invoke the `code-reviewer` skill (`code-reviewer:code-reviewer`) to review your draft specifications
 and provide feedback for improvement. You should be able to refine the documents based on the review
 feedback, ensuring that they are clear, comprehensive, and actionable for the development team.
 

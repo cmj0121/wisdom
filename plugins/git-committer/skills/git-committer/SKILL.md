@@ -16,7 +16,7 @@ allowed-tools:
   - Grep
 metadata:
   author: cmj@cmj.tw
-  version: 0.5.0
+  version: 0.5.1
 ---
 
 # Git Committer Skill
@@ -104,9 +104,9 @@ If no template is configured, use the following format:
 ## Team Coordination
 
 The `git-committer` is the final step in the development workflow for each unit of work, and is typically invoked
-by `code-partner` (`git-committer:commit`) after implementation and review cycles are complete.
+by `code-partner` (`git-committer:git-committer`) after implementation and review cycles are complete.
 
 **Contract rules:**
 
-- When invoked by `code-partner`, skip the `code-reviewer:review` quality gate.
-- When invoked directly by the user, always run the `code-reviewer:review` quality gate.
+- When invoked by `code-partner`, skip the `code-reviewer:code-reviewer` quality gate.
+- When invoked directly by the user, always run the `code-reviewer:code-reviewer` quality gate.

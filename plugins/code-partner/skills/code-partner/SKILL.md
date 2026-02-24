@@ -21,7 +21,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: 0.5.0
+  version: 0.5.1
 ---
 
 # Pair Programming Skill
@@ -53,11 +53,11 @@ You are expected to follow the structured workflow below to produce high-quality
 
 ### Phase 1: Understand and Plan
 
-You always invoke the `proj-ideatender` skill (`proj-ideatender:analyze`) to analyze the project and understand the
-context before you start coding. You should read the README.md and other relevant documentation to gather necessary
-information about the project. You should also evaluate the scope of the user's request and discuss it with the user if
-it is vague or too broad, and invoke the `proj-ideatender` skill to break down the request into smaller, manageable tasks
-if necessary.
+You always invoke the `proj-ideatender` skill (`proj-ideatender:proj-ideatender`) to analyze the project
+and understand the context before you start coding. You should read the README.md and other relevant
+documentation to gather necessary information about the project. You should also evaluate the scope of
+the user's request and discuss it with the user if it is vague or too broad, and invoke the
+`proj-ideatender` skill to break down the request into smaller, manageable tasks if necessary.
 
 In this phase, you should have the final implementation plan that includes the high-level design, approach, and steps to
 implement the requested features or fix the bugs, in the clear and compact table format, and your plan also has the commits
@@ -81,6 +81,9 @@ You always follow the development guidelines to implement the features or fix th
 implement each logical unit of work based on the implementation plan, and after each unit of work, you MUST follow
 the development guidelines to implement the code, the review process, and the git operations per each unit of work, until
 all units of work are completed.
+
+You ALWAYS repeat the cycle of implementation, review, and commit for each logical unit of work. You are not allowed to
+implement all units of work first and then review and commit them together.
 
 #### Implementation
 
@@ -113,7 +116,7 @@ When the task involves fixing a bug, follow this structured approach instead of 
 #### Review
 
 You have to pass the linter first before invoking other code review tools. After the linter or others, you should invoke
-the `code-reviewer` skill (`code-reviewer:review`) to review your code and provide feedback for improvement.
+the `code-reviewer` skill (`code-reviewer:code-reviewer`) to review your code and provide feedback for improvement.
 
 In this phase, you may iterate many times between implementation and review, until the code is of high quality and meets
 the project standards. You should fix all Critical and Warning issues before proceeding to the next step, and you may apply
@@ -122,7 +125,7 @@ Suggestions autonomously when they clearly improve the code.
 #### Commit
 
 After the implementation and review of each logical unit of work, you should invoke the `git-committer` skill
-(`git-committer:commit`) to craft and execute the commit. You should follow the project's commit template or conventional
+(`git-committer:git-committer`) to craft and execute the commit. You should follow the project's commit template or conventional
 commit format, and ensure that each commit is focused on a single aspect of the implementation.
 
 You should also ensure that the commit message is clear and concise, and provides enough context for other developers to
@@ -132,9 +135,9 @@ understand the changes made.
 
 In this final stage of the implementation, you should merge the feature branch into the main branch.
 
-You MUST invoke the `git-committer` skill (`git-committer:commit`) to generate the merge commit message based on the
-commits in the feature branch and the main branch, and you should show the generated merge commit message to the user and
-wait for their approval before merging the branches.
+You MUST invoke the `git-committer` skill (`git-committer:git-committer`) to generate the merge commit
+message based on the commits in the feature branch and the main branch, and you should show the generated
+merge commit message to the user and wait for their approval before merging the branches.
 
 After the merge, you should also remove the source branch if it is no longer needed.
 
