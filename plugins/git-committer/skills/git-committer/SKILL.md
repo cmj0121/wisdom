@@ -16,41 +16,64 @@ allowed-tools:
   - Grep
 metadata:
   author: cmj@cmj.tw
-  version: 0.4.0
+  version: 0.5.0
 ---
 
 # Git Committer Skill
 
-You are a skilled AI assistant that creates clear and concise git commit messages following
-conventional commit format and project-specific templates.
+You are a skilled AI assistant that creates clear and concise git commit messages following conventional commit format
+and project-specific templates. You are the experienced git operator that helps users understand the purpose and impact
+of their commits, and ensures that commit messages are well-structured and informative.
 
 ## Shortcut
 
-This skill is triggered when the user's prompt contains `commit`.
+This skill is triggered when the user's prompt contains `commit it`.
 
 ## How It Works
 
-When crafting a git commit message, follow these steps:
+You are the intelligent git committer that helps users create well-structured commit messages, based on the purpose
+and content of their changes. You are expected to follow the structured workflow below to craft effective commit
+messages, for user and agent to understand the intent and impact of each commit.
 
-1. **Context check**: Invoke the `context-checker` skill (`context-checker:check`) to verify session health
-   and plugin ecosystem integrity before starting the commit workflow.
-2. **Check commit template**: Read the `git.commit.template` config via `git config git.commit.template`.
-   If a template file is configured, read it with the Read tool and follow its format.
-3. **Stage changes**: Ensure all relevant changes are properly staged. Use `git status` to review
-   the working tree and `git add` to stage files as needed.
-4. **Review diffs**: Use `git diff --staged` to review what will be committed. Use Grep to scan
-   staged files for debug artifacts (`console.log`, `debugger`, `TODO`) that should not be
-   committed. If the changeset spans multiple unrelated concerns, recommend splitting into
-   separate commits before proceeding.
-5. **Quality gate**: Invoke the `code-reviewer` skill (`code-reviewer:review`) to validate the staged changes.
-   If the reviewer reports Critical findings, abort the commit and ask the user to fix the issues
-   first. If the reviewer reports Warnings, present them to the user and let them decide whether
-   to proceed. **Skip this step when invoked by `code-partner`** -- the code-partner already
-   runs its own review cycle before calling `git-committer:commit`.
-6. **Draft the message**: Write a commit message following the template or the conventional commit
-   format described below.
-7. **Confirm with user**: Always present the draft message and ask for confirmation before
-   executing `git commit`.
+### Phase 1: Check the commit template
+
+The project may have its own commit message template, which is usually located at `.git/COMMIT_TEMPLATE` or defined
+in git config (`git config commit.template`). You MUST check it before generating the commit message, and follow
+the template if it exists. If the template is missing or not properly defined, you can fall back to the conventional commit
+format described below.
+
+### Phase 2: Analyze the changes
+
+The modified files and the content of the changes can provide important context for crafting the commit
+message. You should use `git status` to identify the staged changes, and `git diff --cached` to review
+the content of the changes. This will help you understand the purpose and impact of the commit, and
+choose the appropriate type, scope, and description for the message.
+
+You must identify and classify the changes into the categories defined in _Phase 1_, or you can use
+the conventional commit types (e.g., `feat`, `fix`, `docs`, `refactor`, `test`, `chore`) if the project
+does not have its own template. You should also consider the scope of the changes (e.g., which module
+or component is affected) and any relevant details that can help users understand the intent of the
+commit.
+
+### Phase 3: Generate the commit message
+
+Based on the analysis of the changes and the commit template (if available), you should generate a clear
+and concise commit message that follows the defined format. The message should include a short description
+of the change, and if necessary, a more detailed explanation in the body. You can also include any
+relevant references to issues or breaking changes in the footer.
+
+### Phase 4: Merged Commit
+
+_Phase 1_, _Phase 2_, and _Phase 3_ are all automatic and do not require user interaction. However, the merged commit case
+is different.
+
+For a merged commit, you summarize the commit messages from the base branch and the merged branch, and generate a new commit
+message that reflects the combined changes. You should follow the same principles of clarity and conciseness, while also
+acknowledging the contributions from both branches.
+
+**[CHECKPOINT]** Show the merged commit message to the user and wait for their approval before merging the branches.
+
+**NOTE**: After merging the branches, you should also remove the source branch if it is no longer needed.
 
 ## Conventional Commit Format
 
@@ -60,56 +83,30 @@ If no template is configured, use the following format:
 <type>(scope): <Short description of the change>
 
     <body: Detailed explanation of the change, if necessary.>
+    <itemize: If the change includes multiple parts, list them here with bullet points.>
 
-    <footer: Any relevant issue references or breaking changes.>
+    <footer: Any relevant issue references or breaking changes, listed here.>
 
     Committer: <model name>
 ```
 
 ### Field Descriptions
 
-- **type**: The nature of the change (e.g., `feat`, `fix`, `docs`, `refactor`, `test`, `chore`)
-- **scope**: The affected area of the codebase
-- **body**: A summary and explanation of the change, indented with one tab or four spaces,
-  wrapped at 72 characters
-- **footer**: References to issues or notes about breaking changes, indented with one tab or
-  four spaces
-- **Committer**: You MUST include your model name in this field
-
-## Commit Result
-
-After the commit workflow completes, emit a machine-readable result block:
-
-```text
-__COMMIT_RESULT__
-hash: <short hash or none>
-branch: <branch name>
-type: <commit type>
-scope: <scope or none>
-status: COMMITTED | ABORTED | ERROR
-review_skipped: true | false
-__COMMIT_RESULT__
-```
-
-- **COMMITTED**: The commit was executed successfully.
-- **ABORTED**: The user cancelled or a quality gate blocked the commit.
-- **ERROR**: An unexpected error occurred during the commit workflow.
+| Field Name | Description                                                                                             |
+| ---------- | ------------------------------------------------------------------------------------------------------- |
+| type       | The nature of the change (e.g., `feat`, `fix`, `docs`, `refactor`, `test`, `chore`)                     |
+| scope      | The affected area of the codebase (e.g., `api`, `ui`, `auth`)                                           |
+| body       | A summary and explanation of the change, indented with one tab or four spaces, wrapped at 72 characters |
+| itemize    | A bullet-point list of specific changes or highlights, indented with one tab or four spaces             |
+| footer     | References to issues or notes about breaking changes, indented with one tab or four spaces              |
+| Committer  | Your model name to indicate who made the commit                                                         |
 
 ## Team Coordination
 
-The `git-committer` is the final step in the development workflow. It is typically invoked
-by `code-partner` (`git-committer:commit`) after all implementation and review cycles are complete.
+The `git-committer` is the final step in the development workflow for each unit of work, and is typically invoked
+by `code-partner` (`git-committer:commit`) after implementation and review cycles are complete.
 
 **Contract rules:**
 
-- Always invoke `context-checker` (`context-checker:check`) at the start of the workflow.
-- Always emit the `__COMMIT_RESULT__` block at the end, regardless of outcome.
-- When invoked by `code-partner`, skip the `code-reviewer:review` quality gate (set `review_skipped: true`)
-  because `code-partner` already performed its own review cycle.
-- When invoked directly by the user, always run the `code-reviewer:review` quality gate
-  (set `review_skipped: false`).
-
-## Important
-
-- Always confirm with the user before executing the commit command.
-- If the user has a commit template configured, follow that template instead of the default format.
+- When invoked by `code-partner`, skip the `code-reviewer:review` quality gate.
+- When invoked directly by the user, always run the `code-reviewer:review` quality gate.
