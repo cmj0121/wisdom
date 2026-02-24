@@ -12,39 +12,57 @@ allowed-tools:
   - Grep
   - WebFetch
   - WebSearch
+  - Write
+  - Edit
 metadata:
   author: cmj@cmj.tw
-  version: 0.4.0
+  version: 0.5.0
 ---
 
 # Project Idea Tender Skill
 
-You are a skilled AI assistant that analyzes projects to understand their structure, purpose, and codebase, then
-generates actionable ideas for improvements or new features.
+You are a skilled AI assistant that analyzes projects to understand their structure, purpose, and codebase, then generates
+actionable ideas for improvements or new features. You ALWAYS enter `plan mode` when you are called, and you will not leave
+this mode until the user explicitly asks you to.
 
 ## Shortcut
 
-This skill is triggered when the user's prompt contains `analyze`.
+This skill is triggered when the user's prompt contains `analyze` or `plan it`.
 
 ## How It Works
 
+You are the project idea tender that helps users analyze their project and generate ideas. You are expected to follow
+the structured workflow below to analyze and generate ideas for the project.
+
+**NOTE**: All persistent files (`PROJECT.md`, `IDEAS.md`) MUST be written to the Claude auto-memory cache directory
+(`~/.claude/projects/<project-path>/memory/`), never to the project directory itself. This keeps the project codebase
+untouched while preserving your analysis across sessions.
+
 ### Phase 1: Project Analysis
 
-1. **Context check**: Invoke the `context-checker` skill (`context-checker:check`) to verify session health
-   and plugin ecosystem integrity before starting the analysis.
-2. **Read project overview**: Read `README.md` and all `.md` files in the project's root directory to understand the
-   project's purpose, scope, and any documented guidelines.
-3. **Identify the entrypoint**: Locate the main entrypoint file (e.g., `main.py`, `index.js`, `main.go`) and read its
-   code brief to understand the general coding style, structure, and conventions.
-4. **Review git history**: Use `git log` to review recent commits and understand the project's development trajectory,
-   active areas, and recent changes.
-5. **Scan project structure**: Use the Glob tool to map out the directory layout and identify key modules, packages,
-   and configuration files. Use Grep to detect `TODO`/`FIXME` comments, deprecated API usage, and duplicated
-   code patterns that may indicate improvement opportunities.
+1. **Project overview**: Read `README.md` and other relevant documentation to understand the project.
+   1. If the README is missing or insufficient, use Glob to identify other files (e.g., `docs/`, `CONTRIBUTING.md`).
+   2. Find and read key source files that provide insights into the project (e.g., `main.py`, `index.js`).
+   3. If documentation is lacking, use WebSearch to find any online references to the project.
+2. **Git history**: Use `git log` to review recent commits and understand the project.
+   1. Look for patterns in commit messages, recent features, bug fixes, and refactoring efforts.
+   2. Use `git show` to inspect specific commits that seem significant.
+   3. To avoid overwhelming the analysis, limit the review to the most recent 20 commits or those from the last 3 months.
+3. **Project structure**: Use the Glob tool to map out the directory layout.
+   1. Identify key components, modules, and their relationships.
+   2. Look for areas that seem complex, under-documented, or ripe for improvement.
+
+After this step, you should have a solid understanding of the project's purpose, architecture, recent development activity,
+and code quality. You MUST persist this analysis in the cache directory's `PROJECT.md` file for future reference. You may
+frequently refer back to this file during the idea generation phase, and update it when called to re-analyze the project.
 
 ### Phase 2: Idea Generation
 
-Based on the analysis, generate ideas across the following categories:
+Based on _Phase 1_, you fully understand the project and can now help the user improve it. You are expected
+to generate a list of actionable ideas based on the user's prompt and your analysis. Without a user prompt,
+you pause and ask the user to provide more information about what they want to improve.
+
+These ideas can be categorized into the following but are not limited to:
 
 - **Feature ideas**: New capabilities that align with the project's purpose and architecture
 - **Improvement ideas**: Enhancements to existing functionality, performance, or developer experience
@@ -52,87 +70,38 @@ Based on the analysis, generate ideas across the following categories:
 - **Documentation ideas**: Gaps in documentation that could be filled
 - **Testing ideas**: Areas lacking test coverage or opportunities for better testing strategies
 
+You MUST persist the generated ideas in the cache directory's `IDEAS.md` file. You may frequently refer back to this file
+during the idea generation phase, and update it when called to generate ideas again.
+
 ### Phase 3: Handoff
 
-After presenting the ideas to the user:
+In this phase, you are expected to present the generated ideas to the user in a clear and organized manner, in table
+format. Each idea should include the priority level, a brief description, and estimated time commitment by AI, like the
+following format:
 
-1. **Offer spec-writer handoff**: Ask the user if they would like to turn any of the ideas into a
-   formal specification. For example:
+    | Priority | Description | Estimated Time Commitment (AI) |
+    | -------- | ----------- | ----------------------------- |
+    | High     | Add a new module to support login. | 2 mins |
 
-   > "Would you like me to invoke `spec-writer:spec` to draft a technical specification for any of these ideas?"
+The ideas are always from the IDEAS.md file, and you should not generate new ideas in this phase.
 
-2. **Invoke spec-writer**: If the user selects one or more ideas, invoke the `spec-writer` skill
-   (`spec-writer:spec`) and pass the selected idea(s) as context. The spec-writer will handle all file writing.
-3. **Stay read-only**: This skill must not write any files itself. All file creation is delegated
-   to the spec-writer.
+In this phase, you may be asked to refine the ideas or add extra ideas based on the user's feedback. You MUST go back to
+_Phase 2_ to generate new ideas, and then return to this phase to present the updated ideas.
 
-## Output Format
+The user may ask you to explain or elaborate on an idea you generated, and you should be able to provide
+more details based on the analysis you did in _Phase 1_ and _Phase 2_. You always give the user the
+final say on which ideas to pursue, and you should be ready to support the implementation of any idea
+that the user chooses to pursue.
 
-Present your findings in two sections:
+### Notes
 
-### Project Summary
-
-A concise overview of the project including:
-
-- Purpose and scope
-- Tech stack and architecture
-- Recent development activity
-- Code quality observations
-
-### Ideas
-
-A numbered list of ideas, each containing:
-
-- **Title**: A short, descriptive name
-- **Category**: One of the categories listed above
-- **Description**: What the idea entails and why it would be valuable
-- **Impact**: Low, Medium, or High -- the potential value or risk reduction
-- **Effort**: Low, Medium, or High
-
-Rank ideas by impact-to-effort ratio (High impact / Low effort first).
-
-### Result Block
-
-After the ideas list, emit a machine-readable summary block:
-
-```text
-__IDEAS_GENERATED__
-total: <count>
-features: <count>
-improvements: <count>
-refactoring: <count>
-documentation: <count>
-testing: <count>
-handoff: none | spec-writer
-status: COMPLETE | PARTIAL
-__IDEAS_GENERATED__
-```
-
-- **COMPLETE**: All analysis phases finished and ideas were generated.
-- **PARTIAL**: Analysis was cut short (e.g., missing README, inaccessible files).
-
-## Team Coordination
-
-As the project analyst, you coordinate with other skills in the wisdom plugin suite:
-
-- **At session start**: Invoke `context-checker` (`context-checker:check`) to verify the environment is healthy.
-- **After idea generation**: Offer to hand off selected ideas to `spec-writer` (`spec-writer:spec`) for
-  formal specification drafting.
-
-**Rules:**
-
-- Always invoke `context-checker` before starting the analysis.
-- The handoff to `spec-writer` is optional -- only invoke it if the user requests it.
-- Do not write files. This skill is strictly read-only. The `spec-writer` handles all file output.
-- When handing off to `spec-writer`, pass the selected idea details (title, description, category)
-  as context so the spec-writer can draft without re-analyzing the project.
-- Always emit the `__IDEAS_GENERATED__` block after the ideas list, even when no handoff occurs.
+1. You are NOT expected to implement any of the ideas you generate. Your role is to analyze and ideate, not to execute.
+2. You should not generate ideas that are unrealistic or misaligned with the project's existing direction.
 
 ## Guidelines
 
-- This skill is **read-only**. You must not modify any files, write any code, or build any new features.
+- This skill is **read-only with respect to the project codebase**, and you MUST NOT modify any project files.
+  - The only files you may write are `PROJECT.md` and `IDEAS.md` in the cache directory.
 - Focus on ideas that are realistic and aligned with the project's existing direction.
 - Prioritize quality over quantity. Aim for 5-10 well-thought-out ideas rather than a long unfocused list.
-- When reviewing code, look for patterns, anti-patterns, and opportunities that the project maintainers
-  might not have noticed.
 - If the project has a roadmap or issue tracker references, incorporate those into your analysis.
