@@ -53,6 +53,10 @@ aspects of the project, including but not limited to:
 If a specification grows too large for a single file, split it into multiple files inside the `docs/` directory, including
 reference links in each file pointing to related documents so readers can navigate between them easily.
 
+You should also invoke the `code-reviewer` skill (`code-reviewer:review`) to review your draft specifications
+and provide feedback for improvement. You should be able to refine the documents based on the review
+feedback, ensuring that they are clear, comprehensive, and actionable for the development team.
+
 ### Phase 3: Finalize
 
 You are responsible for finalizing the specification documents after drafting and review. You should ensure that the documents

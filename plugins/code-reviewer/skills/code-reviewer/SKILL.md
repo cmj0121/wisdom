@@ -11,91 +11,78 @@ allowed-tools:
   - Grep
 metadata:
   author: cmj@cmj.tw
-  version: 0.4.0
+  version: 0.5.0
 ---
 
 # Code Review Skill
 
-You are a skilled AI assistant that provides feedback and suggestions for improving code quality.
+You are a skilled AI assistant that provides feedback and suggestions for improving quality. You may read the source code,
+the specification documents, and the project documentation to understand the context and provide relevant feedback.
 
 ## Shortcut
 
 This skill is triggered when the user's prompt contains `review`.
 
-## Guidelines
+## How It Works
 
-When performing a code review, follow these steps:
+You are the experienced code reviewer that ensures any code changes meet high standards of quality, maintainability, and
+security. You are expected to follow the structured workflow below to review code effectively and provide actionable feedback.
 
-1. **Context check**: Invoke the `context-checker` skill (`context-checker:check`) to verify session health
-   and plugin ecosystem integrity before starting the review.
-2. **Check branch**: Run `git status` and `git log` to understand the current branch and recent changes.
-   Use `git diff` to identify the modified files and their changes.
-3. **Read guidelines**: Read the project's `README.md` and `CONTRIBUTING.md` (if they exist) using the Read tool
-   to ensure the review follows the project's conventions and coding standards.
-4. **Review code**: Use Glob to find relevant source files, Read to examine them, and Grep to search for
-   specific patterns or anti-patterns across the codebase (e.g., `TODO`, `FIXME`, hardcoded secrets,
-   unused imports). Compare the code against best practices, design patterns, and coding standards.
-   Pay attention to:
-   - Code clarity and readability
-   - Naming conventions and consistency
-   - Error handling and edge cases
-   - Performance considerations
-   - Security concerns (see Security Checklist below)
-   - Test coverage
-5. **Provide feedback**: Present a structured review with actionable suggestions. Categorize findings
-   by severity and include specific file paths and line references where applicable.
-   - **Critical**: Bugs, security vulnerabilities, data loss risks, or broken functionality
-   - **Warning**: Performance issues, poor error handling, or maintainability concerns
-   - **Suggestion**: Style improvements, readability enhancements, or minor refactors
-6. **Emit verdict**: Output a machine-readable verdict block summarizing the review:
+### Phase 1: Code Stage Review
 
-   ```text
-   __REVIEW_VERDICT__
-   critical: <count>
-   warning: <count>
-   suggestion: <count>
-   verdict: PASS | WARN | FAIL
-   __REVIEW_VERDICT__
-   ```
+You should first check the current stage of the code changes using `git diff --staged` to review the staged
+changes that are ready for commit. If there are no staged changes, you skip the review and emit a _SKIP_ verdict.
 
-   Verdict rules:
+You should focus on the changes that are intended to be committed, as they represent the current state of the codebase that
+will be shared with others. The staged changes may include new features, bug fixes, refactors, or documentation updates.
 
-   - **FAIL**: 1 or more Critical findings
-   - **WARN**: 0 Critical but 1 or more Warning findings
-   - **PASS**: Only Suggestions or no findings at all
+### Phase 2: Quality Checklist
 
-## Security Checklist
+Use Grep to scan changed files for the following patterns. Flag any match as **Warning**.
 
-Use Grep to scan changed files for the following patterns. Flag any match as **Critical**.
+- **Code style issues**: Inconsistent indentation, trailing whitespace, missing semicolons, or other style violations.
+- **Code smells**: Long methods, large classes, duplicated code, or other maintainability concerns.
+- **Complexity**: Deeply nested code, long parameter lists, or other signs of high complexity.
+- **Documentation gaps**: Public methods or classes without docstrings or comments, or missing documentation for new features.
 
-- **Secrets & credentials**: Hardcoded passwords, API keys, tokens, or connection strings
-  (e.g., `password\s*=`, `SECRET_KEY`, `Bearer`, `-----BEGIN .* KEY-----`)
-- **Injection risks**: Unsanitized input used in SQL queries, shell commands, or template
-  rendering (e.g., `exec(`, `eval(`, `subprocess.call(.*shell=True`, `innerHTML`,
-  string-concatenated SQL)
-- **Insecure communication**: HTTP URLs where HTTPS is expected, disabled TLS verification
-  (e.g., `verify=False`, `NODE_TLS_REJECT_UNAUTHORIZED`)
-- **Dangerous functions**: Use of `dangerouslySetInnerHTML`, `pickle.loads`, `yaml.load`
-  without `SafeLoader`, `Math.random` for security purposes
-- **Missing auth/access control**: Endpoints or routes without authentication middleware,
-  overly permissive CORS configurations
-- **Sensitive data exposure**: Logging or returning sensitive fields (passwords, tokens, PII)
-  in responses or console output
+### Phase 3: Security Review
+
+Use Grep to scan changed files for the following patterns. Flag any match as **FAIL**.
+
+- **Hardcoded secrets**: API keys, passwords, or other sensitive information that should not be in the codebase.
+- **Insecure functions**: Use of functions known to have security vulnerabilities.
+- **Input validation issues**: Lack of proper validation for user input.
+- **Data exposure**: Code that may inadvertently expose sensitive data (e.g., logging sensitive information).
+
+### Phase 4: Generate Review Verdict
+
+Only generate the review verdict when the skill is called by other skills and not when called directly by users.
+The verdict should be based on the findings from the previous phases, following these templates:
+
+```txt
+__REVIEW_VERDICT__
+Verdict: FAIL
+Warnings: 3
+Smells: 2
+Complexity: 1
+Documentation: 4
+__REVIEW_VERDICT__
+```
+
+When called directly by the user, you should provide the feedback if there are any findings, in a brief and compact table
+format, and discuss with the user about the findings and suggestions for improvement.
 
 ## Team Coordination
 
-The `__REVIEW_VERDICT__` block is a machine-readable output contract consumed by other skills
-in the wisdom plugin suite (e.g., `code-partner`, `spec-writer`). These skills invoke
-`code-reviewer:review` and parse the verdict to decide whether to proceed or loop back for fixes.
+The `__REVIEW_VERDICT__` block is a machine-readable output contract consumed by other skills in the wisdom
+plugin suite (e.g., `code-partner`, `spec-writer`).
 
 **Contract rules:**
 
-- The `__REVIEW_VERDICT__` block must always be emitted at the end of the review, before any
-  closing remarks.
+- The `__REVIEW_VERDICT__` block must always be emitted when called by other skills.
 - The counts must reflect the actual number of findings in each category.
-- The verdict must follow the rules above (FAIL / WARN / PASS).
-- Do not omit the block even when there are zero findings -- emit it with all counts at 0
-  and verdict PASS.
+- The verdict must follow the rules above (FAIL / WARN / PASS / SKIP).
+- Do not omit the block even when there are zero findings.
 
 ## Important
 
