@@ -21,7 +21,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: 0.5.1
+  version: 0.5.2
 ---
 
 # Pair Programming Skill
@@ -119,8 +119,13 @@ You have to pass the linter first before invoking other code review tools. After
 the `code-reviewer` skill (`code-reviewer:code-reviewer`) to review your code and provide feedback for improvement.
 
 In this phase, you may iterate many times between implementation and review, until the code is of high quality and meets
-the project standards. You should fix all Critical and Warning issues before proceeding to the next step, and you may apply
-Suggestions autonomously when they clearly improve the code.
+the project standards. You should fix all Critical, Warning, and Security (FAIL verdict) issues before proceeding to the
+next step, and you may apply Suggestions autonomously when they clearly improve the code.
+
+When the code-reviewer returns a **FAIL** verdict due to security findings (hardcoded secrets, insecure functions, input
+validation issues, or data exposure), you MUST automatically fix the security issues and re-invoke the code-reviewer to
+verify the fixes. Do not stop or ask the user for confirmation on security fixes — resolve them autonomously as part of
+the review iteration loop.
 
 #### Commit
 
