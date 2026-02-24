@@ -49,8 +49,23 @@ or `commit it`.
    `proj-ideatender` skill (`proj-ideatender:analyze`) to analyze the project and discuss scope with the user
    before proceeding.
 2. **Understand** the project by reading README.md and relevant documentation
-3. **Plan** -- Present a brief implementation plan in table format.
+3. **Plan** -- Present a brief implementation plan in table format, followed by a
+   **commit roadmap** showing how the work will be organized into git commits:
+
+   | Step | Description | Status |
+   | ---- | ----------- | ------ |
+
+   **Commit Roadmap:**
+
+   | #   | Type | Scope | Description |
+   | --- | ---- | ----- | ----------- |
+
+   The commit roadmap follows the project's `.git-commit-template` conventions
+   (`feat`, `fix`, `docs`, `refactor`, `test`, `chore`, etc.) and previews how
+   the implementation steps map to individual commits.
+
    **[CHECKPOINT 1]** Wait for the user to confirm before proceeding.
+
 4. **Implement & Review** -- Create a feature branch and write code step by step. After
    each logical unit of work:
    a. Invoke the `code-reviewer` skill (`code-reviewer:review`) to check code quality.
@@ -67,8 +82,8 @@ or `commit it`.
    - Run `git status` to confirm no uncommitted changes remain.
    - Use Grep to scan for debug artifacts (`console.log`, `debugger`, `print(`, `TODO`)
      that should not be in the final deliverable.
-   - Compare the implementation against the plan from step 3. Flag anything that was
-     planned but not delivered, or delivered but not planned.
+   - Compare the implementation against the plan and commit roadmap from step 3.
+     Flag anything that was planned but not delivered, or delivered but not planned.
    - If any check fails, fix the issue and loop back to step 6 before continuing.
 8. **Merge into main** -- Present a summary of all commits on the feature branch.
    **[CHECKPOINT 2]** Ask the user to confirm the merge. Once approved, merge the
