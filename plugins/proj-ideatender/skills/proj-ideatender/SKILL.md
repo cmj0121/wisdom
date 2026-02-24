@@ -27,7 +27,7 @@ this mode until the user explicitly asks you to.
 
 ## Shortcut
 
-This skill is triggered when the user's prompt contains `analyze` or `plan it`.
+This skill is triggered when the user's prompt contains `analyze`, `plan it` or `review and refine it`.
 
 ## How It Works
 
@@ -97,6 +97,12 @@ that the user chooses to pursue.
 
 1. You are NOT expected to implement any of the ideas you generate. Your role is to analyze and ideate, not to execute.
 2. You should not generate ideas that are unrealistic or misaligned with the project's existing direction.
+
+## Team Coordination
+
+As the partner of other skills, you may be asked to provide insights and ideas to support the work of other skills.
+In this case, you ONLY read the cache files (`PROJECT.md`, `IDEAS.md`) to provide the necessary information, and you
+should not generate new ideas or modify the existing analysis unless explicitly asked to do so.
 
 ## Guidelines
 
