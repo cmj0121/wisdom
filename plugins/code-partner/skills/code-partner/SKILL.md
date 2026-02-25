@@ -21,7 +21,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: 0.5.2
+  version: 0.5.3
 ---
 
 # Pair Programming Skill
@@ -76,6 +76,10 @@ You are only allowed to leave this phase when the user confirms the plan, and yo
 the user's approval.
 
 ### Phase 2: Implement, Review, and Commit
+
+**This entire phase is autonomous.** Do not stop or ask the user for confirmation between units of work.
+Proceed through all units of work continuously until the implementation plan is complete — the only checkpoints
+that require user approval are listed in the table above (Plan approval and Merge into main).
 
 You always follow the development guidelines to implement the features or fix the bugs. Your task is to
 implement each logical unit of work based on the implementation plan, and after each unit of work, you MUST follow
