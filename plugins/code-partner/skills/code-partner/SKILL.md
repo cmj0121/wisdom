@@ -12,6 +12,7 @@ allowed-tools:
   - Bash(git stash)
   - Bash(git restore:*)
   - Bash(git diff:*)
+  - Bash(rm:*)
   - Bash(find:*)
   - Bash(ls:*)
   - Read
@@ -21,7 +22,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: 0.5.3
+  version: 0.6.0
 ---
 
 # Pair Programming Skill
@@ -39,6 +40,10 @@ approval before proceeding:
 | --------------- | -------------------------------------------------------------------------------- |
 | Plan approval   | Present the implementation plan and wait for the user to confirm before coding.  |
 | Merge into main | After all work is committed on the feature branch, and before merging into main. |
+
+**Plan file:** The implementation plan is persisted to `PLAN.md` in the project root. This file is a temporary
+working artifact used during the development session and is **not committed** to the repository. It is removed
+automatically after the merge is complete.
 
 ## Shortcut
 
@@ -70,6 +75,11 @@ The units of work may be like the following, but are not limited to:
 - The details of the implementation, including the logic, algorithms, and data structures, per feature or bug fix.
 - The unit tests, integration tests, or other verification steps to ensure the correctness and quality of the implementation.
 
+Once the plan is finalized, you MUST write it to `PLAN.md` in the project root using the `Write` tool. The file should
+contain the high-level design, approach, units of work table, and planned commits. After writing the file, inform the
+user that the plan has been saved to `PLAN.md` and ask them to review it. The user may edit `PLAN.md` directly and
+confirm when they are satisfied with the plan.
+
 User may loop-in the `proj-ideatender` skill multiple times during the planning phase to refine the plan and gather more
 insights about the project. You MUST wait for the user's confirmation before proceeding to the implementation phase.
 You are only allowed to leave this phase when the user confirms the plan, and you should not proceed to implementation without
@@ -80,6 +90,9 @@ the user's approval.
 **This entire phase is autonomous.** Do not stop or ask the user for confirmation between units of work.
 Proceed through all units of work continuously until the implementation plan is complete — the only checkpoints
 that require user approval are listed in the table above (Plan approval and Merge into main).
+
+At the start of this phase, you MUST read `PLAN.md` from the project root to load the implementation plan. The user
+may have edited the file after Phase 1, so treat `PLAN.md` as the **source of truth** for the units of work.
 
 You always follow the development guidelines to implement the features or fix the bugs. Your task is to
 implement each logical unit of work based on the implementation plan, and after each unit of work, you MUST follow
@@ -148,7 +161,8 @@ You MUST invoke the `git-committer` skill (`git-committer:git-committer`) to gen
 message based on the commits in the feature branch and the main branch, and you should show the generated
 merge commit message to the user and wait for their approval before merging the branches.
 
-After the merge, you should also remove the source branch if it is no longer needed.
+After the merge, you should also remove the source branch if it is no longer needed. You MUST also remove the
+`PLAN.md` file from the project root using `rm PLAN.md` to clean up the temporary plan artifact.
 
 ### Phase 4: Lessons Learned
 
