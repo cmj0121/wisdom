@@ -26,6 +26,7 @@ code more efficiently and effectively, just like me.
 | git-committer   | The git committer to help you commit your code.                            |
 | code-partner    | The code partner to help you code together with the AI agent.              |
 | proj-ideatender | The project idea tender to help you generate project ideas.                |
+| agent-smith     | Fully autonomous development agent: idea in, code out.                     |
 
 ## DDD (Dream-Driven Development)
 

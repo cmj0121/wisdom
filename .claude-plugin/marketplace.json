@@ -40,6 +40,12 @@
       "description": "The project idea tender to help you generate project ideas.",
       "version": "0.5.0",
       "source": "./plugins/proj-ideatender"
+    },
+    {
+      "name": "agent-smith",
+      "description": "Fully autonomous development agent: give it an idea, it plans, implements, iterates, and delivers.",
+      "version": "0.1.0",
+      "source": "./plugins/agent-smith"
     }
   ]
 }
