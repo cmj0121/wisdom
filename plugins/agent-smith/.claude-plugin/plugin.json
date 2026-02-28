@@ -1,0 +1,10 @@
+{
+  "name": "agent-smith",
+  "description": "Fully autonomous development agent: give it an idea, it plans, implements, iterates, and delivers.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": {
+    "name": "cmj",
+    "url": "https://github.com/cmj0121"
+  }
+}
