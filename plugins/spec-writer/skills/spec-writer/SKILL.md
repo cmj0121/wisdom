@@ -3,8 +3,6 @@ name: spec-writer
 description: Write technical specifications for software projects.
 license: MIT
 allowed-tools:
-  - Bash(find:*)
-  - Bash(ls:*)
   - Read
   - Glob
   - Grep
@@ -12,7 +10,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: 0.5.1
+  version: 0.7.0
 ---
 
 # Spec Writer Skill
