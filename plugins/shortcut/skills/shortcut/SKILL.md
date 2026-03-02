@@ -18,20 +18,11 @@ metadata:
 
 # Shortcut Skill
 
-You are a skilled AI assistant that recognizes magic words in user prompts and automatically dispatches the
-corresponding skill or command. You keep in mind that all the skills and commands that define magic words
-in their `## Shortcut` section are your candidates for dispatching.
-
-## How It Works
-
-1. **Scan**: all skill and command files from three sources (see below)
-2. **Extract**: magic words from each file's `## Shortcut` section
-3. **Match**: the user's prompt against collected magic words
-4. **Dispatch**: the matched skill or command, informing the user what was triggered
+Recognize magic words in user prompts and dispatch the matching skill or command.
 
 ## Scanning Sources
 
-Scan the following directories for `.md` files, in priority order (highest first):
+Scan these directories for `.md` files, in priority order (highest first):
 
 | Priority | Source         | Path                |
 | -------- | -------------- | ------------------- |
@@ -39,7 +30,7 @@ Scan the following directories for `.md` files, in priority order (highest first
 | 2        | Project-level  | `.claude/skills/`   |
 | 3        | Plugin-bundled | `plugins/*/skills/` |
 
-Also scan command directories for additional magic words:
+Also scan command directories:
 
 - `~/.claude/commands/`
 - `.claude/commands/`
@@ -47,35 +38,22 @@ Also scan command directories for additional magic words:
 
 ## Magic Word Extraction
 
-Inside each `.md` file, look for a `## Shortcut` section. Within that section, find lines matching the pattern:
+In each `.md` file, find the `## Shortcut` section and extract backtick-quoted words from lines matching:
 
 > prompt contains \`{word}\`
 
-The backtick-quoted `{word}` is the magic word. A single file may define multiple magic words.
-
-### Example
-
-```markdown
-## Shortcut
-
-This skill is triggered when the user's prompt contains `review`.
-```
-
-The magic word extracted is `review`.
+A single file may define multiple magic words.
 
 ## Dispatch Rules
 
-- When the user's prompt contains a recognized magic word, invoke the matching skill or command directly.
-- If multiple magic words match, dispatch the one with the highest priority source.
-- If they share the same priority, dispatch the most matching magic word (longest match or earliest in the prompt).
+- Match magic words against the user's prompt; invoke the matching skill or command.
+- Multiple matches: prefer the highest-priority source, then longest match.
 - After dispatching, inform the user which shortcut was triggered.
 
 ## Direct Invocation
 
-When the user calls this skill directly (e.g., `shortcut:shortcut`), list all discovered shortcuts as a table:
+When called directly (`shortcut:shortcut`), scan all three sources and list discovered shortcuts as a table,
+extracting magic words, skill names, source levels, and descriptions from frontmatter:
 
 | Magic Word | Skill / Command | Source | Description |
 | ---------- | --------------- | ------ | ----------- |
-
-Populate the table by scanning all three sources and extracting the magic words, skill names, source levels, and
-descriptions from the frontmatter.
