@@ -4,14 +4,13 @@ description: Provides feedback and suggestions for improving code quality.
 license: MIT
 allowed-tools:
   - Bash(git status:*)
-  - Bash(git log:*)
   - Bash(git diff:*)
   - Read
   - Glob
   - Grep
 metadata:
   author: cmj@cmj.tw
-  version: 0.5.0
+  version: 0.7.0
 ---
 
 # Code Review Skill
