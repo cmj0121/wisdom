@@ -12,7 +12,7 @@ allowed-tools:
   - Read
 metadata:
   author: cmj@cmj.tw
-  version: 0.7.0
+  version: 0.8.1
 ---
 
 # Git Committer Skill
@@ -28,9 +28,10 @@ otherwise fall back to the conventional commit format below.
 
 ### Phase 2: Analyze the changes
 
-Run `git status` and `git diff --cached` to review staged changes. Classify changes using the project
-template categories or conventional commit types (`feat`, `fix`, `docs`, `refactor`, `test`, `chore`).
-Identify the scope (affected module/component).
+Run `git status` and `git diff --cached` to review staged changes. If there are no staged
+changes, inform the user and stop — do not create an empty commit. Classify changes using
+the project template categories or conventional commit types (`feat`, `fix`, `docs`,
+`refactor`, `test`, `chore`). Identify the scope (affected module/component).
 
 ### Phase 3: Generate the commit message
 

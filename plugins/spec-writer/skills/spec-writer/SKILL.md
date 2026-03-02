@@ -10,7 +10,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: 0.7.0
+  version: 0.8.1
 ---
 
 # Spec Writer Skill
