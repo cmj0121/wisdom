@@ -5,7 +5,6 @@ license: MIT
 allowed-tools:
   - Read
   - Glob
-  - Search(pattern:~/.claude/plugins)
   - Search(pattern:~/.claude/skills)
   - Search(pattern:~/.claude/commands)
   - Search(pattern:.claude/skills)
@@ -38,16 +37,20 @@ Also scan command directories:
 
 ## Magic Word Extraction
 
-In each `.md` file, find the `## Shortcut` section and extract backtick-quoted words from lines matching:
+In each `.md` file, find the `## Shortcut` section and extract backtick-quoted words
+from lines matching:
 
 > prompt contains \`{word}\`
 
-A single file may define multiple magic words.
+A single file may define multiple magic words. Multi-word phrases (e.g.,
+`commit it`, `review and refine it`) are matched as exact substrings, not
+individual words.
 
 ## Dispatch Rules
 
 - Match magic words against the user's prompt; invoke the matching skill or command.
 - Multiple matches: prefer the highest-priority source, then longest match.
+- No match: do nothing — let Claude handle the prompt with its default behavior.
 - After dispatching, inform the user which shortcut was triggered.
 
 ## Direct Invocation
