@@ -12,7 +12,7 @@ allowed-tools:
   - Bash(git diff:*)
   - Bash(git merge:*)
   - Bash(git branch:*)
-  - Bash(rm:*)
+  - Bash(rm PLAN.md)
   - Read
   - Glob
   - Grep
@@ -91,7 +91,8 @@ Create an implementation plan and write it to `PLAN.md`:
 
 Read `PLAN.md` as **source of truth** (user may have edited it after Phase 1).
 
-**Before the first commit**, create a feature branch: `git checkout -b feat/<feature-name>`
+**Before the first commit**, create a feature branch from the idea summary:
+`git checkout -b feat/<slugified-3-word-summary>` (e.g., `feat/add-user-auth`)
 
 For each unit of work:
 
@@ -133,8 +134,8 @@ Update the Iteration Log in `PLAN.md`.
 
 Add new units of work to `PLAN.md` addressing issues from Phase 3. Return to **Phase 2**.
 
-**Repeat Phases 2–4 for at least 3 iterations** (honor user-specified count). Each iteration must
-produce meaningful improvements — no trivial busywork.
+**Repeat Phases 2–4 for at least 3 iterations** (honor user-specified count). Stop early if all
+scores reach 9+. Each iteration must produce meaningful improvements — no trivial busywork.
 
 ### Phase 5: Merge
 
@@ -145,7 +146,11 @@ produce meaningful improvements — no trivial busywork.
 
 **[CHECKPOINT]** Present summary to user. Wait for approval.
 
-After approval: `git checkout main` → `git merge --no-ff <branch>` → `git branch -d <branch>` → `rm PLAN.md`
+After approval: `git checkout main` → `git merge --no-ff <branch>` →
+`git branch -d <branch>` → `rm PLAN.md`
+
+If the merge produces conflicts, resolve them, then invoke `code-reviewer:code-reviewer`
+to verify the resolution before completing the merge commit.
 
 ### Phase 6: Lessons Learned
 
