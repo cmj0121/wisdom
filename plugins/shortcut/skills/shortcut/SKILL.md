@@ -3,8 +3,6 @@ name: shortcut
 description: Auto-dispatch skills and commands when the user types a magic word.
 license: MIT
 allowed-tools:
-  - Bash(ls:*)
-  - Bash(find:*)
   - Read
   - Glob
   - Search(pattern:~/.claude/plugins)
@@ -15,7 +13,7 @@ allowed-tools:
   - Search(pattern:plugins)
 metadata:
   author: cmj@cmj.tw
-  version: 0.5.0
+  version: 0.7.0
 ---
 
 # Shortcut Skill
