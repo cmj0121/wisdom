@@ -67,7 +67,7 @@ For a merged commit, you summarize the commit messages from the base branch and 
 message that reflects the combined changes. You should follow the same principles of clarity and conciseness, while also
 acknowledging the contributions from both branches.
 
-Return the generated merge commit message to the caller. The orchestrator (e.g., `code-partner`, `agent-smith`) is
+Return the generated merge commit message to the caller. The orchestrator (e.g., `agent-smith`) is
 responsible for executing the actual merge and branch cleanup.
 
 ## Conventional Commit Format
@@ -99,9 +99,9 @@ If no template is configured, use the following format:
 ## Team Coordination
 
 The `git-committer` is the final step in the development workflow for each unit of work, and is typically invoked
-by `code-partner` (`git-committer:git-committer`) after implementation and review cycles are complete.
+by `agent-smith` (`git-committer:git-committer`) after implementation and review cycles are complete.
 
 **Contract rules:**
 
-- When invoked by `code-partner`, skip the `code-reviewer:code-reviewer` quality gate.
+- When invoked by `agent-smith`, skip the `code-reviewer:code-reviewer` quality gate.
 - When invoked directly by the user, always run the `code-reviewer:code-reviewer` quality gate.

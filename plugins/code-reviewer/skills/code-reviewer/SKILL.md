@@ -74,7 +74,7 @@ format, and discuss with the user about the findings and suggestions for improve
 ## Team Coordination
 
 The `__REVIEW_VERDICT__` block is a machine-readable output contract consumed by other skills in the wisdom
-plugin suite (e.g., `code-partner`, `spec-writer`).
+plugin suite (e.g., `agent-smith`, `spec-writer`).
 
 **Contract rules:**
 
