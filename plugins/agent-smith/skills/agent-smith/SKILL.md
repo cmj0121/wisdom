@@ -3,8 +3,6 @@ name: agent-smith
 description: Fully autonomous development agent: give it an idea, it plans, implements, iterates, and delivers.
 license: MIT
 allowed-tools:
-  - Bash(git add:*)
-  - Bash(git commit -m:*)
   - Bash(git status:*)
   - Bash(git checkout -b:*)
   - Bash(git checkout:*)
@@ -12,22 +10,17 @@ allowed-tools:
   - Bash(git stash)
   - Bash(git restore:*)
   - Bash(git diff:*)
-  - Bash(git show:*)
   - Bash(git merge:*)
   - Bash(git branch:*)
   - Bash(rm:*)
-  - Bash(find:*)
-  - Bash(ls:*)
   - Read
   - Glob
   - Grep
   - Write
   - Edit
-  - WebFetch
-  - WebSearch
 metadata:
   author: cmj@cmj.tw
-  version: 0.1.0
+  version: 0.7.0
 ---
 
 # Agent Smith — Fully Autonomous Development Agent
