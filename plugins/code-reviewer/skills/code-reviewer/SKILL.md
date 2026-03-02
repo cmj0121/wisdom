@@ -45,6 +45,13 @@ Use Grep to scan changed files. Flag matches as **FAIL**.
 
 Only emit the verdict when called by other skills, not when called directly by users.
 
+**Verdict determination:**
+
+- **FAIL** — any security finding from Phase 3
+- **WARN** — no security findings, but quality warnings from Phase 2
+- **PASS** — no findings in Phase 2 or Phase 3
+- **SKIP** — no staged changes (from Phase 1)
+
 ```txt
 __REVIEW_VERDICT__
 Verdict: FAIL
@@ -57,6 +64,9 @@ __REVIEW_VERDICT__
 
 When called directly by users, present findings in a brief table and discuss suggestions.
 
+When reviewing non-code files (e.g., specs, documentation), adapt the checklist to the
+file type — check structure, clarity, and completeness instead of code-specific patterns.
+
 ## Team Coordination
 
 The `__REVIEW_VERDICT__` block is a machine-readable contract consumed by other skills (`agent-smith`, `spec-writer`).
@@ -67,4 +77,8 @@ The `__REVIEW_VERDICT__` block is a machine-readable contract consumed by other 
 - Counts must reflect actual findings per category.
 - Verdict: FAIL / WARN / PASS / SKIP.
 - Never omit the block, even with zero findings.
-- Respect the project's existing conventions and style, even if they differ from general best practices.
+
+**Review guidelines:**
+
+- Respect the project's existing conventions and style, even if they differ from general
+  best practices.
