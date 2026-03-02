@@ -3,8 +3,6 @@ name: code-partner
 description: The code partner to help you code together with the AI agent.
 license: MIT
 allowed-tools:
-  - Bash(git add:*)
-  - Bash(git commit -m:*)
   - Bash(git status:*)
   - Bash(git checkout -b:*)
   - Bash(git checkout:*)
@@ -12,9 +10,9 @@ allowed-tools:
   - Bash(git stash)
   - Bash(git restore:*)
   - Bash(git diff:*)
+  - Bash(git merge:*)
+  - Bash(git branch:*)
   - Bash(rm:*)
-  - Bash(find:*)
-  - Bash(ls:*)
   - Read
   - Glob
   - Grep
@@ -22,7 +20,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: 0.6.0
+  version: 0.7.0
 ---
 
 # Pair Programming Skill
@@ -158,11 +156,15 @@ understand the changes made.
 In this final stage of the implementation, you should merge the feature branch into the main branch.
 
 You MUST invoke the `git-committer` skill (`git-committer:git-committer`) to generate the merge commit
-message based on the commits in the feature branch and the main branch, and you should show the generated
-merge commit message to the user and wait for their approval before merging the branches.
+message based on the commits in the feature branch and the main branch. Show the generated merge commit
+message to the user and wait for their approval before proceeding.
 
-After the merge, you should also remove the source branch if it is no longer needed. You MUST also remove the
-`PLAN.md` file from the project root using `rm PLAN.md` to clean up the temporary plan artifact.
+After the user approves, execute the merge yourself:
+
+1. `git checkout main`
+2. `git merge --no-ff <feature-branch>` using the generated merge commit message
+3. `git branch -d <feature-branch>`
+4. `rm PLAN.md`
 
 ### Phase 4: Lessons Learned
 
