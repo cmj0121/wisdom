@@ -25,15 +25,12 @@ code more efficiently and effectively, just like me.
 | proj-ideatender | The project idea tender to help you generate project ideas.                |
 | git-committer   | The git committer to help you commit your code.                            |
 | spec-writer     | The spec writer to help you write the spec for your code.                  |
-| code-partner    | The code partner to help you code together with the AI agent.              |
-| agent-smith     | Fully autonomous development agent: idea in, code out.                     |
+| agent-smith     | Dual-mode development agent: partner or fully autonomous.                  |
 
 #### Dependency Graph
 
 ```text
-agent-smith ─────┐
-                 ├──▶ git-committer ──▶ code-reviewer
-code-partner ────┤
+agent-smith ─────┬──▶ git-committer ──▶ code-reviewer
                  ├──▶ code-reviewer
                  └──▶ proj-ideatender
 
