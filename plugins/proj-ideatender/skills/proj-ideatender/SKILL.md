@@ -5,8 +5,6 @@ license: MIT
 allowed-tools:
   - Bash(git log:*)
   - Bash(git show:*)
-  - Bash(find:*)
-  - Bash(ls:*)
   - Read
   - Glob
   - Grep
@@ -16,7 +14,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: 0.5.0
+  version: 0.7.0
 ---
 
 # Project Idea Tender Skill
