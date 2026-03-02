@@ -8,37 +8,37 @@
     {
       "name": "shortcut",
       "description": "AI agent can be triggered automatically when you type a specific shortcut.",
-      "version": "0.7.0",
+      "version": "0.8.1",
       "source": "./plugins/shortcut"
     },
     {
       "name": "git-committer",
       "description": "Assists in creating clear and concise git commit messages following conventional commit format.",
-      "version": "0.7.0",
+      "version": "0.8.1",
       "source": "./plugins/git-committer"
     },
     {
       "name": "spec-writer",
       "description": "Write technical specifications for software projects.",
-      "version": "0.7.0",
+      "version": "0.8.1",
       "source": "./plugins/spec-writer"
     },
     {
       "name": "code-reviewer",
       "description": "Provides feedback and suggestions for improving code quality.",
-      "version": "0.7.0",
+      "version": "0.8.1",
       "source": "./plugins/code-reviewer"
     },
     {
       "name": "proj-ideatender",
       "description": "The project idea tender to help you generate project ideas.",
-      "version": "0.7.0",
+      "version": "0.8.1",
       "source": "./plugins/proj-ideatender"
     },
     {
       "name": "agent-smith",
       "description": "Dual-mode development agent — partner or fully autonomous — that plans, implements, reviews, commits, and delivers.",
-      "version": "0.8.0",
+      "version": "0.8.1",
       "source": "./plugins/agent-smith"
     }
   ]
