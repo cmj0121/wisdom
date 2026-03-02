@@ -154,5 +154,7 @@ to verify the resolution before completing the merge commit.
 
 ### Phase 6: Lessons Learned
 
-Share a brief reflection: what went well, what could improve, surprising findings, and patterns for
-future sessions.
+Share a brief reflection: what went well, what could improve, surprising findings,
+and patterns for future sessions. Append the reflection to `LESSONS.md` in the
+`proj-ideatender` cache dir (`~/.claude/projects/<project-path>/memory/`) so insights
+persist across sessions.
