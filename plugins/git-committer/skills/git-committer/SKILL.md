@@ -6,17 +6,13 @@ allowed-tools:
   - Bash(git add:*)
   - Bash(git commit -m:*)
   - Bash(git status:*)
-  - Bash(git checkout -b:*)
-  - Bash(git checkout:*)
   - Bash(git log:*)
   - Bash(git diff:*)
   - Bash(git config:*)
   - Read
-  - Glob
-  - Grep
 metadata:
   author: cmj@cmj.tw
-  version: 0.5.1
+  version: 0.7.0
 ---
 
 # Git Committer Skill
@@ -62,7 +58,7 @@ and concise commit message that follows the defined format. The message should i
 of the change, and if necessary, a more detailed explanation in the body. You can also include any
 relevant references to issues or breaking changes in the footer.
 
-### Phase 4: Merged Commit
+### Phase 4: Merged Commit Message
 
 _Phase 1_, _Phase 2_, and _Phase 3_ are all automatic and do not require user interaction. However, the merged commit case
 is different.
@@ -71,9 +67,8 @@ For a merged commit, you summarize the commit messages from the base branch and 
 message that reflects the combined changes. You should follow the same principles of clarity and conciseness, while also
 acknowledging the contributions from both branches.
 
-**[CHECKPOINT]** Show the merged commit message to the user and wait for their approval before merging the branches.
-
-**NOTE**: After merging the branches, you should also remove the source branch if it is no longer needed.
+Return the generated merge commit message to the caller. The orchestrator (e.g., `code-partner`, `agent-smith`) is
+responsible for executing the actual merge and branch cleanup.
 
 ## Conventional Commit Format
 
