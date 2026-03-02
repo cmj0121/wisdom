@@ -21,12 +21,27 @@ code more efficiently and effectively, just like me.
 | Feature         | Description                                                                |
 | --------------- | -------------------------------------------------------------------------- |
 | shortcut        | AI agent can be triggered automatically when you type a specific shortcut. |
-| spec-writer     | The spec writer to help you write the spec for your code.                  |
 | code-reviewer   | The code reviewer to help you review your code.                            |
-| git-committer   | The git committer to help you commit your code.                            |
-| code-partner    | The code partner to help you code together with the AI agent.              |
 | proj-ideatender | The project idea tender to help you generate project ideas.                |
+| git-committer   | The git committer to help you commit your code.                            |
+| spec-writer     | The spec writer to help you write the spec for your code.                  |
+| code-partner    | The code partner to help you code together with the AI agent.              |
 | agent-smith     | Fully autonomous development agent: idea in, code out.                     |
+
+#### Dependency Graph
+
+```text
+agent-smith ─────┐
+                 ├──▶ git-committer ──▶ code-reviewer
+code-partner ────┤
+                 ├──▶ code-reviewer
+                 └──▶ proj-ideatender
+
+spec-writer ─────┬──▶ code-reviewer
+                 └──▶ proj-ideatender
+
+shortcut, code-reviewer, proj-ideatender    (no dependencies)
+```
 
 ## DDD (Dream-Driven Development)
 
