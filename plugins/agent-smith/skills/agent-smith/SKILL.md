@@ -20,7 +20,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: 0.8.1
+  version: 0.8.2
 ---
 
 # Agent Smith — Development Agent
@@ -105,8 +105,10 @@ isolate and fix (one minimal change) → verify test passes.
 
 #### Review
 
-Pass the linter first, then invoke `code-reviewer:code-reviewer`. Fix all Critical, Warning, and
-FAIL-verdict issues. On security FAIL, fix and re-invoke automatically.
+Pass the linter first, then invoke `/simplify` to review changed code for reuse,
+quality, and efficiency. After that, invoke `code-reviewer:code-reviewer`. Fix all
+Critical, Warning, and FAIL-verdict issues. On security FAIL, fix and re-invoke
+automatically.
 
 #### Commit
 

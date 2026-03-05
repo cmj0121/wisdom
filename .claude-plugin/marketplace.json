@@ -38,7 +38,7 @@
     {
       "name": "agent-smith",
       "description": "Dual-mode development agent — partner or fully autonomous — that plans, implements, reviews, commits, and delivers.",
-      "version": "0.8.1",
+      "version": "0.8.2",
       "source": "./plugins/agent-smith"
     }
   ]
