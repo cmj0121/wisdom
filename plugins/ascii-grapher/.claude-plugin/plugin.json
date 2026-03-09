@@ -1,0 +1,10 @@
+{
+  "name": "ascii-grapher",
+  "description": "Draw ASCII diagrams for architecture, flows, and concepts.",
+  "version": "0.8.2",
+  "license": "MIT",
+  "author": {
+    "name": "cmj",
+    "url": "https://github.com/cmj0121"
+  }
+}

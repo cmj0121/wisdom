@@ -40,6 +40,12 @@
       "description": "Dual-mode development agent — partner or fully autonomous — that plans, implements, reviews, commits, and delivers.",
       "version": "0.8.2",
       "source": "./plugins/agent-smith"
+    },
+    {
+      "name": "ascii-grapher",
+      "description": "Draw ASCII diagrams for architecture, flows, and concepts.",
+      "version": "0.8.2",
+      "source": "./plugins/ascii-grapher"
     }
   ]
 }
