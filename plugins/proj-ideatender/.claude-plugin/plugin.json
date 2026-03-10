@@ -1,6 +1,6 @@
 {
   "name": "proj-ideatender",
-  "description": "The project idea tender to help you generate project ideas.",
+  "description": "Analyze your project and generate ideas for improvements or new features.",
   "version": "0.8.1",
   "license": "MIT",
   "author": {

@@ -1,6 +1,6 @@
 {
   "name": "shortcut",
-  "description": "AI agent can be triggered automatically when you type a specific shortcut.",
+  "description": "Auto-dispatch skills and commands when the user types a magic word.",
   "version": "0.8.1",
   "license": "MIT",
   "author": {

@@ -1,6 +1,6 @@
 # Project Idea Tender Plugin
 
-> The project idea tender to help you generate project ideas.
+> Analyze your project and generate ideas for improvements or new features.
 
 The proj-ideatender plugin analyzes your project to understand its structure, purpose, and codebase,
 then generates actionable ideas for improvements or new features. It is a read-only skill that never
@@ -42,7 +42,8 @@ Triggers the full project analysis and idea generation workflow.
 
 ### Magic Word
 
-Typing a prompt that contains `analyze` will auto-dispatch this skill via the shortcut plugin.
+Typing a prompt that contains `analyze`, `plan it`, or `review and refine it` will auto-dispatch
+this skill via the shortcut plugin.
 
 ## License
 
