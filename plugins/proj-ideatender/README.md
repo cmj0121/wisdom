@@ -42,7 +42,8 @@ Triggers the full project analysis and idea generation workflow.
 
 ### Magic Word
 
-Typing a prompt that contains `analyze` will auto-dispatch this skill via the shortcut plugin.
+Typing a prompt that contains `analyze`, `plan it`, or `review and refine it` will auto-dispatch
+this skill via the shortcut plugin.
 
 ## License
 

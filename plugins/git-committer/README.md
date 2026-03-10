@@ -50,7 +50,7 @@ Triggers the full commit workflow directly.
 
 ### Magic Word
 
-Typing a prompt that contains `commit` will auto-dispatch this skill via the shortcut plugin.
+Typing a prompt that contains `commit it` will auto-dispatch this skill via the shortcut plugin.
 
 ## License
 
