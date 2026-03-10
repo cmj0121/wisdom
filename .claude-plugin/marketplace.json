@@ -7,13 +7,13 @@
   "plugins": [
     {
       "name": "shortcut",
-      "description": "AI agent can be triggered automatically when you type a specific shortcut.",
+      "description": "Auto-dispatch skills and commands when the user types a magic word.",
       "version": "0.8.1",
       "source": "./plugins/shortcut"
     },
     {
       "name": "git-committer",
-      "description": "Assists in creating clear and concise git commit messages following conventional commit format.",
+      "description": "Assists in creating clear and concise git commit messages.",
       "version": "0.8.1",
       "source": "./plugins/git-committer"
     },
@@ -31,7 +31,7 @@
     },
     {
       "name": "proj-ideatender",
-      "description": "The project idea tender to help you generate project ideas.",
+      "description": "Analyze your project and generate ideas for improvements or new features.",
       "version": "0.8.1",
       "source": "./plugins/proj-ideatender"
     },

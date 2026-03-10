@@ -1,6 +1,6 @@
 # Git Committer Plugin
 
-> Assists in creating clear and concise git commit messages following conventional commit format.
+> Assists in creating clear and concise git commit messages.
 
 The git-committer plugin helps you write well-structured git commit messages. It reads your
 project's commit template (if configured), reviews staged changes, drafts a conventional commit
