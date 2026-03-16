@@ -21,23 +21,26 @@ code more efficiently and effectively, just like me.
 | Feature         | Description                                                                |
 | --------------- | -------------------------------------------------------------------------- |
 | shortcut        | AI agent can be triggered automatically when you type a specific shortcut. |
-| code-reviewer   | The code reviewer to help you review your code.                            |
-| proj-ideatender | The project idea tender to help you generate project ideas.                |
+| agent-smith     | Team leader agent: dispatches jobs to specialized agents.                  |
+| proj-ideatender | Project owner: analyzes project context, produces brief plans.             |
+| spec-writer     | Spec writer: writes technical specs with architecture diagrams.            |
+| agent-hale      | Programmer agent: writes code based on plan and spec.                      |
+| agent-ellis     | Code reviewer agent: reviews code, reports findings.                       |
 | git-committer   | The git committer to help you commit your code.                            |
-| spec-writer     | The spec writer to help you write the spec for your code.                  |
-| agent-smith     | Dual-mode development agent: partner or fully autonomous.                  |
+| ascii-grapher   | Draw ASCII diagrams for architecture, flows, and concepts.                 |
 
 #### Dependency Graph
 
 ```text
-agent-smith ─────┬──▶ git-committer ──▶ code-reviewer
-                 ├──▶ code-reviewer
-                 └──▶ proj-ideatender
+agent-smith (Leader)
+    ├──▶ proj-ideatender (Project Owner)
+    ├──▶ spec-writer ─────┬──▶ proj-ideatender
+    │                     └──▶ ascii-grapher
+    ├──▶ agent-hale (Programmer)
+    ├──▶ agent-ellis (Code Reviewer) ──reports──▶ agent-hale or proj-ideatender
+    └──▶ git-committer ──▶ agent-ellis
 
-spec-writer ─────┬──▶ code-reviewer
-                 └──▶ proj-ideatender
-
-shortcut, code-reviewer, proj-ideatender    (no dependencies)
+shortcut, ascii-grapher    (no team dependencies)
 ```
 
 ## DDD (Dream-Driven Development)
