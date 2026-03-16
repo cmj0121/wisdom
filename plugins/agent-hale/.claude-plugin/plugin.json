@@ -1,0 +1,10 @@
+{
+  "name": "agent-hale",
+  "description": "Programmer agent — writes clean, focused code based on plan and spec from the team.",
+  "version": "0.9.0",
+  "license": "MIT",
+  "author": {
+    "name": "cmj",
+    "url": "https://github.com/cmj0121"
+  }
+}
