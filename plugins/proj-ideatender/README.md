@@ -1,10 +1,18 @@
 # Project Idea Tender Plugin
 
-> Analyze your project and generate ideas for improvements or new features.
+> Project owner agent — analyzes project context and produces brief plans for the team.
 
-The proj-ideatender plugin analyzes your project to understand its structure, purpose, and codebase,
-then generates actionable ideas for improvements or new features. It is a read-only skill that never
-modifies files or writes code.
+The proj-ideatender plugin serves as the project owner in the agent team. It analyzes your project
+to understand its structure, purpose, and codebase, then produces brief plans and actionable ideas.
+It is a read-only skill that never modifies project files.
+
+## Role in the Team
+
+- **With agent-smith (Autonomous)**: Analyzes and reports the brief plan to Smith
+- **With agent-smith (Partner)**: Presents the plan to the user for approval
+- **With spec-writer**: Provides project context for specification writing
+- **With agent-ellis**: Receives design-level issue reports
+- **Standalone**: Full analysis and idea generation for the user
 
 ## Installation
 
@@ -16,19 +24,17 @@ Install via the wisdom marketplace:
 
 ## How It Works
 
-### Two-Phase Approach
+### Three-Phase Approach
 
 1. **Project analysis** - Reads documentation, entrypoint files, git history, and directory structure
-   to build a comprehensive understanding of the project
-2. **Idea generation** - Produces 5-10 actionable ideas across five categories: features, improvements,
-   refactoring, documentation, and testing
+2. **Idea generation and brief plan** - Produces a brief plan with goal, approach, units of work,
+   and risks; or 5-10 actionable ideas across categories
+3. **Handoff** - Reports plan to Smith (autonomous) or presents to user (partner/standalone)
 
 ### Output
 
-The skill produces two sections:
-
-- **Project Summary**: Purpose, tech stack, recent activity, and code quality observations
-- **Ideas**: A numbered list with title, category, description, and effort estimate
+- **PROJECT.md**: Project analysis persisted to cache directory
+- **IDEAS.md**: Ideas and plans persisted to cache directory
 
 ## Usage
 
