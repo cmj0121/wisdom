@@ -1,18 +1,26 @@
 # Agent Smith Plugin
 
-> Dual-mode development agent — partner or fully autonomous — that plans, implements, reviews, commits, and delivers.
+> Team leader agent — dispatches planning, spec-writing, coding, and review jobs to specialized agents.
 
-The agent-smith plugin combines project analysis and code implementation into a single development
-agent with two operating modes:
+Agent Smith is the leader of the development team. Smith does not write code or specs directly —
+instead, Smith dispatches jobs to specialized agents and coordinates their work through a layered
+skill architecture.
 
 | Mode       | Trigger words                       | Checkpoints               | Iterations       |
 | ---------- | ----------------------------------- | ------------------------- | ---------------- |
 | Partner    | `develop`, `implement it`, `fix it` | 2 (plan approval + merge) | Single pass      |
 | Autonomous | `smith`                             | 1 (merge only)            | Minimum 3 cycles |
 
-**Partner mode** pauses at plan approval so you can review and edit `PLAN.md` before implementation
-begins, then pauses again before merge. **Autonomous mode** proceeds directly from planning through
-iterative self-assessment cycles with zero user confirmation until the final merge.
+## The Team
+
+| Agent               | Role          | Responsibility                                     |
+| ------------------- | ------------- | -------------------------------------------------- |
+| **agent-smith**     | Leader        | Dispatches jobs, coordinates workflow, manages git |
+| **proj-ideatender** | Project Owner | Analyzes project context, produces brief plans     |
+| **spec-writer**     | Spec Writer   | Writes technical specs with architecture diagrams  |
+| **agent-hale**      | Programmer    | Writes code based on plan and spec                 |
+| **agent-ellis**     | Code Reviewer | Reviews code, finds bugs, reports findings         |
+| **git-committer**   | Commit Gen    | Generates commit messages                          |
 
 ## Installation
 
@@ -24,20 +32,35 @@ Install via the wisdom marketplace:
 
 ## How It Works
 
-### Shared Workflow
+### Phase 1: Understand and Plan
 
-1. **Understand and Plan** — Analyzes the project and creates an implementation plan in `PLAN.md`
-2. **Implement, Review, and Commit** — Implements each unit of work, reviews, and commits autonomously
+Smith dispatches to `proj-ideatender` to analyze the project and produce a brief plan.
+In Partner mode, the plan is presented to the user. In Autonomous mode, Smith reviews it directly.
+
+### Phase 2: Spec (if needed)
+
+For non-trivial features, Smith dispatches to `spec-writer` to produce technical specifications
+with architecture diagrams (via `ascii-grapher`).
+
+### Phase 3: Implement, Review, and Commit
+
+For each unit of work, Smith dispatches:
+
+1. **agent-hale** — writes the code
+2. **agent-ellis** — reviews the code (PASS/WARN/FAIL)
+3. **git-committer** — commits on PASS
+
+On FAIL, Smith re-dispatches to Hale with Ellis's findings, then back to Ellis.
 
 ### Autonomous Mode (additional phases)
 
-1. **Assess** — Reviews all changes, scores quality, identifies improvements
-2. **Re-Plan and Iterate** — Creates new units of work based on assessment, repeats (minimum 3 iterations)
+1. **Assess** — Smith reviews all changes, scores quality
+2. **Re-Plan** — Smith invokes `proj-ideatender` to reassess, adds new units, loops back
 
-### Final Phases (shared)
+### Final Phases
 
-1. **Merge** — Presents summary and waits for user approval before merging into main
-2. **Lessons Learned** — Reflects on the process and identifies takeaways
+1. **Merge** — Presents summary, waits for user approval, merges into main
+2. **Lessons Learned** — Reflects and persists insights
 
 ## Usage
 
@@ -50,9 +73,6 @@ Install via the wisdom marketplace:
 Starts a fully autonomous development session.
 
 ### Magic Words
-
-Typing a prompt that contains one of the trigger words will auto-dispatch this skill via the shortcut
-plugin:
 
 - `develop`, `implement it`, `fix it` → Partner mode
 - `smith` → Autonomous mode
