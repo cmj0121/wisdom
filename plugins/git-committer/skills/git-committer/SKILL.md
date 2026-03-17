@@ -63,5 +63,5 @@ If no template is configured, use the following format. Indent body/itemize/foot
 
 **Contract rules:**
 
-- When invoked by `agent-smith`, skip `code-reviewer:code-reviewer` quality gate.
-- When invoked directly by the user, always run `code-reviewer:code-reviewer` quality gate.
+- When invoked by `agent-smith`, skip `agent-ellis:agent-ellis` quality gate.
+- When invoked directly by the user, always run `agent-ellis:agent-ellis` quality gate.

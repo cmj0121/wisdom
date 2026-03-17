@@ -19,26 +19,26 @@
     },
     {
       "name": "spec-writer",
-      "description": "Write technical specifications for software projects.",
-      "version": "0.8.1",
+      "description": "Writes technical specifications with architecture diagrams, collaborating with proj-ideatender and ascii-grapher.",
+      "version": "0.9.0",
       "source": "./plugins/spec-writer"
     },
     {
-      "name": "code-reviewer",
-      "description": "Provides feedback and suggestions for improving code quality.",
-      "version": "0.8.1",
-      "source": "./plugins/code-reviewer"
+      "name": "agent-ellis",
+      "description": "Code reviewer agent — reviews code quality and security, reports findings to proj-ideatender or agent-hale.",
+      "version": "0.9.0",
+      "source": "./plugins/agent-ellis"
     },
     {
       "name": "proj-ideatender",
-      "description": "Analyze your project and generate ideas for improvements or new features.",
-      "version": "0.8.1",
+      "description": "Project owner agent — analyzes project context and produces brief plans for the team.",
+      "version": "0.9.0",
       "source": "./plugins/proj-ideatender"
     },
     {
       "name": "agent-smith",
-      "description": "Dual-mode development agent — partner or fully autonomous — that plans, implements, reviews, commits, and delivers.",
-      "version": "0.8.2",
+      "description": "Team leader agent — dispatches planning, spec-writing, coding, and review jobs to specialized agents.",
+      "version": "0.9.0",
       "source": "./plugins/agent-smith"
     },
     {
@@ -46,6 +46,12 @@
       "description": "Draw ASCII diagrams for architecture, flows, and concepts.",
       "version": "0.8.2",
       "source": "./plugins/ascii-grapher"
+    },
+    {
+      "name": "agent-hale",
+      "description": "Programmer agent — writes clean, focused code based on plan and spec from the team.",
+      "version": "0.9.0",
+      "source": "./plugins/agent-hale"
     }
   ]
 }
