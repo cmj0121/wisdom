@@ -1,6 +1,6 @@
 # Agent Ellis Plugin
 
-> Code reviewer agent — reviews code quality and security, reports findings to proj-ideatender or agent-hale.
+> Code reviewer agent — reviews code quality and security, reports findings to agent-smith.
 
 Agent Ellis is the code reviewer of the development team. Ellis reviews code for quality and
 security issues, then reports findings through the team's reporting chain: implementation fixes
@@ -60,7 +60,7 @@ Triggers the full code review workflow directly.
 
 ### Magic Word
 
-Typing a prompt that contains `review` will auto-dispatch this skill via the shortcut plugin.
+Typing a prompt that contains `review code` or `ellis` will auto-dispatch this skill via the shortcut plugin.
 
 ## License
 

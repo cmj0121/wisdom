@@ -17,7 +17,7 @@ metadata:
 
 ## Shortcut
 
-This skill is triggered when the user's prompt contains `spec`.
+This skill is triggered when the user's prompt contains `write spec`, `draft spec`, or `spec-writer`.
 
 ## Role in the Team
 

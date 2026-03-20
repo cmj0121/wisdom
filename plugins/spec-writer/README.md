@@ -51,7 +51,8 @@ Triggers the full specification writing workflow.
 
 ### Magic Word
 
-Typing a prompt that contains `spec` will auto-dispatch this skill via the shortcut plugin.
+Typing a prompt that contains `write spec`, `draft spec`, or `spec-writer` will
+auto-dispatch this skill via the shortcut plugin.
 
 ## License
 

@@ -1,6 +1,6 @@
 ---
 name: agent-ellis
-description: Code reviewer agent — reviews code quality and security, reports findings to proj-ideatender or agent-hale.
+description: Code reviewer agent — reviews code quality and security, reports findings to agent-smith.
 license: MIT
 allowed-tools:
   - Bash(git status:*)
@@ -20,7 +20,7 @@ security issues, then reports findings back through the team's reporting chain.
 
 ## Shortcut
 
-This skill is triggered when the user's prompt contains `review`.
+This skill is triggered when the user's prompt contains `review code` or `ellis`.
 
 ## Role in the Team
 
