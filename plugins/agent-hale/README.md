@@ -27,7 +27,7 @@ Install via the wisdom marketplace:
 
 1. **Understand** — Reads `PLAN.md`, specs, and existing code to understand the unit of work
 2. **Implement** — Writes clean, focused code following project conventions
-3. **Self-check** — Reviews own changes, runs `/simplify`, verifies scope
+3. **Self-check** — Reviews own changes, runs test suite, runs `/simplify`, verifies scope
 4. **Report** — Reports completed work back to Smith (or user if called directly)
 
 ### Handling Review Feedback

@@ -5,6 +5,14 @@ license: MIT
 allowed-tools:
   - Bash(git status:*)
   - Bash(git diff:*)
+  - Bash(npm test:*)
+  - Bash(npm run:*)
+  - Bash(npx:*)
+  - Bash(pytest:*)
+  - Bash(python -m pytest:*)
+  - Bash(go test:*)
+  - Bash(make test:*)
+  - Bash(cargo test:*)
   - Read
   - Glob
   - Grep
@@ -72,8 +80,15 @@ Before reporting completion:
 
 1. Run `git diff` to review all changes
 2. Verify changes match the unit of work scope — no unrelated modifications
-3. Invoke `/simplify` to review changed code for reuse, quality, and efficiency
-4. Ensure no hardcoded secrets, debug statements, or temporary code remains
+3. Run the project's test suite to confirm nothing is broken. Auto-detect the runner:
+   - `package.json` with `test` script → `npm test`
+   - `pytest.ini` / `pyproject.toml` / `setup.cfg` → `pytest`
+   - `go.mod` → `go test ./...`
+   - `Makefile` with `test` target → `make test`
+   - `Cargo.toml` → `cargo test`
+   - If no runner is detected, skip and note it in the report
+4. Invoke `/simplify` to review changed code for reuse, quality, and efficiency
+5. Ensure no hardcoded secrets, debug statements, or temporary code remains
 
 ### Phase 4: Report
 
