@@ -1,6 +1,6 @@
 {
   "name": "agent-ellis",
-  "description": "Code reviewer agent — reviews code quality and security, reports findings to proj-ideatender or agent-hale.",
+  "description": "Code reviewer agent — reviews code quality and security, reports findings to agent-smith.",
   "version": "0.9.0",
   "license": "MIT",
   "author": {

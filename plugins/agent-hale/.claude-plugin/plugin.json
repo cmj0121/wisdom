@@ -1,6 +1,6 @@
 {
   "name": "agent-hale",
-  "description": "Programmer agent — writes clean, focused code based on plan and spec from the team.",
+  "description": "Programmer agent — writes clean, robust and maintainable code.",
   "version": "0.9.0",
   "license": "MIT",
   "author": {

@@ -5,11 +5,7 @@ license: MIT
 allowed-tools:
   - Read
   - Glob
-  - Search(pattern:~/.claude/skills)
-  - Search(pattern:~/.claude/commands)
-  - Search(pattern:.claude/skills)
-  - Search(pattern:.claude/commands)
-  - Search(pattern:plugins)
+  - Grep
 metadata:
   author: cmj@cmj.tw
   version: 0.8.1
