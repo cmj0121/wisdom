@@ -10,7 +10,7 @@ allowed-tools:
   - Grep
 metadata:
   author: cmj@cmj.tw
-  version: 0.9.0
+  version: 0.9.1
 ---
 
 # Agent Ellis — Code Reviewer

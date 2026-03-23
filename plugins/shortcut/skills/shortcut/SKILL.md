@@ -8,7 +8,7 @@ allowed-tools:
   - Grep
 metadata:
   author: cmj@cmj.tw
-  version: 0.8.1
+  version: 0.8.2
 ---
 
 # Shortcut Skill

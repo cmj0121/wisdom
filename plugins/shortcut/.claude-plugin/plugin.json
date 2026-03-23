@@ -1,7 +1,7 @@
 {
   "name": "shortcut",
   "description": "Auto-dispatch skills and commands when the user types a magic word.",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "license": "MIT",
   "author": {
     "name": "cmj",

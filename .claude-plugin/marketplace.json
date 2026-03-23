@@ -8,7 +8,7 @@
     {
       "name": "shortcut",
       "description": "Auto-dispatch skills and commands when the user types a magic word.",
-      "version": "0.8.1",
+      "version": "0.8.2",
       "source": "./plugins/shortcut"
     },
     {
@@ -20,13 +20,13 @@
     {
       "name": "spec-writer",
       "description": "Writes technical specifications with architecture diagrams, collaborating with proj-ideatender and ascii-grapher.",
-      "version": "0.9.0",
+      "version": "0.9.1",
       "source": "./plugins/spec-writer"
     },
     {
       "name": "agent-ellis",
       "description": "Code reviewer agent — reviews code quality and security, reports findings to agent-smith.",
-      "version": "0.9.0",
+      "version": "0.9.1",
       "source": "./plugins/agent-ellis"
     },
     {
@@ -50,7 +50,7 @@
     {
       "name": "agent-hale",
       "description": "Programmer agent — writes clean, robust and maintainable code.",
-      "version": "0.9.0",
+      "version": "0.9.1",
       "source": "./plugins/agent-hale"
     }
   ]
