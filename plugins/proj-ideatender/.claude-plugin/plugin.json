@@ -1,7 +1,7 @@
 {
   "name": "proj-ideatender",
   "description": "Project owner agent — analyzes project context and produces brief plans for the team.",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "license": "MIT",
   "author": {
     "name": "cmj",
