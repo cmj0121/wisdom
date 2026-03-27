@@ -50,6 +50,7 @@ This skill is triggered when the user's prompt contains `develop`, `implement it
 | **spec-writer**     | Spec Writer      | Writes technical specs with architecture diagrams            |
 | **agent-hale**      | Programmer       | Writes code based on plan and spec                           |
 | **agent-ellis**     | Code Reviewer    | Reviews code, finds bugs, reports to ideatender or hale      |
+| **frontend-design** | UI Designer      | Designs and implements production-grade frontend interfaces  |
 | **git-committer**   | Commit Generator | Generates commit messages                                    |
 
 ## How It Works
@@ -106,6 +107,25 @@ architecture diagrams and flow charts.
 
 Smith reviews the spec output before proceeding. Skip this phase for simple bug fixes or
 small changes.
+
+### Phase 2.5: UI Design (if needed)
+
+For tasks involving frontend/UI work, invoke `frontend-design:frontend-design` to design and
+implement the user interface. The frontend-design skill produces production-grade, visually
+distinctive code (HTML/CSS/JS, React, Vue, etc.).
+
+Smith should dispatch to frontend-design when:
+
+- The plan includes UI components, pages, or web interfaces
+- The user explicitly requests frontend work
+- `proj-ideatender`'s plan identifies UI-related units of work
+
+If the `frontend-design` plugin is not installed, **inform the user** that the frontend-design
+plugin is required for UI tasks and suggest they install it and reload their plugins before
+proceeding.
+
+Smith reviews the frontend-design output before passing it to `agent-hale` for integration
+with the rest of the codebase.
 
 ### Phase 3: Implement, Review, and Commit
 
@@ -204,6 +224,13 @@ and patterns for future sessions. Append the reflection to `LESSONS.md` in the
 │                              │                                          │
 │                              ▼                                          │
 │  ┌───────────────────────────────────────────────────────────────────┐  │
+│  │ Phase 2.5: UI Design (if needed)                                  │  │
+│  │  smith ──dispatch──> frontend-design ──> UI code + assets         │  │
+│  │  (hint user to install plugin if missing)                         │  │
+│  └──────────────────────────┬────────────────────────────────────────┘  │
+│                              │                                          │
+│                              ▼                                          │
+│  ┌───────────────────────────────────────────────────────────────────┐  │
 │  │ Phase 3: Implement, Review, and Commit                            │  │
 │  │  For each unit of work:                                           │  │
 │  │    smith ──dispatch──> agent-hale (code)                          │  │
@@ -260,6 +287,9 @@ and patterns for future sessions. Append the reflection to `LESSONS.md` in the
   In Partner mode, ideatender reports to user. In Autonomous mode, ideatender reports to Smith.
 - Invokes `spec-writer:spec-writer` in Phase 2 for technical specifications. The spec-writer
   collaborates with `proj-ideatender` for context and `ascii-grapher` for diagrams.
+- Invokes `frontend-design:frontend-design` in Phase 2.5 for UI/frontend work. Reviews the
+  output before passing to Hale for integration. If the plugin is not installed, hints the user
+  to install and reload it.
 - Invokes `agent-hale:agent-hale` in Phase 3 for code implementation. Hale receives the unit
   of work, plan, and spec references.
 - Invokes `agent-ellis:agent-ellis` in Phase 3 after each unit. Acts on the `__REVIEW_VERDICT__`

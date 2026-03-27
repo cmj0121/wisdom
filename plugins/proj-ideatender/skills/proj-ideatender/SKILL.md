@@ -59,6 +59,10 @@ Generate a brief plan based on the user's prompt and Phase 1 analysis:
 - **Goal**: What we are trying to achieve
 - **Approach**: High-level design and strategy
 - **Units of work**: Concrete tasks to accomplish the goal
+- **UI work**: Flag any units that involve frontend/UI components. When UI work is identified,
+  recommend that `agent-smith` dispatch to `frontend-design:frontend-design` for design and
+  implementation. If the `frontend-design` plugin is not installed, note this in the plan and
+  suggest the user install it before proceeding.
 - **Risks**: Known risks or open questions
 
 Without a specific prompt, generate 5–10 actionable ideas across categories: features,
