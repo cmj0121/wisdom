@@ -54,64 +54,26 @@ has a clear role, responsibility boundary, and reporting chain.
 ### Workflow
 
 ```text
-                            ┌──────┐
-                            │ User │
-                            └──┬───┘
-                               │
-                               ▼
-                 ┌──────────────────────────┐
-                 │     PROJECT LEADER       │
-                 │     (agent-smith)        │
-                 │     plan, dispatch,      │
-                 │     coordinate           │
-                 └────────────┬─────────────┘
-                              │
-                              ▼
-                 ┌──────────────────────────┐       ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
-                 │     ARCHITECT            │         Support Tools
-                 │     (agent-ward)         │       │                     │
-                 │     system design,       │         spec-writer
-                 │     tech decisions       │       │ tenth-man           │
-                 └────────────┬─────────────┘         ascii-grapher
-                              │                     │ test-runner         │
-                              ▼                       changelog-gen
-                 ┌──────────────────────────┐       │ dep-auditor         │
-                 │     DEVELOPER            │       └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
-                 │     (agent-hale)         │
-                 │     implement code       │
-                 │     + tests              │
-                 └────────────┬─────────────┘
-                              │
-                              ▼
-                 ┌──────────────────────────┐
-                 │     QA                   │
-                 │     (agent-ellis)        │
-                 │     code review, test,   │
-                 │     acceptance           │
-                 └─────┬──────────────┬─────┘
-                       │              │
-            ┌──────────┘              └──────────┐
-            ▼                                    ▼
-┌────────────────────────┐         ┌──────────────────────────┐
-│   TECHNICAL WRITER     │         │     SRE                  │
-│   (agent-twain)        │         │     (agent-page)         │
-│   user docs, API docs, │         │     observability,       │
-│   migration guides     │         │     reliability,         │
-└────────────────────────┘         │     performance review   │
-                                   └────────────┬─────────────┘
-                                                │
-                                                ▼
-                                   ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ────┐
-                                     RELEASE MANAGER (optional)
-                                   │ (agent-ross)              │
-                                     CI/CD, Docker,
-                                   │ cloud deploy, tagging     │
-                                   └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ──── ─┘
-                                                │
-                                                ▼
-                                        ┌──────────────┐
-                                        │   Release    │
-                                        └──────────────┘
+              plan        design       code        review       docs
+ ┌──────┐   ┌───────┐   ┌────────┐   ┌────────┐   ┌───────┐   ┌───────┐
+ │ User │──>│ smith │──>│  ward  │──>│  hale  │──>│ ellis │─┬>│ twain │
+ └──────┘   └───┬───┘   └────────┘   └────────┘   └───────┘ │ └───────┘
+                │                         ▲            │    │
+                │                         └── fix ─────┘    │  ops
+                │                                           │ ┌───────┐
+                │                                           └>│ page  │
+                │                                             └───┬───┘
+                │                                         deploy  │
+                │            ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─┘
+                │            ┌──────────────────┐
+                │            │  ross (optional) │
+                │            └──────────────────┘
+                │
+                │         ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
+                └ ─ ─ ─ ─   tenth-man  spec-writer
+                          │ ascii-grapher  test-runner  │
+                            changelog-gen  dep-auditor
+                          └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
 ```
 
 ### Dependency Graph
