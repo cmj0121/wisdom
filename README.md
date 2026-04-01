@@ -36,13 +36,20 @@ has a clear role, responsibility boundary, and reporting chain.
 
 ### Support Tools
 
-| Tool            | Description                                                |
-| --------------- | ---------------------------------------------------------- |
-| `spec-writer`   | Writes technical specs with architecture diagrams          |
-| `tenth-man`     | Devil's advocate — challenges assumptions, surfaces risks  |
-| `ascii-grapher` | Draws ASCII diagrams for architecture, flows, and concepts |
-| `git-committer` | Generates clear, conventional commit messages              |
-| `shortcut`      | Auto-dispatch skills when you type a magic word            |
+| Tool            | Description                                      | Available To                        |
+| --------------- | ------------------------------------------------ | ----------------------------------- |
+| `spec-writer`   | Technical specs with architecture diagrams       | agent-ward, agent-twain             |
+| `tenth-man`     | Challenges assumptions and surfaces risks        | agent-smith, agent-ward             |
+| `ascii-grapher` | ASCII diagrams for architecture, flows, concepts | agent-ward, agent-twain, agent-page |
+| `test-runner`   | Detects test framework and runs test suite       | agent-hale, agent-ellis, agent-page |
+| `changelog-gen` | Generates changelog from git history             | agent-ross, agent-twain             |
+| `dep-auditor`   | Audits dependencies for vulns and outdated pkgs  | agent-page, agent-ellis             |
+
+### System Tool
+
+| Tool       | Description                                     |
+| ---------- | ----------------------------------------------- |
+| `shortcut` | Auto-dispatch skills when you type a magic word |
 
 ### Workflow
 
@@ -62,13 +69,13 @@ has a clear role, responsibility boundary, and reporting chain.
                               ▼
                  ┌──────────────────────────┐       ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
                  │     ARCHITECT            │         Support Tools
-                 │     (agent-ward)         │       │                   │
+                 │     (agent-ward)         │       │                     │
                  │     system design,       │         spec-writer
-                 │     tech decisions       │       │ tenth-man         │
+                 │     tech decisions       │       │ tenth-man           │
                  └────────────┬─────────────┘         ascii-grapher
-                              │                     │ git-committer     │
-                              ▼                       shortcut
-                 ┌──────────────────────────┐       │                   │
+                              │                     │ test-runner         │
+                              ▼                       changelog-gen
+                 ┌──────────────────────────┐       │ dep-auditor         │
                  │     DEVELOPER            │       └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
                  │     (agent-hale)         │
                  │     implement code       │
@@ -118,8 +125,15 @@ agent-smith (Project Leader)
     ├──▶ agent-page (SRE)
     └──▶ agent-ross (Release Manager, optional)
 
-Support tools (invoked by any role as needed):
-    spec-writer, tenth-man, ascii-grapher, git-committer, shortcut
+Support tools (invoked by roles as needed):
+    spec-writer    ──▶ agent-ward, agent-twain
+    tenth-man      ──▶ agent-smith, agent-ward
+    ascii-grapher  ──▶ agent-ward, agent-twain, agent-page
+    test-runner    ──▶ agent-hale, agent-ellis, agent-page
+    changelog-gen  ──▶ agent-ross, agent-twain
+    dep-auditor    ──▶ agent-page, agent-ellis
+
+System: shortcut (auto-dispatch)
 ```
 
 ## DDD (Dream-Driven Development)
