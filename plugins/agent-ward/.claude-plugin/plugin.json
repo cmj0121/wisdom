@@ -1,0 +1,10 @@
+{
+  "name": "agent-ward",
+  "description": "Architect agent — system design, API design, and tech stack decisions.",
+  "version": "1.0.0",
+  "license": "MIT",
+  "author": {
+    "name": "cmj",
+    "url": "https://github.com/cmj0121"
+  }
+}

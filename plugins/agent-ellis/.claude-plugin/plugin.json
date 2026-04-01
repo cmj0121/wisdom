@@ -1,7 +1,7 @@
 {
   "name": "agent-ellis",
-  "description": "Code reviewer agent — reviews code quality and security, reports findings to agent-smith.",
-  "version": "0.9.1",
+  "description": "QA agent — code review, test execution, and acceptance verification.",
+  "version": "1.0.0",
   "license": "MIT",
   "author": {
     "name": "cmj",

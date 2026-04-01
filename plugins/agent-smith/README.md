@@ -1,10 +1,10 @@
 # Agent Smith Plugin
 
-> Team leader agent — dispatches planning, spec-writing, coding, and review jobs to specialized agents.
+> Project Leader agent — plans, dispatches, coordinates the scrum team.
 
-Agent Smith is the leader of the development team. Smith does not write code or specs directly —
-instead, Smith dispatches jobs to specialized agents and coordinates their work through a layered
-skill architecture.
+Agent Smith is the leader of the scrum team. Smith owns the full lifecycle: analyzing
+project context, producing plans, dispatching to specialized agents, and coordinating
+iterations. Smith does not write code, specs, or docs directly.
 
 | Mode       | Trigger words                       | Checkpoints               | Iterations       |
 | ---------- | ----------------------------------- | ------------------------- | ---------------- |
@@ -13,14 +13,15 @@ skill architecture.
 
 ## The Team
 
-| Agent               | Role          | Responsibility                                     |
-| ------------------- | ------------- | -------------------------------------------------- |
-| **agent-smith**     | Leader        | Dispatches jobs, coordinates workflow, manages git |
-| **proj-ideatender** | Project Owner | Analyzes project context, produces brief plans     |
-| **spec-writer**     | Spec Writer   | Writes technical specs with architecture diagrams  |
-| **agent-hale**      | Programmer    | Writes code based on plan and spec                 |
-| **agent-ellis**     | Code Reviewer | Reviews code, finds bugs, reports findings         |
-| **git-committer**   | Commit Gen    | Generates commit messages                          |
+| Agent           | Role             | Responsibility                                  |
+| --------------- | ---------------- | ----------------------------------------------- |
+| **agent-smith** | Project Leader   | Plans, dispatches, coordinates the scrum team   |
+| **agent-ward**  | Architect        | System design, API design, tech stack decisions |
+| **agent-hale**  | Developer        | Writes code and tests                           |
+| **agent-ellis** | QA               | Code review, test execution, acceptance check   |
+| **agent-twain** | Technical Writer | User docs, API docs, migration guides           |
+| **agent-page**  | SRE              | Observability, reliability, performance review  |
+| **agent-ross**  | Release Manager  | CI/CD, Docker, cloud deploy, commits (optional) |
 
 ## Installation
 
@@ -32,45 +33,14 @@ Install via the wisdom marketplace:
 
 ## How It Works
 
-### Phase 1: Understand and Plan
-
-Smith dispatches to `proj-ideatender` to analyze the project and produce a brief plan.
-In Partner mode, the plan is presented to the user. In Autonomous mode, Smith reviews it directly.
-
-### Phase 2: Spec (if needed)
-
-For non-trivial features, Smith dispatches to `spec-writer` to produce technical specifications
-with architecture diagrams (via `ascii-grapher`).
-
-### Phase 3: Implement, Review, and Commit
-
-For each unit of work, Smith dispatches:
-
-1. **agent-hale** — writes the code
-2. **agent-ellis** — reviews the code (PASS/WARN/FAIL)
-3. **git-committer** — commits on PASS
-
-On FAIL, Smith re-dispatches to Hale with Ellis's findings, then back to Ellis.
-
-### Autonomous Mode (additional phases)
-
-1. **Assess** — Smith reviews all changes, scores quality
-2. **Re-Plan** — Smith invokes `proj-ideatender` to reassess, adds new units, loops back
-
-### Final Phases
-
-1. **Merge** — Presents summary, waits for user approval, merges into main
-2. **Lessons Learned** — Reflects and persists insights
+1. **Plan** — Analyzes context, produces plan, challenges via tenth-man
+2. **Design** — Dispatches to agent-ward for architecture (if needed)
+3. **Implement** — Dispatches to agent-hale, reviewed by agent-ellis
+4. **Docs & Ops** — Dispatches to agent-twain and agent-page in parallel
+5. **Release** — Dispatches to agent-ross (if installed)
+6. **Merge** — Presents summary, waits for approval, merges
 
 ## Usage
-
-### Slash Command
-
-```text
-/smith
-```
-
-Starts a fully autonomous development session.
 
 ### Magic Words
 

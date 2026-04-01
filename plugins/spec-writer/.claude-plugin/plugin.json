@@ -1,7 +1,7 @@
 {
   "name": "spec-writer",
-  "description": "Writes technical specifications with architecture diagrams, collaborating with proj-ideatender and ascii-grapher.",
-  "version": "0.9.1",
+  "description": "Writes technical specifications with architecture diagrams.",
+  "version": "1.0.0",
   "license": "MIT",
   "author": {
     "name": "cmj",
