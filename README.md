@@ -22,17 +22,17 @@ has a clear role, responsibility boundary, and reporting chain.
 | Role                 | Agent         | Responsibility                                           |
 | -------------------- | ------------- | -------------------------------------------------------- |
 | **Project Leader**   | `agent-smith` | Plan, dispatch, coordinate sprints, manage git lifecycle |
-| **Architect**        | _new_         | System design, API design, tech stack decisions          |
+| **Architect**        | `agent-ward`  | System design, API design, tech stack decisions          |
 | **Developer**        | `agent-hale`  | Implement code, write tests                              |
 | **QA**               | `agent-ellis` | Code review, test execution, acceptance verification     |
-| **Technical Writer** | _new_         | User docs, API docs, migration guides                    |
-| **SRE**              | _new_         | Observability, reliability, performance review           |
+| **Technical Writer** | `agent-twain` | User docs, API docs, migration guides                    |
+| **SRE**              | `agent-page`  | Observability, reliability, performance review           |
 
 ### Optional Role
 
-| Role                | Agent            | Responsibility                                     |
-| ------------------- | ---------------- | -------------------------------------------------- |
-| **Release Manager** | _new (optional)_ | CI/CD, Docker build, cloud deploy, release tagging |
+| Role                | Agent        | Responsibility                                     |
+| ------------------- | ------------ | -------------------------------------------------- |
+| **Release Manager** | `agent-ross` | CI/CD, Docker build, cloud deploy, release tagging |
 
 ### Support Tools
 
@@ -62,14 +62,15 @@ has a clear role, responsibility boundary, and reporting chain.
                               ▼
                  ┌──────────────────────────┐       ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
                  │     ARCHITECT            │         Support Tools
-                 │     system design,       │       │                     │
-                 │     tech decisions       │         spec-writer
-                 └────────────┬─────────────┘       │ tenth-man           │
-                              │                       ascii-grapher
-                              ▼                     │ git-committer       │
-                 ┌──────────────────────────┐         shortcut
-                 │     DEVELOPER            │       │                     │
-                 │     (agent-hale)         │       └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
+                 │     (agent-ward)         │       │                   │
+                 │     system design,       │         spec-writer
+                 │     tech decisions       │       │ tenth-man         │
+                 └────────────┬─────────────┘         ascii-grapher
+                              │                     │ git-committer     │
+                              ▼                       shortcut
+                 ┌──────────────────────────┐       │                   │
+                 │     DEVELOPER            │       └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
+                 │     (agent-hale)         │
                  │     implement code       │
                  │     + tests              │
                  └────────────┬─────────────┘
@@ -86,17 +87,19 @@ has a clear role, responsibility boundary, and reporting chain.
             ▼                                    ▼
 ┌────────────────────────┐         ┌──────────────────────────┐
 │   TECHNICAL WRITER     │         │     SRE                  │
+│   (agent-twain)        │         │     (agent-page)         │
 │   user docs, API docs, │         │     observability,       │
 │   migration guides     │         │     reliability,         │
 └────────────────────────┘         │     performance review   │
                                    └────────────┬─────────────┘
                                                 │
                                                 ▼
-                                   ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─┐
+                                   ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ────┐
                                      RELEASE MANAGER (optional)
-                                   │ CI/CD, Docker,            │
-                                     cloud deploy, tagging
-                                   └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─┘
+                                   │ (agent-ross)              │
+                                     CI/CD, Docker,
+                                   │ cloud deploy, tagging     │
+                                   └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ──── ─┘
                                                 │
                                                 ▼
                                         ┌──────────────┐
@@ -108,12 +111,12 @@ has a clear role, responsibility boundary, and reporting chain.
 
 ```text
 agent-smith (Project Leader)
-    ├──▶ architect (System Design)
+    ├──▶ agent-ward (Architect)
     ├──▶ agent-hale (Developer)
-    ├──▶ agent-ellis (QA) ──findings──▶ agent-hale (fix) or architect (redesign)
-    ├──▶ technical-writer (Documentation)
-    ├──▶ sre (Reliability Review)
-    └──▶ release-manager (Deploy, optional)
+    ├──▶ agent-ellis (QA) ──findings──▶ agent-hale (fix) or agent-ward (redesign)
+    ├──▶ agent-twain (Technical Writer)
+    ├──▶ agent-page (SRE)
+    └──▶ agent-ross (Release Manager, optional)
 
 Support tools (invoked by any role as needed):
     spec-writer, tenth-man, ascii-grapher, git-committer, shortcut
