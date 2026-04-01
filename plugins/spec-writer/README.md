@@ -1,10 +1,10 @@
 # Spec Writer Plugin
 
-> Writes technical specifications with architecture diagrams, collaborating with proj-ideatender and ascii-grapher.
+> Writes technical specifications with architecture diagrams.
 
-The spec-writer plugin produces detailed technical specifications for the development team. It
-collaborates with `proj-ideatender` for project context and `ascii-grapher` for architecture
-diagrams and flow charts embedded directly in spec documents.
+The spec-writer plugin produces detailed technical specifications for the development team.
+It is invoked by `agent-ward` (Architect) and `agent-twain` (Technical Writer), and uses
+`ascii-grapher` for architecture diagrams and flow charts.
 
 ## Installation
 
@@ -18,10 +18,9 @@ Install via the wisdom marketplace:
 
 ### Specification Workflow
 
-1. **Understand** - Invokes `proj-ideatender` for project context, reads existing docs
-2. **Draft and review** - Writes specs with embedded architecture diagrams (via `ascii-grapher`),
-   then invokes `agent-ellis` for review (when part of the agent team)
-3. **Finalize** - Ensures documents stay under 5000 words / 800 lines
+1. **Understand** — Reads `PLAN.md`, project docs, and caller's context
+2. **Draft** — Writes specs with embedded architecture diagrams (via `ascii-grapher`)
+3. **Finalize** — Ensures documents stay under 5000 words / 800 lines
 
 ### Document Types
 
@@ -41,18 +40,11 @@ The spec-writer automatically invokes `ascii-grapher` to produce:
 
 ## Usage
 
-### Slash Command
+### Magic Words
 
-```text
-/spec
-```
-
-Triggers the full specification writing workflow.
-
-### Magic Word
-
-Typing a prompt that contains `write spec`, `draft spec`, or `spec-writer` will
-auto-dispatch this skill via the shortcut plugin.
+- `write spec` → Full specification workflow
+- `draft spec` → Full specification workflow
+- `spec-writer` → Direct invocation
 
 ## License
 
