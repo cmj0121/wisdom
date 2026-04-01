@@ -43,15 +43,16 @@ This skill is triggered when the user's prompt contains `develop`, `implement it
 
 ## The Team
 
-| Agent               | Role             | Responsibility                                               |
-| ------------------- | ---------------- | ------------------------------------------------------------ |
-| **agent-smith**     | Leader           | Dispatches jobs, coordinates workflow, manages git lifecycle |
-| **proj-ideatender** | Project Owner    | Analyzes project context, produces brief plans               |
-| **spec-writer**     | Spec Writer      | Writes technical specs with architecture diagrams            |
-| **agent-hale**      | Programmer       | Writes code based on plan and spec                           |
-| **agent-ellis**     | Code Reviewer    | Reviews code, finds bugs, reports to ideatender or hale      |
-| **frontend-design** | UI Designer      | Designs and implements production-grade frontend interfaces  |
-| **git-committer**   | Commit Generator | Generates commit messages                                    |
+| Agent               | Role             | Responsibility                                                  |
+| ------------------- | ---------------- | --------------------------------------------------------------- |
+| **agent-smith**     | Leader           | Dispatches jobs, coordinates workflow, manages git lifecycle    |
+| **proj-ideatender** | Project Owner    | Analyzes project context, produces brief plans                  |
+| **spec-writer**     | Spec Writer      | Writes technical specs with architecture diagrams               |
+| **agent-hale**      | Programmer       | Writes code based on plan and spec                              |
+| **agent-ellis**     | Code Reviewer    | Reviews code, finds bugs, reports to ideatender or hale         |
+| **frontend-design** | UI Designer      | Designs and implements production-grade frontend interfaces     |
+| **tenth-man**       | Devil's Advocate | Challenges assumptions and surfaces risks to prevent groupthink |
+| **git-committer**   | Commit Generator | Generates commit messages                                       |
 
 ## How It Works
 
@@ -64,7 +65,14 @@ refine or redirect. Smith waits for the user to confirm before proceeding.
 
 **[Autonomous]** `proj-ideatender` presents the plan to **Smith**. Smith reviews it and proceeds.
 
-Once the plan is approved, Smith writes `PLAN.md`:
+After the plan is produced, invoke `tenth-man:tenth-man` to challenge the plan before approval.
+Feed it the goal, approach, units of work, and risks. Act on the verdict:
+
+- **Go**: proceed — note the tenth-man's top items in the Risks section of `PLAN.md`.
+- **Pause**: revise the plan to address flagged items, then re-run the challenge.
+- **Reconsider**: re-dispatch to `proj-ideatender` with the tenth-man's findings as new input.
+
+Once the plan passes the tenth-man challenge and is approved, Smith writes `PLAN.md`:
 
 ```markdown
 # PLAN.md
@@ -217,6 +225,13 @@ and patterns for future sessions. Append the reflection to `LESSONS.md` in the
 │                              │                                          │
 │                              ▼                                          │
 │  ┌───────────────────────────────────────────────────────────────────┐  │
+│  │ Phase 1.5: Tenth Man Challenge                                    │  │
+│  │  smith ──dispatch──> tenth-man ──> challenge plan                 │  │
+│  │  Go ──> proceed    Pause ──> revise    Reconsider ──> re-plan    │  │
+│  └──────────────────────────┬────────────────────────────────────────┘  │
+│                              │                                          │
+│                              ▼                                          │
+│  ┌───────────────────────────────────────────────────────────────────┐  │
 │  │ Phase 2: Spec (if needed)                                         │  │
 │  │  smith ──dispatch──> spec-writer ──> technical spec + diagrams    │  │
 │  │                      (uses proj-ideatender + ascii-grapher)       │  │
@@ -285,6 +300,8 @@ and patterns for future sessions. Append the reflection to `LESSONS.md` in the
 
 - Invokes `proj-ideatender:proj-ideatender` in Phase 1 for project analysis and brief planning.
   In Partner mode, ideatender reports to user. In Autonomous mode, ideatender reports to Smith.
+- Invokes `tenth-man:tenth-man` in Phase 1 after the brief plan is produced. Acts on the verdict:
+  re-plans on Reconsider, revises on Pause, proceeds on Go. Top items are added to PLAN.md Risks.
 - Invokes `spec-writer:spec-writer` in Phase 2 for technical specifications. The spec-writer
   collaborates with `proj-ideatender` for context and `ascii-grapher` for diagrams.
 - Invokes `frontend-design:frontend-design` in Phase 2.5 for UI/frontend work. Reviews the

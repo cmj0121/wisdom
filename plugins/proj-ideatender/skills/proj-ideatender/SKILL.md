@@ -70,6 +70,18 @@ improvements, refactoring, docs, testing.
 
 Persist ideas to `IDEAS.md` in cache dir.
 
+### Phase 2.5: Tenth Man Challenge
+
+Before handing off the plan, invoke `tenth-man:tenth-man` to challenge the brief plan.
+Feed it the goal, approach, units of work, and risks from Phase 2. The tenth-man will
+surface hidden assumptions, blind spots, and failure modes.
+
+- If the verdict is **Go**: proceed to Phase 3 with the risks noted.
+- If the verdict is **Pause**: revise the plan to address the flagged items, then re-run Phase 2.5.
+- If the verdict is **Reconsider**: return to Phase 2 with the tenth-man's findings as new input.
+
+Append the tenth-man's top items to the **Risks** section of the plan.
+
 ### Phase 3: Handoff
 
 Present the brief plan or ideas in table format:
@@ -107,3 +119,4 @@ Do not generate new ideas in this phase. If the user requests refinements, retur
   explicitly asked for fresh analysis.
 - Receives design-level issue reports from `agent-ellis` via Smith.
 - Provides project context to `spec-writer` for specification writing.
+- Invokes `tenth-man:tenth-man` in Phase 2.5 to challenge the plan before handoff.

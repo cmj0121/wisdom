@@ -1,0 +1,10 @@
+{
+  "name": "tenth-man",
+  "description": "Devil's advocate that challenges assumptions and surfaces risks to prevent groupthink.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "author": {
+    "name": "cmj",
+    "url": "https://github.com/cmj0121"
+  }
+}
