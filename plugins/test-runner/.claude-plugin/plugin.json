@@ -1,0 +1,10 @@
+{
+  "name": "test-runner",
+  "description": "Detects test framework and runs the project test suite.",
+  "version": "1.0.0",
+  "license": "MIT",
+  "author": {
+    "name": "cmj",
+    "url": "https://github.com/cmj0121"
+  }
+}

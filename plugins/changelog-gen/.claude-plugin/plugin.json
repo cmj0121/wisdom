@@ -1,0 +1,10 @@
+{
+  "name": "changelog-gen",
+  "description": "Generates changelog from git history using conventional commits.",
+  "version": "1.0.0",
+  "license": "MIT",
+  "author": {
+    "name": "cmj",
+    "url": "https://github.com/cmj0121"
+  }
+}

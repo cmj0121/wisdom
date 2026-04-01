@@ -1,0 +1,10 @@
+{
+  "name": "dep-auditor",
+  "description": "Audits dependencies for vulnerabilities and outdated packages.",
+  "version": "1.0.0",
+  "license": "MIT",
+  "author": {
+    "name": "cmj",
+    "url": "https://github.com/cmj0121"
+  }
+}
