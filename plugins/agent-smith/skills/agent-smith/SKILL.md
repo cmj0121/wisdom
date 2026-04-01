@@ -118,9 +118,11 @@ Once the plan passes and is approved, Smith writes `PLAN.md`:
 
 ## Units of Work
 
-| #   | Unit | Description | Assignee   | Status  |
-| --- | ---- | ----------- | ---------- | ------- |
-| 1   | ...  | ...         | agent-hale | pending |
+| #   | Unit | Description | Assignee   | Depends On | Status  |
+| --- | ---- | ----------- | ---------- | ---------- | ------- |
+| 1   | ...  | ...         | agent-hale | —          | pending |
+| 2   | ...  | ...         | agent-hale | —          | pending |
+| 3   | ...  | ...         | agent-hale | 1, 2       | pending |
 
 ## Planned Commits
 
@@ -157,28 +159,70 @@ Smith reviews the output before passing it to `agent-hale` for integration.
 **Before the first commit**, create a feature branch:
 `git checkout -b feat/<slugified-3-word-summary>`
 
-For each unit of work:
+#### Dependency Analysis
 
-#### Dispatch to agent-hale
+Before dispatching, Smith analyzes the `Depends On` column in `PLAN.md` to classify
+units into **parallel batches**:
 
-Invoke `agent-hale:agent-hale` with the unit of work, referencing `PLAN.md` and
-any specs/designs from Ward.
+- Units with `Depends On: —` (no dependencies) can run in the first batch
+- Units depending on completed units form subsequent batches
+- Within each batch, all units run **in parallel**
 
-#### Dispatch to agent-ellis
+Example with 4 units:
 
-After Hale completes a unit, invoke `agent-ellis:agent-ellis` to review.
-Ellis reviews code quality, runs tests, and verifies acceptance criteria.
-Acts on the `__REVIEW_VERDICT__` block:
+```text
+Batch 1 (parallel):  Unit 1 (—), Unit 2 (—)
+Batch 2 (parallel):  Unit 3 (depends on 1), Unit 4 (depends on 2)
+```
 
-- **PASS** → proceed to commit
-- **WARN** → Smith decides: fix or accept. If fix, re-dispatch to Hale
-- **FAIL** → must fix. Re-dispatch to Hale with findings, then re-review
+#### Parallel Dispatch to agent-hale
 
-#### Commit
+For each batch, dispatch all units simultaneously using the `Agent` tool with
+`isolation: "worktree"`. Each hale instance works in an isolated git worktree,
+preventing file conflicts between parallel units.
 
-Once Ellis passes, invoke `agent-ross:agent-ross` for the commit message.
-If Ross is not installed, Smith generates a conventional commit directly.
-Update the unit's Status in `PLAN.md` to `done`.
+```text
+Smith dispatches batch:
+  ┌──────────┐ ┌──────────┐ ┌──────────┐
+  │ hale (1) │ │ hale (2) │ │ hale (3) │   ← parallel, isolated worktrees
+  └────┬─────┘ └────┬─────┘ └────┬─────┘
+       ▼            ▼            ▼
+  ┌──────────┐ ┌──────────┐ ┌──────────┐
+  │ellis (1) │ │ellis (2) │ │ellis (3) │   ← parallel QA review
+  └────┬─────┘ └────┬─────┘ └────┬─────┘
+       └────────────┼────────────┘
+                    ▼
+              Smith merges
+              all worktrees
+```
+
+For each unit in the batch:
+
+1. Launch `agent-hale:agent-hale` via `Agent` tool with `isolation: "worktree"`,
+   passing the unit of work, `PLAN.md`, and any designs from Ward.
+2. When hale completes, launch `agent-ellis:agent-ellis` to review the worktree
+   changes. Ellis reviews code quality, runs tests, and verifies acceptance.
+3. Act on the `__REVIEW_VERDICT__` block:
+   - **PASS** → mark unit ready to merge
+   - **WARN** → Smith decides: fix or accept. If fix, re-dispatch to Hale
+   - **FAIL** → must fix. Re-dispatch to Hale with findings, then re-review
+
+#### Merge Worktrees
+
+After all units in a batch pass QA:
+
+1. Merge each worktree branch into the feature branch sequentially
+2. If merge conflicts arise, dispatch to `agent-hale` to resolve them
+3. Invoke `agent-ross:agent-ross` for the commit message (or generate directly)
+4. Update each unit's Status in `PLAN.md` to `done`
+
+Proceed to the next batch once all units in the current batch are merged.
+
+#### Sequential Fallback
+
+If units are tightly coupled (all depend on each other), Smith falls back to
+sequential dispatch — one hale at a time, no worktrees needed. Smith should
+prefer parallel dispatch when possible for faster delivery.
 
 ### Phase 4: Docs and Ops Review
 
