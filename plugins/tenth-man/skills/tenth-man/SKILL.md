@@ -10,7 +10,7 @@ allowed-tools:
   - Bash(git diff:*)
 metadata:
   author: cmj@cmj.tw
-  version: 0.1.0
+  version: 1.0.0
 ---
 
 # Tenth Man Skill
@@ -84,10 +84,10 @@ Deliver a final summary:
 
 **Contract rules:**
 
-- When invoked by `agent-smith`, challenge the plan from Phase 1 and return the verdict
+- When invoked by `agent-smith`, challenge the plan and return the verdict
   (Go / Pause / Reconsider) with top items. Smith acts on the verdict.
-- When invoked by `proj-ideatender`, challenge the brief plan from Phase 2 and return findings.
-  Ideatender incorporates risks and may revise the plan.
+- When invoked by `agent-ward`, challenge the architecture design and return findings.
+  Ward incorporates risks and may revise the design.
 - When invoked directly by the user, run the full 5-phase workflow on whatever subject is provided.
 
 ## Tone Guidelines
