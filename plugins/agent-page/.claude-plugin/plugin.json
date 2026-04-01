@@ -1,0 +1,10 @@
+{
+  "name": "agent-page",
+  "description": "SRE agent — observability, reliability, and performance review.",
+  "version": "1.0.0",
+  "license": "MIT",
+  "author": {
+    "name": "cmj",
+    "url": "https://github.com/cmj0121"
+  }
+}
