@@ -1,10 +1,11 @@
 # Agent Ellis Plugin
 
-> Code reviewer agent — reviews code quality and security, reports findings to agent-smith.
+> QA agent — code review, test execution, and acceptance verification.
 
-Agent Ellis is the code reviewer of the development team. Ellis reviews code for quality and
-security issues, then reports findings through the team's reporting chain: implementation fixes
-go to `agent-hale`, design-level issues escalate to `proj-ideatender` — all routed by `agent-smith`.
+Agent Ellis is the QA agent of the scrum team. Ellis reviews code for quality and
+security, runs the test suite, verifies acceptance criteria against `PLAN.md`, and
+audits dependencies. Findings route to `agent-hale` (fixes) or `agent-ward` (redesign)
+via `agent-smith`.
 
 ## Installation
 
@@ -16,51 +17,30 @@ Install via the wisdom marketplace:
 
 ## Role in the Team
 
-| Agent               | Role          | Ellis's Relationship                               |
-| ------------------- | ------------- | -------------------------------------------------- |
-| **agent-smith**     | Leader        | Sends review requests, routes Ellis's findings     |
-| **agent-hale**      | Programmer    | Receives implementation fixes from Ellis via Smith |
-| **proj-ideatender** | Project Owner | Receives design-level issues from Ellis via Smith  |
-| **spec-writer**     | Spec Writer   | Ellis may review spec drafts                       |
+| Agent           | Role           | Ellis's Relationship                           |
+| --------------- | -------------- | ---------------------------------------------- |
+| **agent-smith** | Project Leader | Sends review requests, routes Ellis's findings |
+| **agent-hale**  | Developer      | Receives implementation fixes via Smith        |
+| **agent-ward**  | Architect      | Receives design-level issues via Smith         |
+| **test-runner** | Support Tool   | Runs the project test suite for Ellis          |
+| **dep-auditor** | Support Tool   | Audits dependencies for vulnerabilities        |
 
 ## How It Works
 
-### Review Workflow
-
-1. **Check changes** - Runs `git diff --staged` or `git diff` to find changes
-2. **Quality checklist** - Scans for code style, smells, complexity, documentation gaps
-3. **Security review** - Scans for hardcoded secrets, insecure functions, input validation
-4. **Generate verdict** - FAIL / WARN / PASS / SKIP with categorized findings
-5. **Report** - Routes findings to Smith (who forwards to Hale or ideatender)
-
-### Severity Levels
-
-| Level      | Meaning                                                   |
-| ---------- | --------------------------------------------------------- |
-| Critical   | Must be fixed: bugs, security vulnerabilities, data loss  |
-| Warning    | Should be addressed: error handling, performance concerns |
-| Suggestion | Nice to have: readability, naming, style improvements     |
-
-### Finding Categories
-
-| Category             | Routed to       |
-| -------------------- | --------------- |
-| Implementation-level | agent-hale      |
-| Design-level         | proj-ideatender |
+1. **Code review** — Scans for quality, style, complexity issues
+2. **Security review** — Scans for secrets, insecure functions, input validation
+3. **Test execution** — Runs test suite via test-runner
+4. **Acceptance check** — Verifies implementation matches PLAN.md
+5. **Dependency audit** — Audits deps if dependency files changed
+6. **Verdict** — FAIL / WARN / PASS / SKIP with categorized findings
 
 ## Usage
 
-### Slash Command
+### Magic Words
 
-```text
-/review
-```
-
-Triggers the full code review workflow directly.
-
-### Magic Word
-
-Typing a prompt that contains `review code` or `ellis` will auto-dispatch this skill via the shortcut plugin.
+- `review code` → Full QA review of current changes
+- `qa` → Full QA review
+- `ellis` → Direct invocation
 
 ## License
 
