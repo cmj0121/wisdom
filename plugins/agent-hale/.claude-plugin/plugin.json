@@ -1,7 +1,7 @@
 {
   "name": "agent-hale",
   "description": "Programmer agent — writes clean, robust and maintainable code.",
-  "version": "0.9.1",
+  "version": "1.0.0",
   "license": "MIT",
   "author": {
     "name": "cmj",

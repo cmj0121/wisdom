@@ -1,10 +1,10 @@
 # Agent Hale Plugin
 
-> Programmer agent — writes clean, focused code based on plan and spec from the team.
+> Developer agent — writes clean, robust and maintainable code.
 
-Agent Hale is the programmer of the development team. Hale receives units of work from
-`agent-smith`, reads the plan and specs, and writes clean, focused implementation code
-with proper tests and error handling.
+Agent Hale is the developer of the scrum team. Hale receives units of work from
+`agent-smith`, reads the plan and designs from `agent-ward`, and writes clean,
+focused implementation code with proper tests.
 
 ## Installation
 
@@ -16,32 +16,21 @@ Install via the wisdom marketplace:
 
 ## Role in the Team
 
-| Agent               | Role          | Hale's Relationship                           |
-| ------------------- | ------------- | --------------------------------------------- |
-| **agent-smith**     | Leader        | Assigns work to Hale, forwards review results |
-| **proj-ideatender** | Project Owner | Provides project context via cache files      |
-| **spec-writer**     | Spec Writer   | Provides technical specs Hale implements from |
-| **agent-ellis**     | Code Reviewer | Reviews Hale's code, findings sent via Smith  |
+| Agent           | Role           | Hale's Relationship                           |
+| --------------- | -------------- | --------------------------------------------- |
+| **agent-smith** | Project Leader | Assigns work to Hale, forwards review results |
+| **agent-ward**  | Architect      | Provides designs Hale implements from         |
+| **agent-ellis** | QA             | Reviews Hale's code, findings sent via Smith  |
+| **test-runner** | Support Tool   | Runs the project test suite for Hale          |
 
 ## How It Works
 
-1. **Understand** — Reads `PLAN.md`, specs, and existing code to understand the unit of work
+1. **Understand** — Reads `PLAN.md`, designs, and existing code
 2. **Implement** — Writes clean, focused code following project conventions
-3. **Self-check** — Reviews own changes, runs test suite, runs `/simplify`, verifies scope
+3. **Self-check** — Reviews changes, runs tests via test-runner, runs `/simplify`
 4. **Report** — Reports completed work back to Smith (or user if called directly)
 
-### Handling Review Feedback
-
-When `agent-ellis` finds issues, Smith re-dispatches to Hale with the findings. Hale fixes
-FAIL items (must fix) and WARN items (fix unless Smith says otherwise), then reports back.
-
 ## Usage
-
-### Slash Command
-
-```text
-/hale
-```
 
 ### Magic Words
 
