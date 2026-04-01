@@ -14,7 +14,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: 0.9.1
+  version: 0.10.0
 ---
 
 # Project Idea Tender — Project Owner
