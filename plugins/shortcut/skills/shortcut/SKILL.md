@@ -34,25 +34,19 @@ Also scan command directories:
 ## Magic Word Extraction
 
 In each `.md` file, find the `## Shortcut` section and extract backtick-quoted words
-from lines matching:
-
-> prompt contains \`{word}\`
-
-A single file may define multiple magic words. Multi-word phrases (e.g.,
-`commit it`, `review and refine it`) are matched as exact substrings, not
-individual words.
+from lines matching `prompt contains \`{word}\``. A file may define multiple magic
+words; multi-word phrases match as exact substrings.
 
 ## Dispatch Rules
 
 - Match magic words against the user's prompt; invoke the matching skill or command.
-- Multiple matches: prefer the highest-priority source, then longest match.
-- No match: do nothing — let Claude handle the prompt with its default behavior.
+- Multiple matches: prefer highest-priority source, then longest match.
+- No match: do nothing.
 - After dispatching, inform the user which shortcut was triggered.
 
 ## Direct Invocation
 
-When called directly (`shortcut:shortcut`), scan all three sources and list discovered shortcuts as a table,
-extracting magic words, skill names, source levels, and descriptions from frontmatter:
+When called directly (`shortcut:shortcut`), scan all three sources and list discovered shortcuts as a table:
 
 | Magic Word | Skill / Command | Source | Description |
 | ---------- | --------------- | ------ | ----------- |

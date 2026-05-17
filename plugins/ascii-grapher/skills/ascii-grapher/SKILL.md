@@ -21,28 +21,17 @@ This skill is triggered when the user's prompt contains `graph` or `diagram` or 
 
 ### Phase 1: Understand the Subject
 
-Determine what the user wants to visualize. This may be:
-
-- **Code architecture**: read the codebase to understand module relationships, layers, and dependencies.
-- **Concept flow**: understand a process, data flow, or decision tree from the user's description.
-- **Sequence diagram**: capture interactions between components over time.
-- **Custom**: any other structure the user describes.
-
-If the user references code, read the relevant files with `Read`, `Glob`, and `Grep` to gather context.
-Ask clarifying questions only if the scope is genuinely ambiguous.
+Determine what to visualize: code architecture, concept/data flow, sequence diagram, or custom.
+Ask clarifying questions only when scope is genuinely ambiguous.
 
 ### Phase 2: Plan the Layout
 
-Before drawing, plan:
-
-1. **Nodes** — identify every box, actor, or component.
-2. **Edges** — identify connections, their direction, and optional labels.
-3. **Layout direction** — top-to-bottom, left-to-right, or hybrid based on what fits best.
-4. **Size budget** — aim for max 120 columns wide and a reasonable height. Prefer compact diagrams.
+Plan nodes, edges (with direction/labels), layout direction (top-to-bottom, left-to-right, hybrid),
+and size budget (max 120 columns; prefer compact).
 
 ### Phase 3: Draw the ASCII Diagram
 
-Render the diagram using only plain-text characters. Follow these conventions:
+Use plain-text characters. Conventions:
 
 #### Box style
 
@@ -56,17 +45,11 @@ Render the diagram using only plain-text characters. Follow these conventions:
 
 - Horizontal: `───>`, `<───`, `<──>`
 - Vertical: `│` with `▼` or `▲` at endpoints
-- Diagonal: avoid when possible; use L-shaped connectors instead
-
-#### Connectors and junctions
-
-- Corner: `┌ ┐ └ ┘`
-- Tee: `├ ┤ ┬ ┴`
-- Cross: `┼`
+- Avoid diagonals; use L-shaped connectors
 
 #### Labels
 
-Place edge labels inline on the arrow or directly above/below:
+Place edge labels inline on the arrow or above/below:
 
 ```text
         request
@@ -89,15 +72,13 @@ Use solid boxes for logical groups:
 
 ### Phase 4: Present and Refine
 
-1. Output the diagram inside a fenced code block so it renders with a monospace font.
-2. Add a brief legend or description below the diagram if labels alone are not self-explanatory.
-3. If the user asks for changes, loop back to _Phase 2_ and redraw.
+Output inside a fenced code block. Add a brief legend if labels aren't self-explanatory.
+Loop back to Phase 2 if user requests changes.
 
 ### Phase 5: Save (optional)
 
-When saving, embed the diagram directly inside the target document (e.g., `README.md`, `CONCEPTS.md`,
-or a spec file) within a fenced code block — do not create a separate standalone file for the diagram.
-Use the `Write` or `Edit` tool to insert or update the diagram in place.
+Embed diagrams inside the target document (e.g., `README.md`, `CONCEPTS.md`, spec file)
+within a fenced code block — do not create a separate file. Use `Write`/`Edit` in place.
 
 ## Diagram Types Cheat Sheet
 
@@ -111,5 +92,4 @@ Use the `Write` or `Edit` tool to insert or update the diagram in place.
 
 ## Team Coordination
 
-Other skills may invoke this skill to produce diagrams for documentation or specifications.
-Draw diagrams based on the context and requirements provided by the caller.
+Other skills invoke this skill to produce diagrams. Draw based on caller's context and requirements.

@@ -25,8 +25,7 @@ metadata:
 
 # Test Runner
 
-A shared support tool that detects the project's test framework and runs the test suite.
-Used by agent-hale (self-check), agent-ellis (QA verification), and agent-page (pre-release).
+Used by agent-hale (self-check), agent-ellis (QA), agent-page (pre-release).
 
 ## Shortcut
 
@@ -36,7 +35,7 @@ This skill is triggered when the user's prompt contains `run tests` or `test-run
 
 ### Phase 1: Detect Test Framework
 
-Auto-detect the test runner by checking for configuration files:
+Auto-detect by checking config files. If multiple detected, run all. If none, report and stop.
 
 | Config File                         | Runner  | Command             |
 | ----------------------------------- | ------- | ------------------- |
@@ -51,17 +50,10 @@ Auto-detect the test runner by checking for configuration files:
 | `Gemfile` with `rspec` / `minitest` | bundler | `bundle exec rspec` |
 | `mix.exs`                           | mix     | `mix test`          |
 
-If multiple frameworks are detected, run all of them. If none are detected, report
-that no test framework was found and stop.
-
 ### Phase 2: Run Tests
 
-Execute the detected test command(s). Capture output including:
-
-- Total tests run
-- Tests passed / failed / skipped
-- Error messages for failures
-- Test duration
+Execute detected command(s). Capture: total/passed/failed/skipped counts,
+failure error messages, duration.
 
 ### Phase 3: Report Results
 
@@ -80,11 +72,9 @@ Duration: <time>
 __TEST_RESULT__
 ```
 
-If tests fail, include the failure details (file, test name, error message).
+If tests fail, include failure details (file, test name, error message).
 
 ## Team Coordination
 
-**Available to:** agent-hale, agent-ellis, agent-page, agent-ross
-
-When invoked by other agents, always emit the `__TEST_RESULT__` block.
-The calling agent decides how to act on the results.
+**Available to:** agent-hale, agent-ellis, agent-page, agent-ross. Always emit the
+`__TEST_RESULT__` block when invoked; caller decides how to act.
