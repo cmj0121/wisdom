@@ -27,9 +27,8 @@ metadata:
 
 # Agent Smith — Project Leader
 
-Agent Smith is the leader of the scrum team. Smith owns the full lifecycle: analyzing
-project context, producing plans, dispatching to specialized agents, and coordinating
-iterations. Smith does not write code, specs, or docs directly.
+Leader of the scrum team. Owns the full lifecycle: analyzes project context, produces plans,
+dispatches to specialized agents, coordinates iterations. Smith does not write code, specs, or docs directly.
 
 | Mode       | Trigger words                       | Checkpoints               | Iterations       |
 | ---------- | ----------------------------------- | ------------------------- | ---------------- |
@@ -72,87 +71,47 @@ This skill is triggered when the user's prompt contains `develop`, `implement it
 
 ### Phase 1: Understand and Plan
 
-Smith analyzes the project context directly (absorbed from proj-ideatender):
+Smith analyzes project context directly:
 
-1. **Project overview**: Read `README.md` and relevant docs. If missing, use Glob for
-   `docs/`, `CONTRIBUTING.md`; read key source files; use WebSearch as last resort.
-2. **Git history**: `git log` (last 20 commits or 3 months). Use `git show` for
-   significant commits.
-3. **Project structure**: Glob to map directory layout. Identify key components.
+1. **Project overview**: Read `README.md` and docs. If missing: Glob `docs/`, `CONTRIBUTING.md`;
+   read key source files; WebSearch as last resort.
+2. **Git history**: `git log` (last 20 commits or 3 months). `git show` for significant commits.
+3. **Project structure**: Glob to map layout. Identify key components.
 
 Produce a brief plan:
 
 - **Goal**: what we are trying to achieve
 - **Approach**: high-level design and strategy
-- **Units of work**: concrete tasks to accomplish the goal
-- **UI work**: flag any units involving frontend/UI. Recommend dispatching to
-  `frontend-design:frontend-design` if the plugin is installed.
+- **Units of work**: concrete tasks
+- **UI work**: flag frontend/UI units; recommend `frontend-design:frontend-design` if installed
 - **Risks**: known risks or open questions
 
-**[Partner]** Present the plan to the **user** for approval. Wait for confirmation.
-**[Autonomous]** Smith reviews the plan internally and proceeds.
+**[Partner]** Present plan to user; wait for approval.
+**[Autonomous]** Smith reviews internally and proceeds.
 
-After the plan is produced, invoke `tenth-man:tenth-man` to challenge it.
-Feed the goal, approach, units of work, and risks. Act on the verdict:
+Invoke `tenth-man:tenth-man` to challenge the plan (goal, approach, units, risks). Act on verdict:
 
-- **Go**: proceed — note the tenth-man's top items in the Risks section of `PLAN.md`
-- **Pause**: revise the plan to address flagged items, then re-challenge
-- **Reconsider**: re-analyze with the tenth-man's findings as new input
+- **Go**: proceed — note top items in Risks section of `PLAN.md`
+- **Pause**: revise flagged items, re-challenge
+- **Reconsider**: re-analyze with findings as new input
 
-Once the plan passes and is approved, Smith writes `PLAN.md`:
-
-```markdown
-# PLAN.md
-
-## Idea
-
-<user's original idea>
-
-## Design
-
-<high-level design>
-
-## Spec
-
-<reference to spec documents if spec-writer was invoked>
-
-## Units of Work
-
-| #   | Unit | Description | Assignee   | Depends On | Status  |
-| --- | ---- | ----------- | ---------- | ---------- | ------- |
-| 1   | ...  | ...         | agent-hale | —          | pending |
-| 2   | ...  | ...         | agent-hale | —          | pending |
-| 3   | ...  | ...         | agent-hale | 1, 2       | pending |
-
-## Planned Commits
-
-| #   | Commit | Description |
-| --- | ------ | ----------- |
-| 1   | ...    | ...         |
-
-## Iteration Log
-
-| Iteration | Correctness | Completeness | Quality | Test Coverage | Summary |
-| --------- | ----------- | ------------ | ------- | ------------- | ------- |
-```
+Once approved, Smith writes `PLAN.md`. Sections: **Idea** (user's original idea),
+**Design** (high-level), **Spec** (reference if spec-writer invoked), **Units of Work** table
+(`# | Unit | Description | Assignee | Depends On | Status`), **Planned Commits** table
+(`# | Commit | Description`), **Iteration Log** table (`Iteration | Correctness |
+Completeness | Quality | Test Coverage | Summary`).
 
 ### Phase 2: Design (if needed)
 
-For non-trivial features, invoke `agent-ward:agent-ward` to produce architecture
-decisions, API contracts, and component designs. Ward may invoke `spec-writer` and
-`ascii-grapher` as needed.
-
-Smith reviews the design output before proceeding. Skip for simple bug fixes or
-small changes.
+For non-trivial features, invoke `agent-ward:agent-ward` for architecture, API contracts,
+component designs. Ward may invoke `spec-writer` and `ascii-grapher`.
+Smith reviews design output before proceeding. Skip for simple fixes/small changes.
 
 ### Phase 2.5: UI Design (if needed)
 
-For tasks involving frontend/UI work, invoke `frontend-design:frontend-design`.
-
-If the `frontend-design` plugin is not installed, **inform the user** and suggest
-they install it before proceeding.
-
-Smith reviews the output before passing it to `agent-hale` for integration.
+For frontend/UI work, invoke `frontend-design:frontend-design`. If not installed,
+**inform the user** and suggest installing it. Smith reviews output before passing
+to `agent-hale` for integration.
 
 ### Phase 3: Implement, Review, and Commit
 
@@ -161,90 +120,61 @@ Smith reviews the output before passing it to `agent-hale` for integration.
 
 #### Dependency Analysis
 
-Before dispatching, Smith analyzes the `Depends On` column in `PLAN.md` to classify
-units into **parallel batches**:
+Smith analyzes `Depends On` in `PLAN.md` to classify units into **parallel batches**:
 
-- Units with `Depends On: —` (no dependencies) can run in the first batch
+- Units with `Depends On: —` run in first batch
 - Units depending on completed units form subsequent batches
-- Within each batch, all units run **in parallel**
+- Within each batch, units run **in parallel**
 
-Example with 4 units:
-
-```text
-Batch 1 (parallel):  Unit 1 (—), Unit 2 (—)
-Batch 2 (parallel):  Unit 3 (depends on 1), Unit 4 (depends on 2)
-```
+Example: Batch 1 — Unit 1 (—), Unit 2 (—); Batch 2 — Unit 3 (deps 1), Unit 4 (deps 2).
 
 #### Parallel Dispatch to agent-hale
-
-For each batch, dispatch all units simultaneously using the `Agent` tool with
-`isolation: "worktree"`. Each hale instance works in an isolated git worktree,
-preventing file conflicts between parallel units.
-
-```text
-Smith dispatches batch:
-  ┌──────────┐ ┌──────────┐ ┌──────────┐
-  │ hale (1) │ │ hale (2) │ │ hale (3) │   ← parallel, isolated worktrees
-  └────┬─────┘ └────┬─────┘ └────┬─────┘
-       ▼            ▼            ▼
-  ┌──────────┐ ┌──────────┐ ┌──────────┐
-  │ellis (1) │ │ellis (2) │ │ellis (3) │   ← parallel QA review
-  └────┬─────┘ └────┬─────┘ └────┬─────┘
-       └────────────┼────────────┘
-                    ▼
-              Smith merges
-              all worktrees
-```
 
 For each unit in the batch:
 
 1. Launch `agent-hale:agent-hale` via `Agent` tool with `isolation: "worktree"`,
-   passing the unit of work, `PLAN.md`, and any designs from Ward.
-2. When hale completes, launch `agent-ellis:agent-ellis` to review the worktree
-   changes. Ellis reviews code quality, runs tests, and verifies acceptance.
-3. Act on the `__REVIEW_VERDICT__` block:
+   passing the unit, `PLAN.md`, and Ward's designs.
+2. When hale completes, launch `agent-ellis:agent-ellis` to review the worktree changes (code quality, tests, acceptance).
+3. Act on `__REVIEW_VERDICT__`:
    - **PASS** → mark unit ready to merge
-   - **WARN** → Smith decides: fix or accept. If fix, re-dispatch to Hale
-   - **FAIL** → must fix. Re-dispatch to Hale with findings, then re-review
+   - **WARN** → Smith decides fix or accept; if fix, re-dispatch Hale
+   - **FAIL** → must fix; re-dispatch Hale with findings, then re-review
 
 #### Merge Worktrees
 
 After all units in a batch pass QA:
 
 1. Merge each worktree branch into the feature branch sequentially
-2. If merge conflicts arise, dispatch to `agent-hale` to resolve them
+2. On merge conflicts, dispatch `agent-hale` to resolve
 3. Invoke `agent-ross:agent-ross` for the commit message (or generate directly)
 4. Update each unit's Status in `PLAN.md` to `done`
 
-Proceed to the next batch once all units in the current batch are merged.
+Proceed to next batch once all merged.
 
 #### Sequential Fallback
 
-If units are tightly coupled (all depend on each other), Smith falls back to
-sequential dispatch — one hale at a time, no worktrees needed. Smith should
-prefer parallel dispatch when possible for faster delivery.
+If units are tightly coupled, Smith falls back to sequential dispatch — one hale at a time,
+no worktrees. Prefer parallel dispatch when possible.
 
 ### Phase 4: Docs and Ops Review
 
 After all units pass QA, dispatch in parallel:
 
-- Invoke `agent-twain:agent-twain` for documentation updates
-- Invoke `agent-page:agent-page` for operational readiness review
+- `agent-twain:agent-twain` for documentation updates
+- `agent-page:agent-page` for operational readiness review
 
 Act on Page's `__OPS_VERDICT__`:
 
 - **READY** → proceed to merge
 - **CONCERN** → note items, proceed unless critical
-- **BLOCK** → dispatch to Hale for fixes, then re-review
+- **BLOCK** → dispatch Hale for fixes, then re-review
 
 ### Phase 5: Assess and Iterate [Autonomous mode only]
 
 **[Partner]** Skip — go directly to Phase 7.
 
-Smith self-assesses: review changes (`git log`, `git diff main...HEAD`),
-run tests, identify issues. Optionally invoke `agent-ellis` for full review.
-
-Score (1-10):
+Self-assess: `git log`, `git diff main...HEAD`, run tests, identify issues. Optionally
+invoke `agent-ellis` for full review. Score (1-10):
 
 | Dimension     | Score | Notes |
 | ------------- | ----- | ----- |
@@ -253,26 +183,20 @@ Score (1-10):
 | Quality       |       |       |
 | Test Coverage |       |       |
 
-Update the Iteration Log in `PLAN.md`.
+Update the Iteration Log in `PLAN.md`. Re-plan; add new units. Return to **Phase 3**.
 
-Re-plan based on current state. Add new units to `PLAN.md`.
-Return to **Phase 3**.
-
-**Repeat Phases 3–5 for at least 3 iterations** (honor user-specified count).
-Stop early if all scores reach 9+.
+**Repeat Phases 3–5 for at least 3 iterations** (honor user-specified count). Stop early if all scores reach 9+.
 
 ### Phase 6: Pre-Release [if agent-ross is installed]
 
-Invoke `agent-ross:agent-ross` for the full release pipeline:
-CI checks, Docker build, release tagging, deployment.
-
-If Ross is not installed, skip to Phase 7.
+Invoke `agent-ross:agent-ross` for the full release pipeline (CI, Docker build, tagging, deploy).
+Skip to Phase 7 if Ross not installed.
 
 ### Phase 7: Merge
 
-**[Autonomous]** Show the Iteration Log from `PLAN.md` first.
+**[Autonomous]** Show Iteration Log from `PLAN.md` first.
 
-1. Show `git log --oneline main..HEAD`
+1. `git log --oneline main..HEAD`
 2. Generate merge commit message (via Ross or directly)
 
 **[CHECKPOINT]** Present summary to user. Wait for approval.
@@ -280,33 +204,13 @@ If Ross is not installed, skip to Phase 7.
 After approval: `git checkout main` → `git merge --no-ff <branch>` →
 `git branch -d <branch>` → `rm PLAN.md`
 
-If the merge produces conflicts, dispatch to `agent-hale` to resolve them,
-then invoke `agent-ellis` to verify the resolution.
+On merge conflicts, dispatch `agent-hale` to resolve, then `agent-ellis` to verify.
 
 ### Phase 8: Lessons Learned
 
-Share a brief reflection: what went well, what could improve, surprising findings.
-Append to `LESSONS.md` in `~/.claude/projects/<project-path>/memory/`.
+Share a brief reflection (what went well, what to improve, surprises). Append to
+`LESSONS.md` in `~/.claude/projects/<project-path>/memory/`.
 
-## Team Coordination
+## Reporting Chain
 
-**Smith's dispatch contracts:**
-
-- Analyzes project context directly (Phase 1) — no longer dispatches to proj-ideatender
-- Invokes `tenth-man:tenth-man` in Phase 1 to challenge the plan
-- Invokes `agent-ward:agent-ward` in Phase 2 for architecture and design
-- Invokes `frontend-design:frontend-design` in Phase 2.5 for UI work (if installed)
-- Invokes `agent-hale:agent-hale` in Phase 3 for code implementation
-- Invokes `agent-ellis:agent-ellis` in Phase 3 for QA review
-- Invokes `agent-ross:agent-ross` in Phase 3 for commits and Phase 6 for releases
-- Invokes `agent-twain:agent-twain` in Phase 4 for documentation
-- Invokes `agent-page:agent-page` in Phase 4 for ops review
-
-**Reporting chain:**
-
-- `agent-ward` reports designs to Smith
-- `agent-hale` reports completed work to Smith
-- `agent-ellis` reports review findings to Smith, who routes to Hale (fix) or Ward (redesign)
-- `agent-twain` reports completed docs to Smith
-- `agent-page` reports ops verdict to Smith
-- `agent-ross` reports release status to Smith
+All agents report to Smith. Smith routes Ellis findings to Hale (fix) or Ward (redesign).

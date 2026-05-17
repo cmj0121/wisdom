@@ -18,8 +18,7 @@ metadata:
 
 # Changelog Generator
 
-A shared support tool that generates changelog entries from git commit history.
-Parses conventional commit messages and groups them by type.
+Support tool that generates changelog entries from git commit history using conventional commits.
 
 ## Shortcut
 
@@ -29,19 +28,13 @@ This skill is triggered when the user's prompt contains `changelog` or `changelo
 
 ### Phase 1: Determine Scope
 
-1. Find the latest git tag: `git tag --sort=-v:refname | head -1`
-2. If no tags exist, use the full git history
-3. Collect commits since the last tag: `git log <tag>..HEAD --oneline`
+1. Find latest git tag: `git tag --sort=-v:refname | head -1`
+2. If no tags, use full history
+3. Collect commits since last tag: `git log <tag>..HEAD --oneline`
 
 ### Phase 2: Parse Commits
 
-Parse each commit using conventional commit format:
-
-```txt
-<type>(scope): <description>
-```
-
-Group commits by type:
+Parse each commit as `<type>(scope): <description>`. Group by type:
 
 | Type     | Section          |
 | -------- | ---------------- |
@@ -55,7 +48,7 @@ Group commits by type:
 | ci       | CI/CD            |
 | BREAKING | Breaking Changes |
 
-Commits that don't follow conventional format go into "Other Changes."
+Non-conventional commits go into "Other Changes."
 
 ### Phase 3: Generate Changelog
 
@@ -77,17 +70,13 @@ Output in Keep a Changelog format:
 - ...
 ```
 
-If an existing `CHANGELOG.md` exists, prepend the new section.
-If not, create it with a header.
+Prepend to existing `CHANGELOG.md`, or create one with a header.
 
 ### Phase 4: Write or Return
 
-- If called by another agent: return the changelog text
-- If called directly: write to `CHANGELOG.md` in the project root
+- Called by another agent: return the changelog text
+- Called directly: write to `CHANGELOG.md` in project root
 
 ## Team Coordination
 
-**Available to:** agent-ross, agent-twain
-
-When invoked by other agents, return the formatted changelog text.
-The calling agent decides where to place it.
+**Available to:** agent-ross, agent-twain. Always return formatted changelog text; caller decides placement.

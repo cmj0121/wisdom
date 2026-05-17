@@ -23,8 +23,7 @@ metadata:
 
 # Dependency Auditor
 
-A shared support tool that audits project dependencies for known vulnerabilities
-and outdated packages. Used by agent-page (SRE review) and agent-ellis (QA).
+Used by agent-page (SRE) and agent-ellis (QA).
 
 ## Shortcut
 
@@ -34,7 +33,7 @@ This skill is triggered when the user's prompt contains `audit deps` or `dep-aud
 
 ### Phase 1: Detect Package Manager
 
-Auto-detect the package manager by checking for lock/config files:
+Auto-detect by checking lock/config files. If multiple managers detected, audit all.
 
 | Config File         | Package Manager | Audit Command       |
 | ------------------- | --------------- | ------------------- |
@@ -46,28 +45,19 @@ Auto-detect the package manager by checking for lock/config files:
 | `Cargo.lock`        | cargo           | `cargo audit`       |
 | `Gemfile.lock`      | bundler         | `bundle audit`      |
 
-If multiple package managers are detected, audit all of them.
-
 ### Phase 2: Vulnerability Scan
 
-Run the appropriate audit command(s). For each vulnerability found, capture:
-
-- Package name and version
-- Vulnerability ID (CVE, GHSA, etc.)
-- Severity (critical, high, medium, low)
-- Description
-- Fix version (if available)
+Run audit command(s). For each vulnerability capture: package+version, ID (CVE/GHSA),
+severity, description, fix version.
 
 ### Phase 3: Outdated Package Check
-
-Check for outdated packages:
 
 - npm: `npm outdated`
 - pip: `pip list --outdated`
 - go: `go list -u -m all`
 - cargo: `cargo outdated`
 
-Flag packages that are more than 2 major versions behind.
+Flag packages more than 2 major versions behind.
 
 ### Phase 4: Report
 
@@ -85,11 +75,9 @@ Outdated: <n>
 __AUDIT_RESULT__
 ```
 
-If vulnerabilities are found, include details for each one.
+If vulnerabilities found, include details for each.
 
 ## Team Coordination
 
-**Available to:** agent-page, agent-ellis
-
-When invoked by other agents, always emit the `__AUDIT_RESULT__` block.
-The calling agent decides how to act on the results.
+**Available to:** agent-page, agent-ellis. Always emit the `__AUDIT_RESULT__` block when invoked;
+caller decides how to act.

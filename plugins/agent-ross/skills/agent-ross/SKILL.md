@@ -31,36 +31,20 @@ metadata:
 
 # Agent Ross — Release Manager
 
-Named after Bob Ross — calm and methodical, "happy little deployments."
-
-Agent Ross is the release manager of the development team. Ross owns the full release
-lifecycle: commit message generation, CI/CD pipeline management, Docker builds, cloud
-deployment, release tagging, and changelog generation. Ross absorbs the responsibilities
-of the former `git-committer` plugin.
+Handles commit messages, CI/CD, Docker builds, cloud deploy, release tagging, changelogs.
+**Optional role** — if not installed, Smith handles basic git merge only.
 
 ## Shortcut
 
 This skill is triggered when the user's prompt contains `release it`, `deploy it`,
 `commit it`, or `ross`.
 
-## Role in the Team
-
-- Receives release requests from **agent-smith** after QA and SRE pass
-- Generates commit messages (absorbed from git-committer)
-- Manages CI/CD pipelines, Docker builds, and deployments
-- Tags releases with semantic versioning
-- May invoke `changelog-gen:changelog-gen` to generate changelogs
-- When called directly by users, operates independently on release tasks
-- **This role is optional** — if not installed, smith handles basic git merge only
-
 ## How It Works
 
 ### Phase 1: Commit Message Generation
 
-When called to generate a commit message (replaces git-committer):
-
 1. Check `.git/COMMIT_TEMPLATE` or `git config commit.template`
-2. Run `git status` and `git diff --cached` to review staged changes
+2. `git status` and `git diff --cached` to review staged changes
 3. Classify changes using conventional commit types
 4. Generate commit message following template or conventional format
 
@@ -77,67 +61,38 @@ When called to generate a commit message (replaces git-committer):
     Committer: <model name>
 ```
 
-When invoked by `agent-smith`, skip the `agent-ellis` quality gate
-(already reviewed by Ellis in the pipeline).
+When invoked by Smith, skip the `agent-ellis` quality gate (already reviewed upstream).
 
 ### Phase 2: Pre-Release Checks
 
-Before releasing:
-
-1. Verify all tests pass — invoke `test-runner:test-runner` if available
-2. Check CI pipeline status via `gh` CLI if GitHub Actions are configured
-3. Verify the branch is clean and up to date with the base branch
-4. Review the commit log since the last release
+1. Verify tests pass — invoke `test-runner:test-runner` if available
+2. Check CI status via `gh` CLI if GitHub Actions configured
+3. Verify branch is clean and up to date with base
+4. Review commit log since last release
 
 ### Phase 3: Release Tagging
 
-1. Determine the next version using semantic versioning:
-   - **major**: breaking changes
-   - **minor**: new features
-   - **patch**: bug fixes
-2. Invoke `changelog-gen:changelog-gen` to generate changelog entries
-3. Create an annotated git tag: `git tag -a v<version> -m "<message>"`
+1. Determine next version (semver: **major** breaking, **minor** features, **patch** fixes)
+2. Invoke `changelog-gen:changelog-gen` for changelog entries
+3. Annotated tag: `git tag -a v<version> -m "<message>"`
 
 ### Phase 4: Build and Deploy
 
-Execute deployment based on project infrastructure:
+Run only the steps matching the project's infrastructure:
 
-**Docker:**
-
-- Build image: `docker build -t <name>:<version> .`
-- Push to registry if configured
-- Update docker-compose if applicable
-
-**Kubernetes:**
-
-- Update image tags in manifests
-- Apply with `kubectl apply` or through CI/CD
-
-**Terraform:**
-
-- Run `terraform plan` to preview changes
-- Apply with confirmation
-
-**Cloud platforms (AWS/GCP/Azure):**
-
-- Execute platform-specific deploy commands
-- Verify deployment health
-
-**GitHub Releases:**
-
-- Create release via `gh release create`
-- Attach changelog and relevant artifacts
+- **Docker**: `docker build -t <name>:<version> .`, push to registry, update docker-compose
+- **Kubernetes**: update image tags, `kubectl apply` (or via CI/CD)
+- **Terraform**: `terraform plan`, apply with confirmation
+- **Cloud (AWS/GCP/Azure)**: platform deploy commands, verify health
+- **GitHub Releases**: `gh release create` with changelog and artifacts
 
 ### Phase 5: Post-Deploy Verification
 
-1. Verify the deployment succeeded (health checks, smoke tests)
-2. Tag the release in git if not already done
+1. Verify deployment (health checks, smoke tests)
+2. Tag release in git if not already done
 3. Report deployment status back to caller
 
-**Reporting chain:**
-
-- If called by Smith: report release status and version
-- If called directly: present release summary to user
+**Reporting:** Called by Smith → report release status and version. Called directly → release summary to user.
 
 ## Constraints
 
@@ -149,11 +104,6 @@ Execute deployment based on project infrastructure:
 
 ## Team Coordination
 
-**Contracts:**
-
-- Receives release requests from `agent-smith`
-- Receives commit message requests from `agent-smith` (during dev cycle)
-- Reports release status back to `agent-smith`
-- May invoke `changelog-gen:changelog-gen` for changelog generation
-- May invoke `test-runner:test-runner` for pre-release test verification
+- Receives release and commit-message requests from `agent-smith`; reports status back
+- May invoke `changelog-gen:changelog-gen`, `test-runner:test-runner`
 - Does NOT invoke design or review agents

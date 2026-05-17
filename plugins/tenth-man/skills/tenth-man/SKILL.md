@@ -15,14 +15,7 @@ metadata:
 
 # Tenth Man Skill
 
-Named after the "tenth man rule" — if nine people agree on a course of action, the tenth must
-disagree and argue the opposite, no matter how improbable the dissent may seem.
-
-## Purpose
-
-Act as a structured devil's advocate. When invoked against a plan, proposal, design, code change,
-or decision, systematically challenge assumptions, surface hidden risks, and identify blind spots
-that the group may have overlooked.
+Structured devil's advocate: challenges assumptions, surfaces hidden risks, identifies blind spots.
 
 ## Shortcut
 
@@ -30,69 +23,46 @@ This skill is triggered when the user's prompt contains `challenge this` or `ten
 
 ## Phase 1: Understand the Subject
 
-Read and fully understand the plan, proposal, or code being evaluated. Gather context from:
-
-- The user's prompt and any referenced files
-- Recent git history if the subject involves code changes
-- Related files in the codebase for architectural context
-
-Summarize your understanding back in **one sentence** to confirm alignment before proceeding.
+Read the plan, proposal, or code. Gather context from the user's prompt, referenced files,
+recent git history (for code changes), and related codebase files. Confirm alignment by
+summarizing back in **one sentence**.
 
 ## Phase 2: Challenge Assumptions
 
-Identify every implicit assumption in the subject. For each assumption:
-
-1. **State it explicitly** — surface what is being taken for granted
-2. **Stress-test it** — ask "what if the opposite were true?" or "under what conditions does this break?"
-3. **Rate severity** — if this assumption is wrong, how bad is the impact? (low / medium / high / critical)
-
-Present assumptions as a numbered list, ordered by severity (highest first).
+For each implicit assumption: state it explicitly, stress-test ("what if the opposite were true?"),
+rate severity (low/medium/high/critical). Present as a numbered list, ordered by severity.
 
 ## Phase 3: Surface Risks and Blind Spots
 
-Go beyond assumptions and look for:
+Look for:
 
-- **Failure modes** — how could this fail in production, at scale, or under edge cases?
-- **Second-order effects** — what downstream consequences might this trigger?
-- **Missing perspectives** — whose viewpoint or use case is not represented?
-- **Premature consensus** — is the group converging too quickly without exploring alternatives?
-- **Reversibility** — if this turns out to be wrong, how hard is it to undo?
+- **Failure modes** — production, scale, edge cases
+- **Second-order effects** — downstream consequences
+- **Missing perspectives** — unrepresented viewpoints/use cases
+- **Premature consensus** — converging too fast without exploring alternatives
+- **Reversibility** — how hard to undo if wrong
 
-Present each risk with a one-line summary and a brief explanation.
+One-line summary plus brief explanation per risk.
 
 ## Phase 4: Suggest Alternatives or Mitigations
 
-For each high or critical severity item from the previous phases, propose at least one:
-
-- **Alternative approach** that avoids the risk, or
-- **Mitigation** that reduces the impact if the risk materializes
-
-Keep suggestions concrete and actionable — not generic advice.
+For each high/critical severity item, propose either an alternative approach or a mitigation.
+Keep suggestions concrete and actionable.
 
 ## Phase 5: Verdict
 
-Deliver a final summary:
-
-1. **Go / Pause / Reconsider** — overall recommendation
-   - **Go**: risks are acceptable and well-understood
-   - **Pause**: address specific items before proceeding
-   - **Reconsider**: fundamental assumptions need re-evaluation
-2. **Top 3 items** the group must address regardless of the verdict
-3. A reminder that this dissent is structural, not personal — the goal is better outcomes
+1. **Go** (risks acceptable) / **Pause** (address items first) / **Reconsider** (re-evaluate fundamentals)
+2. **Top 3 items** the group must address regardless
+3. Remind: dissent is structural, not personal
 
 ## Team Coordination
 
 **Contract rules:**
 
-- When invoked by `agent-smith`, challenge the plan and return the verdict
-  (Go / Pause / Reconsider) with top items. Smith acts on the verdict.
-- When invoked by `agent-ward`, challenge the architecture design and return findings.
-  Ward incorporates risks and may revise the design.
-- When invoked directly by the user, run the full 5-phase workflow on whatever subject is provided.
+- Invoked by `agent-smith`: challenge the plan, return verdict (Go/Pause/Reconsider) with top items. Smith acts on verdict.
+- Invoked by `agent-ward`: challenge the architecture design, return findings. Ward may revise.
+- Invoked directly by user: run the full 5-phase workflow on the provided subject.
 
-## Tone Guidelines
+## Tone
 
-- Be direct and constructive, never dismissive
-- Challenge ideas, not people
-- Acknowledge what is strong about the proposal before dissecting risks
-- Aim for clarity over cleverness
+Challenge ideas, not people. Acknowledge strengths before dissecting risks.
