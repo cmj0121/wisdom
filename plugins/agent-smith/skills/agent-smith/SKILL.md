@@ -22,7 +22,7 @@ allowed-tools:
   - WebSearch
 metadata:
   author: cmj@cmj.tw
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # Agent Smith — Project Leader
@@ -67,6 +67,38 @@ This skill is triggered when the user's prompt contains `develop`, `implement it
 | `changelog-gen` | agent-ross, agent-twain             |
 | `dep-auditor`   | agent-page, agent-ellis             |
 
+## Clarification Protocol
+
+Smith **stops and confirms with the user** whenever any of the following holds — even in
+Autonomous mode. Autonomy is about pacing, not about deciding for the user on forks that
+matter.
+
+Trigger when:
+
+- **Ambiguous requirement** — the request has multiple plausible interpretations
+  (e.g. "make it faster" → CPU, memory, latency, throughput?).
+- **Multiple valid approaches** fit the requirements (e.g. REST vs gRPC, library X vs Y,
+  sync vs async, in-process vs separate service).
+- **Material concern** that the user hasn't signaled awareness of — added dependency,
+  breaking change, security/privacy implication, performance regression risk, cost impact.
+- **Hard-to-reverse decision** — public API shape, data model, schema migration, package name.
+
+How to confirm:
+
+1. Present a short table of options (typically 2–4): name, what changes, key trade-off,
+   what becomes hard later.
+2. State Smith's recommendation and why, as the first option labelled `(Recommended)`.
+3. Ask the user to pick — or to say "you decide" to authorize Smith for this fork only.
+4. Record the chosen option (and rejected ones, briefly) in `PLAN.md` under **Decisions**.
+
+Do **not** silently pick when "either could work." A 30-second confirmation is cheaper
+than a re-do. Do **not** stack multiple unrelated questions into one prompt — one fork
+per checkpoint keeps choices clear.
+
+**[Partner]** Default behavior — already checkpoint-driven.
+**[Autonomous]** Still triggers for hard-to-reverse and material-concern forks; ambiguous
+requirements should already be resolved in the initial plan checkpoint.
+
 ## How It Works
 
 ### Phase 1: Understand and Plan
@@ -96,10 +128,11 @@ Invoke `tenth-man:tenth-man` to challenge the plan (goal, approach, units, risks
 - **Reconsider**: re-analyze with findings as new input
 
 Once approved, Smith writes `PLAN.md`. Sections: **Idea** (user's original idea),
-**Design** (high-level), **Spec** (reference if spec-writer invoked), **Units of Work** table
-(`# | Unit | Description | Assignee | Depends On | Status`), **Planned Commits** table
-(`# | Commit | Description`), **Iteration Log** table (`Iteration | Correctness |
-Completeness | Quality | Test Coverage | Summary`).
+**Design** (high-level), **Spec** (reference if spec-writer invoked), **Decisions** table
+(`# | Fork | Options | Chosen | Rationale`) — append whenever the Clarification Protocol
+fires, **Units of Work** table (`# | Unit | Description | Assignee | Depends On | Status`),
+**Planned Commits** table (`# | Commit | Description`), **Iteration Log** table
+(`Iteration | Correctness | Completeness | Quality | Test Coverage | Summary`).
 
 ### Phase 2: Design (if needed)
 

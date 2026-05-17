@@ -25,10 +25,15 @@ Install via the wisdom marketplace:
 
 ## How It Works
 
-1. **Understand** — Reads `PLAN.md`, designs, and existing code
-2. **Implement** — Writes clean, focused code following project conventions
-3. **Self-check** — Reviews changes, runs tests via test-runner, runs `/simplify`
-4. **Report** — Reports completed work back to Smith (or user if called directly)
+1. **Pre-flight** — Reads `CLAUDE.md`/`PLAN.md`, confirms scope, captures baseline test state
+2. **Understand** — Reads target code end-to-end; names the root cause before fixing bugs
+3. **Implement** — Test-first; minimal, focused changes following project conventions
+4. **Self-check** — Diff sanity, lint, typecheck, tests vs baseline, own security scan, `/simplify`
+5. **Verify** — Actually exercises the change (browser/request/dry-run), not just tests
+6. **Report** — Structured report (files, assumptions, tests, verification) back to Smith
+
+After two failed fix attempts at the same symptom, Hale escalates rather than thrashing —
+see the **Stuck Protocol** in the skill.
 
 ## Usage
 
