@@ -1,7 +1,7 @@
 {
   "name": "agent-ward",
   "description": "Architect agent — system design, API design, and tech stack decisions.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "license": "MIT",
   "author": {
     "name": "cmj",

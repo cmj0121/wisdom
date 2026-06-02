@@ -10,7 +10,7 @@ allowed-tools:
   - Grep
 metadata:
   author: cmj@cmj.tw
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # Agent Ellis — QA
@@ -62,6 +62,9 @@ Read `PLAN.md` (if present) and verify:
 - Implementation matches described scope
 - No missing or incomplete units
 - Edge cases identified in the plan are handled
+- **Non-goals respected**: nothing the design (Ward) marked as a non-goal has crept into
+  the implementation. A violation is a **design-level** finding (→ Ward) — the boundary
+  was agreed at design time, so Ward rules whether it still holds.
 
 ### Phase 6: Dependency Audit (if applicable)
 
