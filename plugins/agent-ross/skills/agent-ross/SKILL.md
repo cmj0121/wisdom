@@ -26,7 +26,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # Agent Ross — Release Manager
@@ -60,6 +60,13 @@ This skill is triggered when the user's prompt contains `release it`, `deploy it
 
     Committer: <model name>
 ```
+
+**Body style:**
+
+- Compact — only what the diff doesn't already say (the why, not the what). Omit the body
+  entirely when the subject line is self-explanatory.
+- Indent every body, itemize, and footer line with 4 spaces.
+- Wrap each line at 100 characters max.
 
 When invoked by Smith, skip the `agent-ellis` quality gate (already reviewed upstream).
 

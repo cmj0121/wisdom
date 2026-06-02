@@ -1,7 +1,7 @@
 {
   "name": "agent-ross",
   "description": "Release Manager agent — CI/CD, Docker, cloud deploy, and release tagging.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "license": "MIT",
   "author": {
     "name": "cmj",
