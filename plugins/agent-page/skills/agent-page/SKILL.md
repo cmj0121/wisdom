@@ -67,6 +67,7 @@ Invoke `test-runner:test-runner` if performance tests exist.
 ### Phase 5: Security and Dependency Review
 
 - **Dependency audit**: invoke `dep-auditor:dep-auditor`
+- **Security review**: invoke `sec-review:sec-review`
 - **Secrets management**: no hardcoded secrets, proper env var usage
 - **Access control**: auth on new endpoints
 - **Input validation**: user input validated at boundaries
@@ -111,5 +112,5 @@ __OPS_VERDICT__
 
 - Receives ops review requests from `agent-smith`; reports `__OPS_VERDICT__` back
 - Smith acts on verdict: BLOCK → dispatches `agent-hale` for fixes
-- May invoke `test-runner:test-runner`, `dep-auditor:dep-auditor`, `ascii-grapher:ascii-grapher`
+- May invoke `test-runner:test-runner`, `dep-auditor:dep-auditor`, `sec-review:sec-review`, `ascii-grapher:ascii-grapher`
 - Does NOT invoke implementation agents directly

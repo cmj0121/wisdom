@@ -1,0 +1,10 @@
+{
+  "name": "compactor",
+  "description": "Re-render the previous result into a compact, table-like view.",
+  "version": "1.0.0",
+  "license": "MIT",
+  "author": {
+    "name": "cmj",
+    "url": "https://github.com/cmj0121"
+  }
+}

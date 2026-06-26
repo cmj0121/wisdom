@@ -1,0 +1,10 @@
+{
+  "name": "sec-review",
+  "description": "Whole-project security reviewer mapping findings to CWE.",
+  "version": "1.0.0",
+  "license": "MIT",
+  "author": {
+    "name": "cmj",
+    "url": "https://github.com/cmj0121"
+  }
+}

@@ -88,6 +88,18 @@
       "description": "Audits dependencies for vulnerabilities and outdated packages.",
       "version": "1.0.0",
       "source": "./plugins/dep-auditor"
+    },
+    {
+      "name": "compactor",
+      "description": "Re-render the previous result into a compact, table-like view.",
+      "version": "1.0.0",
+      "source": "./plugins/compactor"
+    },
+    {
+      "name": "sec-review",
+      "description": "Whole-project security reviewer mapping findings to CWE.",
+      "version": "1.0.0",
+      "source": "./plugins/sec-review"
     }
   ]
 }
