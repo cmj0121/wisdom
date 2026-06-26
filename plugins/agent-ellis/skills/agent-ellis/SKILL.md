@@ -71,6 +71,8 @@ Read `PLAN.md` (if present) and verify:
 If dependency files changed (package.json, requirements.txt, go.mod, etc.),
 invoke `dep-auditor:dep-auditor`.
 
+- **Security review**: invoke `sec-review:sec-review` to scan source for CWE-mapped issues.
+
 ### Phase 7: Generate Review Verdict
 
 Emit only when called by other skills, not when called directly.
@@ -111,4 +113,4 @@ Called directly: present findings in a brief table.
 ## Team Coordination
 
 - Always emit `__REVIEW_VERDICT__` when called by other skills (never omit, even at zero findings)
-- May invoke `test-runner:test-runner`, `dep-auditor:dep-auditor`
+- May invoke `test-runner:test-runner`, `dep-auditor:dep-auditor`, `sec-review:sec-review`
