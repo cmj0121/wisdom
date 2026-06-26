@@ -8,7 +8,7 @@
     {
       "name": "shortcut",
       "description": "Auto-dispatch skills and commands when the user types a magic word.",
-      "version": "0.8.2",
+      "version": "1.0.0",
       "source": "./plugins/shortcut"
     },
     {
@@ -20,7 +20,7 @@
     {
       "name": "agent-ward",
       "description": "Architect agent — system design, API design, and tech stack decisions.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "source": "./plugins/agent-ward"
     },
     {
@@ -32,7 +32,7 @@
     {
       "name": "agent-ellis",
       "description": "QA agent — code review, test execution, and acceptance verification.",
-      "version": "1.0.0",
+      "version": "1.2.0",
       "source": "./plugins/agent-ellis"
     },
     {
@@ -44,13 +44,13 @@
     {
       "name": "agent-page",
       "description": "SRE agent — observability, reliability, and performance review.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "source": "./plugins/agent-page"
     },
     {
       "name": "agent-ross",
       "description": "Release Manager agent — CI/CD, Docker, cloud deploy, and release tagging.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "source": "./plugins/agent-ross"
     },
     {
