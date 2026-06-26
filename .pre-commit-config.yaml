@@ -23,6 +23,17 @@ repos:
       - id: script-must-not-have-extension
       - id: shfmt
 
+  # -------- marketplace integrity --------
+  - repo: local
+    hooks:
+      - id: marketplace-version-sync
+        name: marketplace version sync
+        description: Fail if marketplace.json versions drift from each plugin.json.
+        entry: scripts/check-version-sync
+        language: script
+        pass_filenames: false
+        files: '(^\.claude-plugin/marketplace\.json|^plugins/[^/]+/\.claude-plugin/plugin\.json)$'
+
   # -------- security related linter --------
   - repo: https://github.com/zricethezav/gitleaks
     rev: v8.30.0

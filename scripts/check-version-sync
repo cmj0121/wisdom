@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Fail if any marketplace.json plugin version drifts from its plugin.json version.
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+python3 - "$REPO_ROOT" <<'PY'
+import json, os, sys
+
+root = sys.argv[1]
+mk = json.load(open(os.path.join(root, ".claude-plugin", "marketplace.json")))
+
+GREEN, RED, RESET = "\033[32m", "\033[31m", "\033[0m"
+errors = 0
+
+print("==> Checking marketplace.json <-> plugin.json version sync")
+for p in mk["plugins"]:
+    name = p["name"]
+    mk_ver = p.get("version", "")
+    src = p["source"][2:] if p["source"].startswith("./") else p["source"]
+    pj_path = os.path.join(root, src, ".claude-plugin", "plugin.json")
+    if not os.path.isfile(pj_path):
+        print(f"  {RED}FAIL{RESET} {name}: missing {os.path.relpath(pj_path, root)}")
+        errors += 1
+        continue
+    pj_ver = json.load(open(pj_path)).get("version", "")
+    if mk_ver == pj_ver:
+        print(f"  {GREEN}PASS{RESET} {name} {mk_ver}")
+    else:
+        print(f"  {RED}FAIL{RESET} {name}: marketplace={mk_ver} != plugin.json={pj_ver}")
+        errors += 1
+
+if errors:
+    print(f"==> {errors} version mismatch(es); sync marketplace.json to each plugin.json")
+    sys.exit(1)
+print("==> All plugin versions in sync")
+PY
