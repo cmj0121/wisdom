@@ -28,7 +28,7 @@ repos:
     hooks:
       - id: marketplace-version-sync
         name: marketplace version sync
-        description: Fail if marketplace.json versions drift from each plugin.json.
+        description: Fail if marketplace versions drift from plugin.json or lag the latest git tag.
         entry: scripts/check-version-sync
         language: script
         pass_filenames: false
