@@ -15,7 +15,7 @@
     {
       "name": "agent-smith",
       "description": "Project Leader agent — plans, dispatches, coordinates the scrum team.",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "source": "./plugins/agent-smith"
     },
     {
@@ -101,6 +101,12 @@
       "description": "Whole-project security reviewer mapping findings to CWE.",
       "version": "1.0.0",
       "source": "./plugins/sec-review"
+    },
+    {
+      "name": "lingua",
+      "description": "Response-language preference — answer in your chosen language and refine your questions.",
+      "version": "1.0.0",
+      "source": "./plugins/lingua"
     }
   ]
 }
