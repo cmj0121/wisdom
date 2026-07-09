@@ -1,0 +1,17 @@
+{
+  "description": "Load the per-project lingua language preference at session start.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/lingua-session-start.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

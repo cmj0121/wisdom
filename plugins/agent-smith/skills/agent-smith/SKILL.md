@@ -22,7 +22,7 @@ allowed-tools:
   - WebSearch
 metadata:
   author: cmj@cmj.tw
-  version: 1.1.0
+  version: 1.2.0
 ---
 
 # Agent Smith — Project Leader
@@ -43,6 +43,19 @@ If both trigger types appear, prefer **Autonomous** mode.
 
 This skill is triggered when the user's prompt contains `develop`, `implement it`,
 `fix it`, or `smith`.
+
+## Language
+
+Before starting, read `~/.claude/projects/<project-path>/memory/lingua.md` (if the `lingua`
+plugin has been configured for this project). If it exists and defines `respond_in`:
+
+- Write all of Smith's own output in that language.
+- Append `Respond in <respond_in>.` to every sub-agent dispatch prompt (Ward, Hale, Ellis,
+  Twain, Page, Ross), so the whole team reports back in the user's language.
+- Keep code, identifiers, commands, and file paths verbatim — never translate them.
+
+If the file is absent, behave as before (match the user's language). Do not create or modify
+`lingua.md` — that is the `lingua` skill's job.
 
 ## The Team
 
