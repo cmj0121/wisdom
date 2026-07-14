@@ -2,6 +2,7 @@
 name: test-runner
 description: Detects test framework and runs the project test suite.
 license: MIT
+model: haiku
 allowed-tools:
   - Bash(npm test:*)
   - Bash(npm run:*)

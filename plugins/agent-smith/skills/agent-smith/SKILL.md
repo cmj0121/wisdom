@@ -2,6 +2,7 @@
 name: agent-smith
 description: Project Leader agent — plans, dispatches, coordinates the scrum team.
 license: MIT
+model: fable
 allowed-tools:
   - Bash(git status:*)
   - Bash(git checkout -b:*)

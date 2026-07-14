@@ -2,6 +2,7 @@
 name: agent-ward
 description: Architect agent — system design, API design, and tech stack decisions.
 license: MIT
+model: fable
 allowed-tools:
   - Read
   - Glob

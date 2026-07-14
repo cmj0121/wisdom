@@ -2,6 +2,7 @@
 name: shortcut
 description: Auto-dispatch skills and commands when the user types a magic word.
 license: MIT
+model: haiku
 allowed-tools:
   - Read
   - Glob

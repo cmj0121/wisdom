@@ -2,6 +2,7 @@
 name: compactor
 description: Re-render the previous result into a compact, table-like view.
 license: MIT
+model: haiku
 allowed-tools:
   - Read
   - Glob

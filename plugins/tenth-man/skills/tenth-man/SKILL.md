@@ -2,6 +2,7 @@
 name: tenth-man
 description: Devil's advocate that challenges assumptions and surfaces risks to prevent groupthink.
 license: MIT
+model: fable
 allowed-tools:
   - Read
   - Glob

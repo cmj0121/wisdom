@@ -2,6 +2,7 @@
 name: changelog-gen
 description: Generates changelog from git history using conventional commits.
 license: MIT
+model: haiku
 allowed-tools:
   - Bash(git log:*)
   - Bash(git tag:*)

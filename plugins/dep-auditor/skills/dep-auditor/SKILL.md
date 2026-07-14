@@ -2,6 +2,7 @@
 name: dep-auditor
 description: Audits dependencies for vulnerabilities and outdated packages.
 license: MIT
+model: haiku
 allowed-tools:
   - Bash(npm audit:*)
   - Bash(npm outdated:*)

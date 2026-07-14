@@ -2,6 +2,7 @@
 name: sec-review
 description: Whole-project security reviewer mapping findings to CWE.
 license: MIT
+model: fable
 allowed-tools:
   - Bash(git ls-files:*)
   - Bash(grep:*)

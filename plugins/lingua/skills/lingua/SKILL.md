@@ -2,6 +2,7 @@
 name: lingua
 description: Respond in the user's preferred language and refine their questions. Use when the user wants replies in a specific language (e.g. discuss in English but always answer in zh-TW), asks to "respond in <lang>", "reply in <lang>", says "lingua", or when a per-project language rule should be loaded, set, or updated.
 license: MIT
+model: haiku
 allowed-tools:
   - Read
   - Write
