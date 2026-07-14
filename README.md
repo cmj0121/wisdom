@@ -101,6 +101,24 @@ Support tools (invoked by roles as needed):
 System: shortcut (auto-dispatch)
 ```
 
+## Model Tiers
+
+Each skill declares a `model` in its `SKILL.md` frontmatter so the right task runs on the
+right-sized model. The rule: pin a model only when it matters — the strongest model where
+reasoning quality is high-stakes and errors are hard to reverse, a cheaper model for
+mechanical, high-frequency work — and otherwise inherit the session default.
+
+- **Strongest (`fable`)** — upstream, high-stakes, hard-to-reverse reasoning:
+  `agent-smith`, `agent-ward`, `tenth-man`, `sec-review`
+- **Default (inherit)** — already strong on the session model; often dispatched in parallel:
+  `agent-hale`, `agent-ellis`, `agent-twain`, `agent-page`, `agent-ross`, `spec-writer`
+- **Economical (`haiku`)** — mechanical, deterministic, high-frequency:
+  `changelog-gen`, `ascii-grapher`, `test-runner`, `dep-auditor`, `compactor`, `shortcut`, `lingua`
+
+`model` accepts `fable` / `opus` / `sonnet` / `haiku`, a full model ID, or `inherit` (follow
+the session default). Changes take effect on the next session — skill frontmatter is read at
+session start.
+
 ## DDD (Dream-Driven Development)
 
 This project follows the DDD (Dream-Driven Development) methodology, which means the project
