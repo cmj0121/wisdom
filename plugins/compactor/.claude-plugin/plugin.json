@@ -1,7 +1,7 @@
 {
   "name": "compactor",
   "description": "Re-render the previous result into a compact, table-like view.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "license": "MIT",
   "author": {
     "name": "cmj",

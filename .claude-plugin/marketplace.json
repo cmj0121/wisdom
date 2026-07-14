@@ -1,6 +1,6 @@
 {
   "name": "wisdom",
-  "version": "1.3.2",
+  "version": "1.4.0",
   "owner": {
     "name": "cmj",
     "url": "https://github.com/cmj0121"
@@ -9,19 +9,19 @@
     {
       "name": "shortcut",
       "description": "Auto-dispatch skills and commands when the user types a magic word.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "source": "./plugins/shortcut"
     },
     {
       "name": "agent-smith",
       "description": "Project Leader agent — plans, dispatches, coordinates the scrum team.",
-      "version": "1.2.0",
+      "version": "1.3.0",
       "source": "./plugins/agent-smith"
     },
     {
       "name": "agent-ward",
       "description": "Architect agent — system design, API design, and tech stack decisions.",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "source": "./plugins/agent-ward"
     },
     {
@@ -63,49 +63,49 @@
     {
       "name": "tenth-man",
       "description": "Devil's advocate that challenges assumptions and surfaces risks.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "source": "./plugins/tenth-man"
     },
     {
       "name": "ascii-grapher",
       "description": "Draw ASCII diagrams for architecture, flows, and concepts.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "source": "./plugins/ascii-grapher"
     },
     {
       "name": "test-runner",
       "description": "Detects test framework and runs the project test suite.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "source": "./plugins/test-runner"
     },
     {
       "name": "changelog-gen",
       "description": "Generates changelog from git history using conventional commits.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "source": "./plugins/changelog-gen"
     },
     {
       "name": "dep-auditor",
       "description": "Audits dependencies for vulnerabilities and outdated packages.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "source": "./plugins/dep-auditor"
     },
     {
       "name": "compactor",
       "description": "Re-render the previous result into a compact, table-like view.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "source": "./plugins/compactor"
     },
     {
       "name": "sec-review",
       "description": "Whole-project security reviewer mapping findings to CWE.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "source": "./plugins/sec-review"
     },
     {
       "name": "lingua",
       "description": "Response-language preference — answer in your chosen language and refine your questions.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "source": "./plugins/lingua"
     }
   ]
