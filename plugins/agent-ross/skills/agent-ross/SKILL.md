@@ -72,10 +72,15 @@ When invoked by Smith, skip the `agent-ellis` quality gate (already reviewed ups
 
 ### Phase 2: Pre-Release Checks
 
-1. Verify tests pass — invoke `test-runner:test-runner` if available
-2. Check CI status via `gh` CLI if GitHub Actions configured
-3. Verify branch is clean and up to date with base
-4. Review commit log since last release
+1. Verify tests pass — read the result from Ellis's `__REVIEW_VERDICT__` (Hale ran the
+   suite, Ellis verified it). Invoke `test-runner:test-runner` directly only when no verdict
+   reached Ross, or when the tree changed after the last review.
+2. **Whole-project security scan** — invoke `sec-review:sec-review` at full project scope
+   here, once per release. This is the right gate for it: Ellis runs it diff-scoped per unit,
+   so the expensive full pass happens once at the boundary rather than on every review.
+3. Check CI status via `gh` CLI if GitHub Actions configured
+4. Verify branch is clean and up to date with base
+5. Review commit log since last release
 
 ### Phase 3: Release Tagging
 
@@ -112,5 +117,6 @@ Run only the steps matching the project's infrastructure:
 ## Team Coordination
 
 - Receives release and commit-message requests from `agent-smith`; reports status back
-- May invoke `changelog-gen:changelog-gen`, `test-runner:test-runner`
+- May invoke `changelog-gen:changelog-gen`, `sec-review:sec-review` (release gate, full
+  project scope), and `test-runner:test-runner` when no upstream verdict is available
 - Does NOT invoke design or review agents

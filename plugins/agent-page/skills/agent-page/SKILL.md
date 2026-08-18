@@ -33,8 +33,10 @@ This skill is triggered when the user's prompt contains `ops review`, `reliabili
 
 ### Phase 1: Understand the Changes
 
-1. Read `PLAN.md` (if present) for what was built.
-2. `git diff` to see all changes since branch started.
+1. Read `PLAN.md` (if present) for what was built. Its **Context** section already carries
+   stack, layout, conventions, and commands — inherit them rather than re-deriving.
+2. `git diff` to see all changes since branch started. Read source only where the diff
+   raises an operational question; Page reviews the change, not the codebase.
 3. Identify infra files: Dockerfiles, CI configs, deploy scripts, K8s manifests,
    Terraform files, monitoring configs.
 
@@ -62,12 +64,19 @@ This skill is triggered when the user's prompt contains `ops review`, `reliabili
 - **Caching**: cacheable operations cached?
 - **Payload sizes**: API responses reasonable?
 
-Invoke `test-runner:test-runner` if performance tests exist.
+Hale ran the suite and Ellis verified it. **Page does not run tests** — read the result from
+Ellis's `__REVIEW_VERDICT__`. Invoke `test-runner:test-runner` only for a dedicated
+performance suite that neither upstream agent ran.
 
 ### Phase 5: Security and Dependency Review
 
-- **Dependency audit**: invoke `dep-auditor:dep-auditor`
-- **Security review**: invoke `sec-review:sec-review`
+Ellis owns `dep-auditor` and `sec-review` and has already run whichever applied. **Do not
+invoke them again** — read Ellis's findings and add only what an SRE lens contributes that a
+code review cannot. Two agents scanning the same diff produce the same findings at twice the
+cost, and `sec-review` is a whole-project scan on the most expensive tier.
+
+- **Dependency audit**: read Ellis's `dep-auditor` result; add runtime/deployment impact
+- **Security review**: read Ellis's `sec-review` findings; add exposure and blast-radius
 - **Secrets management**: no hardcoded secrets, proper env var usage
 - **Access control**: auth on new endpoints
 - **Input validation**: user input validated at boundaries
@@ -112,5 +121,10 @@ __OPS_VERDICT__
 
 - Receives ops review requests from `agent-smith`; reports `__OPS_VERDICT__` back
 - Smith acts on verdict: BLOCK → dispatches `agent-hale` for fixes
-- May invoke `test-runner:test-runner`, `dep-auditor:dep-auditor`, `sec-review:sec-review`, `ascii-grapher:ascii-grapher`
+- May invoke `ascii-grapher:ascii-grapher`, and `test-runner:test-runner` for a dedicated
+  performance suite only
+- Does NOT invoke `dep-auditor` or `sec-review` — those are Ellis's, and their results arrive
+  via Smith
+- Verdict is machine-facing: emit `__OPS_VERDICT__` in English even under a `lingua`
+  preference, and keep findings under 30 lines citing `file:line`
 - Does NOT invoke implementation agents directly
