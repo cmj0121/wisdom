@@ -5,6 +5,8 @@ license: MIT
 allowed-tools:
   - Bash(git add:*)
   - Bash(git commit -m:*)
+  - Bash(git commit --no-verify -m:*)
+  - Bash(git reset --soft:*)
   - Bash(git status:*)
   - Bash(git log:*)
   - Bash(git diff:*)
@@ -19,6 +21,7 @@ allowed-tools:
   - Bash(kubectl:*)
   - Bash(terraform:*)
   - Bash(gh:*)
+  - Bash(pre-commit run:*)
   - Read
   - Glob
   - Grep
@@ -77,6 +80,30 @@ When invoked by Smith, skip the `agent-ellis` quality gate (already reviewed ups
 3. Verify branch is clean and up to date with base
 4. Review commit log since last release
 
+### Phase 2.5: Simplify and Reorganise Commits
+
+Runs **once per release** — after implementation and after QA passes, before tagging.
+Never per-commit: `/simplify` dispatches four review agents, and that cost only pays for
+itself at release time.
+
+1. Invoke `/simplify` on the branch and apply what it finds.
+2. Reorganise the branch history so each fix commit is folded into the commit it fixes.
+
+**`git rebase -i` is not available in this harness.** Rebuild the history instead:
+
+1. Take a backup ref first — `git branch backup/<branch>` — before touching anything.
+2. `git reset --soft <base>` (the commit the branch forked from), then rebuild each commit
+   by staging a path group: `git add <paths>` then `git commit --no-verify -m "<message>"`.
+3. Group the paths so every changed file belongs to **exactly one** commit, and order the
+   groups so every commit passes the checks on its own. Verify that by checking out each new
+   commit and running the suite — do not assume it.
+4. `--no-verify` is required during the rebuild: pre-commit refuses to run while
+   `.pre-commit-config.yaml` is unstaged, which is unavoidable partway through.
+5. Once the rebuild is complete, run the full suite and `pre-commit run --all-files` on the
+   final tree.
+6. Prove the rebuilt tree is byte-identical to the pre-reorg one: `git diff --quiet <backup-ref> HEAD`
+   must report no difference. Delete the backup ref only after that passes.
+
 ### Phase 3: Release Tagging
 
 1. Determine next version (semver: **major** breaking, **minor** features, **patch** fixes)
@@ -105,6 +132,7 @@ Run only the steps matching the project's infrastructure:
 
 - Always verify tests pass before releasing
 - Never force-push unless explicitly approved by user
+- Rewrite history only on an unmerged, unpushed branch — never rewrite what has been pushed or merged
 - Use semantic versioning consistently
 - Do not deploy without a clean git state
 - Respect existing CI/CD patterns — enhance, do not replace
@@ -112,5 +140,5 @@ Run only the steps matching the project's infrastructure:
 ## Team Coordination
 
 - Receives release and commit-message requests from `agent-smith`; reports status back
-- May invoke `changelog-gen:changelog-gen`, `test-runner:test-runner`
+- May invoke `changelog-gen:changelog-gen`, `test-runner:test-runner`, and `/simplify` at release time
 - Does NOT invoke design or review agents

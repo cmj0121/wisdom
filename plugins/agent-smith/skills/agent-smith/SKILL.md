@@ -234,6 +234,7 @@ and say so explicitly (`target 3 → 4, because …`) rather than silently renum
 ### Phase 6: Pre-Release [if agent-ross is installed]
 
 Invoke `agent-ross:agent-ross` for the full release pipeline (CI, Docker build, tagging, deploy).
+Ross also runs `/simplify` and folds fix commits into what they fix before tagging.
 Skip to Phase 7 if Ross not installed.
 
 ### Phase 7: Merge
