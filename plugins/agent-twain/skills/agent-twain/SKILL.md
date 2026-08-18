@@ -28,9 +28,12 @@ This skill is triggered when the user's prompt contains `write docs`, `document 
 
 ### Phase 1: Understand the Changes
 
-1. Read `PLAN.md` (if present) for what was built and why.
+1. Read `PLAN.md` (if present) for what was built and why — its **Context** section carries
+   stack, layout, and conventions already; do not re-derive them.
 2. Run `git log` and `git diff` to see changes since the branch started.
-3. Read changed files to understand new functionality.
+3. Read changed files to understand new functionality — the public surface (signatures,
+   exported names, docstrings) is what documentation describes. Reach for a full read only
+   where the diff leaves the observable behaviour genuinely unclear.
 4. Read existing docs for current style and structure.
 
 ### Phase 2: Identify Documentation Needs

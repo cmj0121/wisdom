@@ -14,6 +14,7 @@ allowed-tools:
   - Bash(git merge:*)
   - Bash(git branch:*)
   - Bash(rm PLAN.md)
+  - Bash(gh issue view:*)
   - Read
   - Glob
   - Grep
@@ -50,10 +51,16 @@ This skill is triggered when the user's prompt contains `develop`, `implement it
 Before starting, read `~/.claude/projects/<project-path>/memory/lingua.md` (if the `lingua`
 plugin has been configured for this project). If it exists and defines `respond_in`:
 
-- Write all of Smith's own output in that language.
-- Append `Respond in <respond_in>.` to every sub-agent dispatch prompt (Ward, Hale, Ellis,
-  Twain, Page, Ross), so the whole team reports back in the user's language.
+- Write all of Smith's own **user-facing** output in that language — plan presentations,
+  checkpoint summaries, and the Phase 8 reflection.
 - Keep code, identifiers, commands, and file paths verbatim — never translate them.
+
+**Do not** append `Respond in <respond_in>.` to sub-agent dispatch prompts. Agent-to-agent
+traffic is machine-facing and stays in English: `__REVIEW_VERDICT__`, `__OPS_VERDICT__`,
+Hale's Phase 5 report fields, and Ward's design handoff are parsed by Smith, not read by the
+user. Those reports accumulate in Smith's context across every unit and every iteration, so
+translating them multiplies context cost for no reader. Smith translates once, at the point
+of presentation.
 
 If the file is absent, behave as before (match the user's language). Do not create or modify
 `lingua.md` — that is the `lingua` skill's job.
@@ -123,6 +130,31 @@ Smith analyzes project context directly:
    read key source files; WebSearch as last resort.
 2. **Git history**: `git log` (last 20 commits or 3 months). `git show` for significant commits.
 3. **Project structure**: Glob to map layout. Identify key components.
+4. **Originating issue**: if the work started from an issue or ticket — the user pasted a
+   URL, named an ID (`#123`, `PROJ-456`, `GH-99`), or asked to work on one — capture that
+   reference now. Fetch the issue body when it is reachable; it is the most authoritative
+   statement of the requirement available. Record the ref in the **Issue** row of Context.
+
+   **Never invent an issue ref.** If the work did not start from one, the field is `—` and
+   every commit below simply omits the footer. A fabricated ticket ID in git history is
+   worse than no ID at all — it points a future reader at something that does not exist.
+
+**Reading discipline** — Smith's own Phase 1, and the standard every dispatch inherits:
+
+Read in ascending cost, and stop as soon as a rung answers the question: `PLAN.md` Context
+and `CLAUDE.md` → README and `docs/` → Glob for layout → grep declaration lines (or `LSP`)
+for a file's API surface → first ~50 lines of a file → targeted line ranges → whole file.
+Docs and declaration lines carry the most meaning per token; whole-file reads are for files
+you will edit, files short enough that the ladder costs more, or an ambiguity you can name.
+Never re-read what is already in your context.
+
+Whole-project reads belong to a release gate, not to routine work. Ask for one only when the
+user requests it or `agent-ross` runs its Phase 2 scan.
+
+This discovery happens **once per run**. Smith records the result as the **Context** section
+of `PLAN.md` (see below) so Ward, Hale, Ellis, Twain, and Page inherit it instead of each
+re-deriving the same understanding from scratch. Refresh Context only when the branch's
+reality changes it — a new dependency, a new module, a changed test command.
 
 Produce a brief plan:
 
@@ -141,12 +173,29 @@ Invoke `tenth-man:tenth-man` to challenge the plan (goal, approach, units, risks
 - **Pause**: revise flagged items, re-challenge
 - **Reconsider**: re-analyze with findings as new input
 
-Once approved, Smith writes `PLAN.md`. Sections: **Idea** (user's original idea),
-**Design** (high-level), **Spec** (reference if spec-writer invoked), **Decisions** table
+Once approved, Smith writes `PLAN.md`. Sections: **Context** (see below), **Idea** (user's
+original idea), **Design** (high-level), **Spec** (reference if spec-writer invoked), **Decisions** table
 (`# | Fork | Options | Chosen | Rationale`) — append whenever the Clarification Protocol
 fires, **Units of Work** table (`# | Unit | Description | Assignee | Depends On | Status`),
 **Planned Commits** table (`# | Commit | Description`), **Iteration Log** table
 (`Iteration | Correctness | Completeness | Quality | Test Coverage | Summary`).
+
+**Context** is the shared digest every downstream agent reads first. Keep it under ~30 lines:
+
+| Field        | Content                                                                    |
+| ------------ | -------------------------------------------------------------------------- |
+| Stack        | languages, frameworks, package manager                                     |
+| Layout       | key directories and what lives in each                                     |
+| Conventions  | project rules worth inheriting (from `CLAUDE.md`, existing code)           |
+| Commands     | test, lint, typecheck, build — the exact invocations                       |
+| Baseline     | tests passing/failing on the branch point, so regressions are attributable |
+| Entry points | where a reader should start for this change                                |
+| Map          | `path → one-line role`, for the files this change concerns                 |
+| Issue        | originating issue/ticket ref, or `—` if the work did not start from one    |
+
+The **Map** row is the reusable hint: built once, it saves every downstream agent from
+rediscovering the same layout. Extend it as units land; do not let it grow past the files
+the change actually concerns.
 
 ### Phase 2: Design (if needed)
 
@@ -180,12 +229,23 @@ Example: Batch 1 — Unit 1 (—), Unit 2 (—); Batch 2 — Unit 3 (deps 1), Un
 For each unit in the batch:
 
 1. Launch `agent-hale:agent-hale` via `Agent` tool with `isolation: "worktree"`,
-   passing the unit, `PLAN.md`, and Ward's designs.
-2. When hale completes, launch `agent-ellis:agent-ellis` to review the worktree changes (code quality, tests, acceptance).
+   passing the unit, `PLAN.md`, and Ward's designs. Point Hale at the **Context** section
+   rather than restating the stack, commands, or conventions in the prompt — the **Issue**
+   ref travels with it, so every agent in the chain can cite it without being told again.
+2. When hale completes, launch `agent-ellis:agent-ellis` to review the worktree changes
+   (code quality, tests, acceptance). Pass Hale's report through — Ellis consumes its test
+   result and baseline delta instead of re-running the suite.
 3. Act on `__REVIEW_VERDICT__`:
    - **PASS** → mark unit ready to merge
    - **WARN** → Smith decides fix or accept; if fix, re-dispatch Hale
    - **FAIL** → must fix; re-dispatch Hale with findings, then re-review
+
+#### Context Hygiene
+
+`PLAN.md` is Smith's memory — the transcript is not. Once a unit merges, condense it to one
+line in the Units of Work table (status plus anything a later batch must know) and stop
+carrying its full Hale report and Ellis findings forward. Sub-agent reports are inputs to a
+decision, not a record to be retained after the decision is made.
 
 #### Merge Worktrees
 
@@ -232,7 +292,21 @@ invoke `agent-ellis` for full review. Score (1-10):
 
 Update the Iteration Log in `PLAN.md`. Re-plan; add new units. Return to **Phase 3**.
 
-**Repeat Phases 3–5 for at least 3 iterations** (honor user-specified count). Stop early if all scores reach 9+.
+#### Stopping Condition
+
+Iterate until the work **converges**, not until a fixed count is reached. Stop at whichever
+comes first:
+
+- **Converged** — the iteration produced no new FAIL or WARN findings and opened no new units.
+  One clean pass is the signal; a second pass exists to re-confirm a pass that followed fixes,
+  not to re-audit work that was already clean.
+- **Ceiling** — 3 iterations completed.
+- **User-specified count** — always honored, in either direction.
+
+An iteration that finds nothing costs a full dispatch fan-out across every unit, so a fixed
+floor buys re-reads rather than quality. If scores are low but iterations keep surfacing
+nothing actionable, that is a planning gap, not an execution gap — return to Phase 1 instead
+of spending another pass.
 
 ### Phase 6: Pre-Release [if agent-ross is installed]
 
@@ -244,7 +318,10 @@ Skip to Phase 7 if Ross not installed.
 **[Autonomous]** Show Iteration Log from `PLAN.md` first.
 
 1. `git log --oneline main..HEAD`
-2. Generate merge commit message (via Ross or directly)
+2. Generate merge commit message (via Ross or directly). When Context carries an **Issue**
+   ref, the merge commit is the one that **closes** it — `Closes: <ref>` in the footer,
+   while the individual unit commits along the branch only reference it. If the branch
+   resolves several issues, list each on its own footer line.
 
 **[CHECKPOINT]** Present summary to user. Wait for approval.
 
