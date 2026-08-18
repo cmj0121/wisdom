@@ -1,0 +1,471 @@
+#!/usr/bin/env bash
+# Semantic checks for the marketplace:
+#   1. Cross-skill references (`<plugin>:<skill>`) resolve to a real skill of a
+#      marketplace plugin, or to a known external plugin.
+#   2. Every SKILL.md has a closed YAML frontmatter block, and its 'model:'
+#      value (when present) is a known tier or a full model ID.
+#   3. Every plugin skill has a '## Shortcut' section declaring at least one
+#      magic (trigger) word, and no word is claimed by two different plugins.
+#   4. Every plugin README has the required sections, and its magic-word
+#      section documents exactly the trigger words the skill declares.
+#   5. The top-level README lists every plugin the marketplace registers.
+#   6. Each plugin's description reads the same in marketplace.json, its
+#      plugin.json and its SKILL.md frontmatter.
+#
+# An optional first argument overrides the repo root, so the fixture
+# harness can point the validator at a mutated copy of the repo.
+set -euo pipefail
+
+if [ $# -ge 1 ]; then
+	REPO_ROOT="$(cd "$1" && pwd)"
+else
+	REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+fi
+
+python3 - "$REPO_ROOT" <<'PY'
+import glob
+import json
+import os
+import re
+import sys
+
+root = sys.argv[1]
+
+GREEN, RED, RESET = "\033[32m", "\033[31m", "\033[0m"
+errors = 0
+
+
+def ok(msg):
+    print(f"  {GREEN}PASS{RESET} {msg}")
+
+
+def bad(msg):
+    global errors
+    print(f"  {RED}FAIL{RESET} {msg}")
+    errors += 1
+
+
+# Plugins shipped outside this marketplace (installed from elsewhere) that
+# skills here may legitimately reference. Only the plugin half is checked for
+# these: their skill directories do not exist in this repo.
+EXTERNAL_PLUGINS = {"frontend-design"}
+
+MODEL_TIERS = {"fable", "opus", "sonnet", "haiku"}
+MODEL_ID_RE = re.compile(r"^claude-[a-z0-9.-]+$")
+# A skill reference is a backtick span whose ENTIRE content is <plugin>:<skill>;
+# substrings inside longer spans (shell commands, ini sections) must not match.
+REF_RE = re.compile(r"`([a-z0-9-]+:[a-z0-9-]+)`")
+BACKTICK_RE = re.compile(r"`([^`]+)`")
+# A markdown table row: a '|' indented at most three spaces. At four the line
+# is an indented code block, which fence_marker() rightly refuses to treat as a
+# fence — so its content reaches prose_lines() and would otherwise count as
+# real text. Requiring the row keeps such a block out of the roster.
+TABLE_ROW_RE = re.compile(r"^ {0,3}\|")
+
+SHORTCUT_HEADING = "## Shortcut"
+# Every plugin skill must declare its magic words. The shortcut plugin is the
+# dispatcher rather than a dispatch target: nothing dispatches TO it, so it has
+# no magic words of its own and needs no '## Shortcut' section. Its README
+# documents how OTHER skills register words, and the `/shortcut` command that
+# lists them — not trigger words of its own.
+SHORTCUT_EXEMPT = {"shortcut"}
+MAGIC_HEADING_RE = re.compile(r"magic word", re.IGNORECASE)
+# A README may spell a trigger out with placeholders — `respond in <lang>`
+# documents the declared `respond in`. EVERY `<...>` is stripped, wherever in
+# the span it sits, and what is left must equal a declared word exactly — that
+# exactness is what stops `lingua off` passing as `lingua`. Stripping mid-span
+# is safe because the opposite direction independently requires the span to
+# contain the declared word literally, so `compact <the> it` is still rejected.
+PLACEHOLDER_RE = re.compile(r"\s*<[^>]*>")
+# The shortcut skill's own dispatch contract (plugins/shortcut/skills/shortcut/
+# SKILL.md, "Magic Word Extraction"): backtick-quoted words on lines matching
+# ``prompt contains `{word}` ``. Key on that marker, not on one exact sentence.
+TRIGGER_MARKER = "prompt contains"
+
+mk = json.load(open(os.path.join(root, ".claude-plugin", "marketplace.json")))
+plugin_names = {p["name"] for p in mk["plugins"]}
+known_plugins = plugin_names | EXTERNAL_PLUGINS
+
+plugin_dirs = sorted(d for d in glob.glob(os.path.join(root, "plugins", "*")) if os.path.isdir(d))
+# Every README path this file reads, derived ONCE. The fence check used to
+# build its own list from plugin_dirs alone, so the top-level README was never
+# checked for balanced fences — an unterminated one there truncated the roster
+# check below in silence, and the validator still exited 0.
+plugin_readmes = [os.path.join(d, "README.md") for d in plugin_dirs]
+top_readme = os.path.join(root, "README.md")
+readme_files = plugin_readmes + [top_readme]
+skill_files = sorted(glob.glob(os.path.join(root, "plugins", "*", "skills", "*", "SKILL.md")))
+
+
+def read_lines(path):
+    with open(path) as handle:
+        return handle.read().splitlines()
+
+
+# The two line classifiers every section-bounding check shares. Getting
+# either wrong moves a section boundary, and a section that ends too early
+# drops declarations silently — the failure mode this file keeps hitting.
+FENCE_RE = re.compile(r"^ {0,3}(```|~~~)")
+HEADING_RE = re.compile(r"^(#{1,6})( |$)")
+
+
+def fence_marker(line):
+    """The code-fence marker `line` opens or closes with, or None.
+
+    CommonMark allows up to three spaces of indent; at four the line is an
+    indented code block, not a fence, and must not toggle the fence state.
+    """
+    match = FENCE_RE.match(line)
+    return match.group(1) if match else None
+
+
+def heading_level(line):
+    """ATX heading level of `line`, or 0 when it is ordinary text.
+
+    CommonMark needs one to six '#' followed by a space or the line end, so
+    '#1 rule of ...', '#!/usr/bin/env note' and '####### deep note' are
+    paragraphs. Treating them as headings would end a section early.
+    """
+    match = HEADING_RE.match(line)
+    return len(match.group(1)) if match else 0
+
+
+def classify(lines):
+    """One (line, kind, level) triple per line — the file's ONLY fence walk.
+
+    kind is 'fence' for a marker line, 'fenced' for a line a fence hides, and
+    'prose' for everything else. A fence closes only on the marker that opened
+    it, so a ``` inside a ~~~ block does not end it early, and every 'fence'
+    line is therefore exactly one toggle.
+
+    Marker lines are their own kind rather than part of 'fenced' on purpose:
+    BACKTICK_RE reads ```text as the span `text - `, which would misfire the
+    check that rejects a backtick span hidden in a fence.
+
+    level is the ATX heading level and is 0 for everything that is not a prose
+    heading, so a '## ...' inside a fence bounds no section.
+
+    Every section-bounding check reads this one function. Two of them used to
+    keep private fence toggles that had to agree forever, which is where this
+    file's recurring bug class — a boundary that moves in one place only —
+    came from.
+    """
+    triples, fence = [], None
+    for line in lines:
+        marker = fence_marker(line)
+        if marker and fence in (None, marker):
+            fence = marker if fence is None else None
+            triples.append((line, "fence", 0))
+        elif fence is not None:
+            triples.append((line, "fenced", 0))
+        else:
+            triples.append((line, "prose", heading_level(line)))
+    return triples
+
+
+def prose_lines(lines):
+    return [line for line, kind, _ in classify(lines) if kind == "prose"]
+
+
+def unterminated_fence(lines):
+    """True when a fence is still open at EOF.
+
+    prose_lines() silently drops everything after such a fence, which would
+    hide a trigger declaration from the collision check.
+    """
+    return sum(1 for _, kind, _ in classify(lines) if kind == "fence") % 2 == 1
+
+
+def frontmatter(lines):
+    """Lines between the opening '---' pair, or None when there is no closed block."""
+    if not lines or lines[0].strip() != "---":
+        return None
+    for i, line in enumerate(lines[1:], start=1):
+        if line.strip() == "---":
+            return lines[1:i]
+    return None
+
+
+def frontmatter_field(front, key):
+    """Value of a top-level `key:` in a frontmatter block, or None when absent."""
+    prefix = key + ":"
+    for line in front:
+        if line.startswith(prefix):
+            return line[len(prefix):].strip().strip("\"'")
+    return None
+
+
+def section_lines(lines, wanted):
+    """RAW body lines of EVERY heading `wanted` accepts, or None when there is none.
+
+    A section ends only at a heading of the SAME OR HIGHER level, so a nested
+    '### Additional Triggers' stays part of its '## Shortcut' parent. Ending at
+    a heading of ANY level dropped everything below the first subheading and
+    said nothing about it — the silent-truncation failure this file exists to
+    prevent. A non-matching deeper heading is kept in the body for the same
+    reason: a word declared in a subheading is still a declaration.
+
+    Headings inside fenced code blocks bound nothing, but the fences themselves
+    are kept, so a caller can still see — and reject — what they hide. A
+    repeated heading resumes collection rather than being ignored.
+    """
+    body, active, found, level = [], False, False, 0
+    for line, _, line_level in classify(lines):
+        # Only a prose heading carries a level, so a fence marker and anything
+        # it hides fall straight through and can never end a section.
+        if line_level:
+            if wanted(line.strip()):
+                active, found, level = True, True, line_level
+                continue
+            if active and line_level <= level:
+                active = False
+                continue
+        if active:
+            body.append(line)
+    return body if found else None
+
+
+def section_body(lines, wanted):
+    """Prose body lines of a section — its fenced code blocks stripped."""
+    raw = section_lines(lines, wanted)
+    return None if raw is None else prose_lines(raw)
+
+
+def shortcut_section(lines):
+    return section_lines(lines, lambda heading: heading == SHORTCUT_HEADING)
+
+
+def backtick_spans(lines):
+    """Backtick spans in `lines`, with one wrapped across a line break rejoined.
+
+    `compact\nit` is `compact it` once markdown renders it, so it must be
+    collected as that word rather than missed for sitting on two lines.
+    """
+    text = " ".join(line.strip() for line in lines)
+    return [" ".join(span.split()) for span in BACKTICK_RE.findall(text)]
+
+
+def trigger_words(section):
+    """Magic words declared by the prose body of a '## Shortcut' section.
+
+    Once the body carries a TRIGGER_MARKER anywhere, EVERY backtick span in it
+    counts. That is deliberately over-inclusive: the section exists only to
+    declare triggers, so a word written there is a declaration however the
+    sentence wraps, however many marker sentences there are, and whether the
+    word sits before or after the marker. Collecting too few is the dangerous
+    direction — it hides a real collision behind a green tick — while
+    collecting too many fails loudly and is trivial to see.
+    """
+    if not any(TRIGGER_MARKER in line for line in section):
+        return []
+    return backtick_spans(section)
+
+
+print("==> Checking cross-skill references")
+for path in skill_files:
+    rel = os.path.relpath(path, root)
+    prose = "\n".join(prose_lines(read_lines(path)))
+    refs = REF_RE.findall(prose)
+    if not refs:
+        continue
+    problems = []
+    for ref in refs:
+        plugin, skill = ref.split(":")
+        if plugin not in known_plugins:
+            problems.append(f"unresolved reference `{ref}`: no plugin named '{plugin}'")
+        elif plugin in plugin_names and not os.path.isfile(
+            os.path.join(root, "plugins", plugin, "skills", skill, "SKILL.md")
+        ):
+            problems.append(f"unresolved reference `{ref}`: plugin '{plugin}' has no skill '{skill}'")
+    for problem in problems:
+        bad(f"{rel}: {problem}")
+    if not problems:
+        ok(f"{rel}: {len(refs)} reference(s) resolve")
+
+print("==> Checking code fences")
+fenced_files = skill_files + [p for p in readme_files if os.path.isfile(p)]
+before = errors
+for path in fenced_files:
+    if unterminated_fence(read_lines(path)):
+        bad(f"{os.path.relpath(path, root)}: unterminated code fence hides everything after it")
+if errors == before:
+    ok(f"{len(fenced_files)} file(s) have balanced code fences")
+
+print("==> Checking model declarations")
+for path in skill_files:
+    rel = os.path.relpath(path, root)
+    front = frontmatter(read_lines(path))
+    if front is None:
+        bad(f"{rel}: no closed YAML frontmatter block")
+        continue
+    model = frontmatter_field(front, "model") or ""
+    if not model:
+        ok(f"{rel}: no model (inherits session default)")
+    elif model in MODEL_TIERS or MODEL_ID_RE.match(model):
+        ok(f"{rel}: model {model}")
+    else:
+        bad(f"{rel}: invalid model '{model}'")
+
+print("==> Checking magic-word collisions")
+# plugin -> the trigger words it declares. Three states, kept apart on purpose:
+# a list of words, [] for a plugin that legitimately declares none, and
+# UNCHECKED when a failure below stopped this check from reading its words at
+# all. The README cross-check reads this dict, and reading "no entry" as
+# "declares nothing" silently switched that cross-check off for exactly the
+# plugin whose Shortcut section had just failed here — the safety net
+# disarming itself when its subject breaks.
+UNCHECKED = object()
+triggers = {}
+before = errors
+for path in skill_files:
+    rel = os.path.relpath(path, root)
+    plugin = os.path.relpath(path, os.path.join(root, "plugins")).split(os.sep)[0]
+    section = shortcut_section(read_lines(path))
+    if section is None:
+        if plugin in SHORTCUT_EXEMPT:
+            triggers[plugin] = []
+        else:
+            triggers[plugin] = UNCHECKED
+            bad(
+                f"{rel}: no '## Shortcut' section to declare its trigger words"
+                " (a skill that never dispatches belongs in SHORTCUT_EXEMPT in scripts/validate)"
+            )
+        continue
+    body = classify(section)
+    prose = [line for line, kind, _ in body if kind == "prose"]
+    fenced = [line for line, kind, _ in body if kind == "fenced"]
+    # A fence is where a declaration goes to die: prose_lines() strips it, so
+    # anything it holds is dropped without a word. Keying only on
+    # TRIGGER_MARKER was not enough — put the marker in the prose and the word
+    # alone in the fence and it vanished silently. Nothing in a '## Shortcut'
+    # section needs a fence, so any marker OR any backtick span inside one is
+    # an error.
+    if any(TRIGGER_MARKER in line for line in fenced) or backtick_spans(fenced):
+        triggers[plugin] = UNCHECKED
+        bad(
+            f"{rel}: '## Shortcut' hides a trigger declaration inside a code fence,"
+            " where neither dispatch nor this check can read it"
+            " (move it out of the fence)"
+        )
+        continue
+    words = trigger_words(prose)
+    if not words:
+        triggers[plugin] = UNCHECKED
+        bad(f"{rel}: '## Shortcut' section declares no trigger word")
+        continue
+    if triggers.get(plugin) is not UNCHECKED:
+        triggers.setdefault(plugin, []).extend(words)
+
+# The collision check is `triggers` read the other way round, so it is derived
+# from it rather than accumulated beside it. Sorting the claimants also keeps
+# the message independent of the order the skill files happened to be walked.
+claims = {}  # trigger word -> the plugins claiming it
+for plugin, words in triggers.items():
+    if words is UNCHECKED:
+        continue
+    for word in words:
+        claims.setdefault(word, set()).add(plugin)
+for word in sorted(claims):
+    owners = sorted(claims[word])
+    if len(owners) > 1:
+        bad(
+            f"magic word `{word}` claimed by both {' and '.join(owners)}"
+            " (inside a '## Shortcut' section, backticks are reserved for trigger words)"
+        )
+if errors == before:
+    # No UNCHECKED entry can exist here: every path that sets one also fails.
+    declaring = [p for p, words in triggers.items() if words]
+    ok(f"{len(claims)} trigger word(s) across {len(declaring)} plugin(s), no collisions")
+
+print("==> Checking README sections")
+for directory, readme in zip(plugin_dirs, plugin_readmes):
+    name = os.path.basename(directory)
+    rel = os.path.relpath(readme, root)
+    if not os.path.isfile(readme):
+        bad(f"{rel}: missing")
+        continue
+    headings = [l for l in prose_lines(read_lines(readme)) if heading_level(l)]
+    problems = []
+    if not any(heading_level(h) == 1 for h in headings):
+        problems.append("no H1 title")
+    for section in ("Installation", "License"):
+        if not any(h.strip() == f"## {section}" for h in headings):
+            problems.append(f"no '## {section}' section")
+    declared = triggers.get(name, [])
+    if declared is UNCHECKED:
+        problems.append(
+            "its SKILL.md trigger declaration could not be read (see the failure above),"
+            " so what this README must document is unknown and was NOT cross-checked"
+        )
+    elif declared:
+        documented = section_body(read_lines(readme), MAGIC_HEADING_RE.search)
+        if documented is None:
+            problems.append("declares trigger words but has no 'Magic Word' heading")
+        else:
+            spans = backtick_spans(documented)
+            for word in declared:
+                if not any(word in span for span in spans):
+                    problems.append(
+                        f"magic word `{word}` is declared in SKILL.md but undocumented here"
+                        " (under a Magic Words heading, backticks are reserved for trigger words)"
+                    )
+            for span in spans:
+                if PLACEHOLDER_RE.sub("", span).strip() not in declared:
+                    problems.append(
+                        f"documents `{span}`, which the skill does not declare"
+                        " (under a Magic Words heading, backticks are reserved for trigger words)"
+                    )
+    for problem in problems:
+        bad(f"{rel}: {problem}")
+    if not problems:
+        ok(f"{rel}: required sections present")
+
+print("==> Checking plugin descriptions agree across their sources")
+for entry in mk["plugins"]:
+    name = entry["name"]
+    src = entry["source"][2:] if entry["source"].startswith("./") else entry["source"]
+    # The one sentence a plugin repeats verbatim in three places, so the one
+    # piece of prose that is mechanically comparable. Bodies are not: they say
+    # the same thing at different lengths on purpose.
+    sources = {".claude-plugin/marketplace.json": entry.get("description")}
+    pj_path = os.path.join(root, src, ".claude-plugin", "plugin.json")
+    if os.path.isfile(pj_path):
+        sources[os.path.relpath(pj_path, root)] = json.load(open(pj_path)).get("description")
+    sk_path = os.path.join(root, src, "skills", name, "SKILL.md")
+    if os.path.isfile(sk_path):
+        front = frontmatter(read_lines(sk_path)) or []
+        sources[os.path.relpath(sk_path, root)] = frontmatter_field(front, "description")
+    if len(set(sources.values())) == 1:
+        ok(f"{name}: description agrees across {len(sources)} source(s)")
+    else:
+        detail = "; ".join(f"{where} says {value!r}" for where, value in sorted(sources.items()))
+        bad(f"{name}: description differs between its sources ({detail})")
+
+print("==> Checking the top-level README lists every plugin")
+if not os.path.isfile(top_readme):
+    bad("README.md: missing")
+else:
+    # The roster is the one thing duplicated between marketplace.json and the
+    # top-level README, so it is the one thing mechanically comparable. The
+    # descriptions are prose and stay a matter of reading.
+    #
+    # Membership, not mere presence: a plugin counts as listed only when a
+    # ROSTER ROW names it — a table row, outside any code block, carrying the
+    # name as a whole backtick span. Searching the README text for the name
+    # instead let one passing mention stand in for a deleted row: strip every
+    # `tenth-man` row from the tables, leave the words
+    # `plugins/tenth-man/README.md` in a sentence, and the roster read as
+    # complete.
+    rows = [l for l in prose_lines(read_lines(top_readme)) if TABLE_ROW_RE.match(l)]
+    listed = {span for row in rows for span in backtick_spans([row])}
+    missing = [n for n in sorted(plugin_names) if n not in listed]
+    for name in missing:
+        bad(f"README.md: plugin '{name}' is registered in marketplace.json but not listed here")
+    if not missing:
+        ok(f"README.md lists all {len(plugin_names)} registered plugin(s)")
+
+if errors:
+    print(f"==> {errors} error(s) found")
+    sys.exit(1)
+print("==> All semantic checks passed")
+PY
