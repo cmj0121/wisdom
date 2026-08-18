@@ -9,8 +9,15 @@ all: $(SUBDIR) 		# default action
 clean: $(SUBDIR)	# clean-up environment
 	@find . -name '*.sw[po]' -delete
 
-test:				# run test
-	@bash scripts/test
+# scripts/validate-fixtures is deliberately absent: it is the validator's own
+# self-test rather than a check on this repo's contents, and it costs ~2.8s.
+# pre-commit runs it whenever scripts/ changes.
+test:				# run the three repo checks (not the validator self-test)
+	@rc=0; \
+	for script in test check-version-sync validate; do \
+		bash "scripts/$$script" || rc=1; \
+	done; \
+	exit $$rc
 
 run:				# run in the local environment
 

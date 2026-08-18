@@ -24,15 +24,54 @@ repos:
       - id: shfmt
 
   # -------- marketplace integrity --------
+  # These four are the repo's own checks. Three run unconditionally; see each
+  # comment for why, and read them together — the reasoning is one argument.
   - repo: local
     hooks:
+      # This one cannot be gated by `files:`. pre-commit builds its candidate
+      # list with `--diff-filter=ACMRTUXB`, which drops deletions, so a commit
+      # that only removes plugins/<name>/LICENSE offers zero files and every
+      # gated hook is skipped. Deleting a packaging file is exactly what this
+      # check exists to catch, so it runs unconditionally (~2.5s).
+      - id: marketplace-structure
+        name: marketplace structure
+        description: Fail if a plugin is missing plugin.json, SKILL.md, README.md or LICENSE, or a manifest name drifts.
+        entry: scripts/test
+        language: script
+        pass_filenames: false
+        always_run: true
+      # Same reason, and both are cheap (~0.04s each). check-version-sync is
+      # the only check that reads plugin.json, and validate the only one that
+      # reads the top-level README.md and can report it missing at all —
+      # gated, both disarmed on a deletion-only commit, so `git rm README.md`
+      # and even `git rm scripts/validate` committed green.
       - id: marketplace-version-sync
         name: marketplace version sync
-        description: Fail if marketplace versions drift from plugin.json or lag the latest git tag.
+        description: Fail if marketplace versions drift from plugin.json or SKILL.md, or lag the latest git tag.
         entry: scripts/check-version-sync
         language: script
         pass_filenames: false
-        files: '(^\.claude-plugin/marketplace\.json|^plugins/[^/]+/\.claude-plugin/plugin\.json)$'
+        always_run: true
+      - id: marketplace-semantic-validate
+        name: marketplace semantic validation
+        description: Fail if skill references, model tiers, magic words or README sections are inconsistent.
+        entry: scripts/validate
+        language: script
+        pass_filenames: false
+        always_run: true
+      # The one hook that stays gated: ~4s, and it only says anything new when
+      # scripts/ changes. Deleting scripts/validate does NOT present a scripts/
+      # file to it — measured; a deletion-only commit presents nothing at all —
+      # so `always_run` here would be the only way it could catch that. The
+      # unconditional marketplace-semantic-validate above already fails on a
+      # missing entry, and scripts/test checks all four scripts exist.
+      - id: marketplace-validator-fixtures
+        name: marketplace validator fixtures
+        description: Fail if a semantic check can no longer be made to fail. Runs only when scripts/ changes.
+        entry: scripts/validate-fixtures
+        language: script
+        pass_filenames: false
+        files: "^scripts/"
 
   # -------- security related linter --------
   - repo: https://github.com/zricethezav/gitleaks
