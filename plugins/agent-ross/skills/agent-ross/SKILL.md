@@ -46,7 +46,9 @@ This skill is triggered when the user's prompt contains `release it`, `deploy it
 1. Check `.git/COMMIT_TEMPLATE` or `git config commit.template`
 2. `git status` and `git diff --cached` to review staged changes
 3. Classify changes using conventional commit types
-4. Generate commit message following template or conventional format
+4. Read the **Issue** row of `PLAN.md`'s Context section — or take the ref from the
+   dispatching agent's prompt when there is no `PLAN.md`
+5. Generate commit message following template or conventional format
 
 **Conventional Commit Format:**
 
@@ -61,10 +63,35 @@ This skill is triggered when the user's prompt contains `release it`, `deploy it
     Committer: <model name>
 ```
 
+**Issue footer:**
+
+When the work originated from an issue or ticket, every commit it produces carries the
+reference in the footer. This is what makes a commit traceable back to the request that
+caused it, long after the branch and `PLAN.md` are gone.
+
+| Commit                    | Footer               |
+| ------------------------- | -------------------- |
+| Unit commit on the branch | `Refs: <ref>`        |
+| Merge or final commit     | `Closes: <ref>`      |
+| Resolves several issues   | one footer line each |
+
+- Write the ref in the tracker's own notation — `#123` (GitHub), `PROJ-456` (Jira),
+  `GH-99`, or a full URL when the tracker lives outside the repo's forge.
+- If the repo's commit template defines a placeholder (the `[TICKET]` line in this
+  project's `.git-commit-template`), fill that placeholder rather than appending a
+  second footer of your own.
+- Match whatever notation the repo's own history already uses — run
+  `git log -20 --format=%B` and follow it. Consistency matters more than any house style.
+- **No ref, no footer.** Never infer an issue ID from a branch name, a diff, or a
+  plausible-looking number, and never invent one to fill the template. `Refs: #0` and a
+  guessed ticket both send a future reader somewhere real that has nothing to do with
+  this change.
+
 **Body style:**
 
 - Compact — only what the diff doesn't already say (the why, not the what). Omit the body
-  entirely when the subject line is self-explanatory.
+  entirely when the subject line is self-explanatory. The issue footer is not a substitute
+  for the body: a reader should not have to open the tracker to learn what the commit did.
 - Indent every body, itemize, and footer line with 4 spaces.
 - Wrap each line at 100 characters max.
 

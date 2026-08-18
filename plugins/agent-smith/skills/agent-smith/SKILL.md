@@ -14,6 +14,7 @@ allowed-tools:
   - Bash(git merge:*)
   - Bash(git branch:*)
   - Bash(rm PLAN.md)
+  - Bash(gh issue view:*)
   - Read
   - Glob
   - Grep
@@ -129,6 +130,14 @@ Smith analyzes project context directly:
    read key source files; WebSearch as last resort.
 2. **Git history**: `git log` (last 20 commits or 3 months). `git show` for significant commits.
 3. **Project structure**: Glob to map layout. Identify key components.
+4. **Originating issue**: if the work started from an issue or ticket — the user pasted a
+   URL, named an ID (`#123`, `PROJ-456`, `GH-99`), or asked to work on one — capture that
+   reference now. Fetch the issue body when it is reachable; it is the most authoritative
+   statement of the requirement available. Record the ref in the **Issue** row of Context.
+
+   **Never invent an issue ref.** If the work did not start from one, the field is `—` and
+   every commit below simply omits the footer. A fabricated ticket ID in git history is
+   worse than no ID at all — it points a future reader at something that does not exist.
 
 **Reading discipline** — Smith's own Phase 1, and the standard every dispatch inherits:
 
@@ -182,6 +191,7 @@ fires, **Units of Work** table (`# | Unit | Description | Assignee | Depends On 
 | Baseline     | tests passing/failing on the branch point, so regressions are attributable |
 | Entry points | where a reader should start for this change                                |
 | Map          | `path → one-line role`, for the files this change concerns                 |
+| Issue        | originating issue/ticket ref, or `—` if the work did not start from one    |
 
 The **Map** row is the reusable hint: built once, it saves every downstream agent from
 rediscovering the same layout. Extend it as units land; do not let it grow past the files
@@ -220,7 +230,8 @@ For each unit in the batch:
 
 1. Launch `agent-hale:agent-hale` via `Agent` tool with `isolation: "worktree"`,
    passing the unit, `PLAN.md`, and Ward's designs. Point Hale at the **Context** section
-   rather than restating the stack, commands, or conventions in the prompt.
+   rather than restating the stack, commands, or conventions in the prompt — the **Issue**
+   ref travels with it, so every agent in the chain can cite it without being told again.
 2. When hale completes, launch `agent-ellis:agent-ellis` to review the worktree changes
    (code quality, tests, acceptance). Pass Hale's report through — Ellis consumes its test
    result and baseline delta instead of re-running the suite.
@@ -307,7 +318,10 @@ Skip to Phase 7 if Ross not installed.
 **[Autonomous]** Show Iteration Log from `PLAN.md` first.
 
 1. `git log --oneline main..HEAD`
-2. Generate merge commit message (via Ross or directly)
+2. Generate merge commit message (via Ross or directly). When Context carries an **Issue**
+   ref, the merge commit is the one that **closes** it — `Closes: <ref>` in the footer,
+   while the individual unit commits along the branch only reference it. If the branch
+   resolves several issues, list each on its own footer line.
 
 **[CHECKPOINT]** Present summary to user. Wait for approval.
 
