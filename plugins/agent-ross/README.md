@@ -31,9 +31,10 @@ Install via the wisdom marketplace:
 
 1. **Commit** — Generates conventional commit messages (replaces git-committer)
 2. **Pre-Release** — Verifies tests, CI status, clean branch
-3. **Tag** — Semantic versioning, changelog generation
-4. **Deploy** — Docker build, K8s apply, Terraform, cloud platforms
-5. **Verify** — Post-deploy health checks, smoke tests
+3. **Cleanup** — Runs `/simplify`, then folds fix commits into the commits they fix
+4. **Tag** — Semantic versioning, changelog generation
+5. **Deploy** — Docker build, K8s apply, Terraform, cloud platforms
+6. **Verify** — Post-deploy health checks, smoke tests
 
 ## Supported Environments
 

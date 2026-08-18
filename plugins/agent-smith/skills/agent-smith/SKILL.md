@@ -23,7 +23,7 @@ allowed-tools:
   - WebSearch
 metadata:
   author: cmj@cmj.tw
-  version: 1.4.0
+  version: 1.5.0
 ---
 
 # Agent Smith — Project Leader
@@ -137,7 +137,8 @@ Once approved, Smith writes `PLAN.md`. Sections: **Idea** (user's original idea)
 (`# | Fork | Options | Chosen | Rationale`) — append whenever the Clarification Protocol
 fires, **Units of Work** table (`# | Unit | Description | Assignee | Depends On | Status`),
 **Planned Commits** table (`# | Commit | Description`), **Iteration Log** table
-(`Iteration | Correctness | Completeness | Quality | Test Coverage | Summary`).
+(`Iteration | Correctness | Completeness | Quality | Test Coverage | Summary`) — the
+`Iteration` cell reads `N/target`, and the target is fixed here: 3, or the user's count.
 
 ### Phase 2: Design (if needed)
 
@@ -221,13 +222,19 @@ invoke `agent-ellis` for full review. Score (1-10):
 | Quality       |       |       |
 | Test Coverage |       |       |
 
-Update the Iteration Log in `PLAN.md`. Re-plan; add new units. Return to **Phase 3**.
+Update the Iteration Log in `PLAN.md`, writing the iteration as `N/target` (`1/3`, `2/3`,
+`3/3`). **Report that same `N/target` in Smith's own output to the user** when each iteration
+starts and ends — the user must see what remains without opening `PLAN.md`.
+Re-plan; add new units. Return to **Phase 3**.
 
-**Repeat Phases 3–5 for at least 3 iterations** (honor user-specified count). Stop early if all scores reach 9+.
+**Repeat Phases 3–5 until `N` reaches the target** — 3 by default, or the user-specified count.
+Stop early if all scores reach 9+. If the work genuinely needs more rounds, raise the target
+and say so explicitly (`target 3 → 4, because …`) rather than silently renumbering.
 
 ### Phase 6: Pre-Release [if agent-ross is installed]
 
 Invoke `agent-ross:agent-ross` for the full release pipeline (CI, Docker build, tagging, deploy).
+Ross also runs `/simplify` and folds fix commits into what they fix before tagging.
 Skip to Phase 7 if Ross not installed.
 
 ### Phase 7: Merge
