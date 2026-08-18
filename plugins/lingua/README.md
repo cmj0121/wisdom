@@ -18,14 +18,13 @@ Install via the wisdom marketplace:
 
 ### Magic Words
 
-Registered via the `## Shortcut` section, so the `shortcut` plugin auto-dispatches them:
+Registered via the skill's Shortcut section, so the shortcut plugin auto-dispatches them:
 
 | Magic word          | Effect                                        |
 | ------------------- | --------------------------------------------- |
 | `lingua`            | Configure preferences, or show current status |
 | `respond in <lang>` | Set and persist the response language         |
 | `reply in <lang>`   | Same as above                                 |
-| `lingua off`        | Suspend for the current session               |
 
 ### First Run
 
@@ -71,6 +70,9 @@ session. Restart Claude Code (or start a new session) to pick up changes.
 
 Just say it — "respond in Japanese now", "stop refining", "keep terms in Chinese too".
 Lingua rewrites the config and applies the change immediately.
+
+Saying "lingua off" once lingua is active suspends the rules for the rest of the session
+without deleting the config; a later "lingua" re-enables them.
 
 ## Usage
 

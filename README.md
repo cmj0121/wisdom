@@ -118,9 +118,136 @@ mechanical, high-frequency work — and otherwise inherit the session default.
 - **Economical (`haiku`)** — mechanical, deterministic, high-frequency:
   `changelog-gen`, `ascii-grapher`, `test-runner`, `dep-auditor`, `compactor`, `shortcut`, `lingua`
 
-`model` accepts `fable` / `opus` / `sonnet` / `haiku`, a full model ID, or `inherit` (follow
-the session default). Changes take effect on the next session — skill frontmatter is read at
-session start.
+`model` accepts `fable` / `opus` / `sonnet` / `haiku` or a full model ID; omit the field to
+inherit the session default. Changes take effect on the next session — skill frontmatter is
+read at session start.
+
+## Development
+
+Plugins are markdown and JSON, so there is no build step — what keeps the marketplace
+coherent is three checks, each owning one failure domain.
+
+| Check                        | Domain            | Fails when                                                       |
+| ---------------------------- | ----------------- | ---------------------------------------------------------------- |
+| `scripts/test`               | structural        | a required file is missing, or a manifest name/version disagrees |
+| `scripts/check-version-sync` | version integrity | a plugin's three versions disagree, or the release lags its tag  |
+| `scripts/validate`           | semantic          | a reference, model, magic word, description, section or roster   |
+
+They stay three scripts rather than one because they fail for different reasons — a missing
+file is a packaging mistake, a version drift is a release mistake, an unresolved skill
+reference is an authoring mistake — and because each is worth running on its own while you
+fix that one class of problem.
+
+A fourth script, `scripts/validate-fixtures`, is the semantic validator's own self-test: it
+mutates a throwaway copy of the repo to break each check in turn and asserts the validator
+catches it. It stays out of `make test` — a suite of checks and the proof those checks can
+still fail are different jobs.
+
+```text
+                             ┌─ scripts/test                structural
+   make test ──────────┐     │
+                       ├────>┼─ scripts/check-version-sync  version integrity
+   git commit ──┬──────┘     │
+   (pre-commit) │            └─ scripts/validate            semantic
+                │
+                └──────────────> scripts/validate-fixtures  validator self-test
+                                 (only when scripts/ changes)
+```
+
+`make test` runs the first three and reports all three; it does not stop at the first failure.
+It never runs `scripts/validate-fixtures`. Committing runs all four: the same three
+unconditionally, plus the fixtures self-test whenever a file under `scripts/` changes. So the
+commit path is the wider of the two, and a green `make test` says nothing about whether the
+validator's own tests still hold.
+
+Three of the four are deliberately ungated, and the reason is worth knowing before you add a
+`files:` pattern of your own. pre-commit builds its candidate file list with
+`--diff-filter=ACMRTUXB`, which excludes deletions, so a commit that only _deletes_ a file
+presents zero candidates — and a gated hook with nothing to match is skipped, however exactly
+its pattern would have fitted the deleted path. Deleting `plugins/<name>/LICENSE`, the
+top-level `README.md`, or a check script is precisely what the structural, version and
+semantic checks exist to catch, so all three run on every commit regardless of what you
+touched.
+
+Only `scripts/validate-fixtures` stays gated, on `^scripts/`: it costs a few seconds and says
+nothing new unless the validator changes. That gate has the same blind spot — deleting
+`scripts/validate` presents no `scripts/` file either — which is why `scripts/test` asserts
+that all four check scripts exist and are executable.
+
+### What the semantic validator enforces
+
+When you add or edit a plugin, this is the check to know about. It enforces:
+
+- **Shortcut section** — every skill declares its magic words in a `## Shortcut` section, in
+  backticks, on a line reading ``prompt contains `word` ``. `shortcut` itself, the
+  dispatcher, is the only exception.
+- **Unique magic words** — no two plugins may claim the same word, and the plugin README's
+  magic-word list must name exactly what its skill declares, no more and no fewer.
+- **README sections** — every plugin README needs an H1 title, `## Installation` and
+  `## License`.
+- **Plugin roster** — every plugin registered in `.claude-plugin/marketplace.json` must be
+  named in the prose of this top-level README. Prose only: a name that appears solely inside
+  a fenced code block does not count, because a name in a diagram is not a roster entry.
+- **Resolvable references** — a `<plugin>:<skill>` reference in a skill body must point at a
+  plugin and skill that exist here, or at a known external plugin.
+- **Known model tiers** — `model:` must be `fable`, `opus`, `sonnet`, `haiku` or a full
+  `claude-*` model ID; omit the field to inherit the session default.
+- **Agreeing descriptions** — a plugin's one-sentence `description` must read identically in
+  `.claude-plugin/marketplace.json`, its `plugin.json` and its `SKILL.md` frontmatter. It is
+  the one piece of prose a plugin repeats verbatim, so the one that can be compared at all.
+- **Balanced code fences** — an unterminated fence hides everything after it from the checks.
+
+### Backticks are reserved
+
+Two places in this repo are read as declarations rather than as prose:
+
+- the `## Shortcut` section of any `SKILL.md`
+- the Magic Words heading of any plugin `README.md`
+
+Inside those two sections, **every backtick span is taken as a magic word** — not only the
+ones in the `prompt contains` line. Put a filename, a tool name or a skill reference in
+backticks there and you have declared it as a trigger word; the validator then reports it as
+an undocumented magic word, or as a collision with whichever other plugin also mentioned it.
+This is not hypothetical: `plugins/lingua/README.md` had to unwrap two ordinary prose
+backticks under its Magic Words heading for exactly this reason.
+
+So in those two sections, write anything that is not a trigger word without backticks.
+Backticks are normal everywhere else in the same file, but the sections reach further than
+they look: one ends only at a heading of the _same or higher_ level, so a `### Additional
+Triggers` nested under `## Shortcut` is still inside it.
+
+A code fence is not a way out of the rule. Nothing in a `## Shortcut` section needs one, and a
+fence there used to swallow a declaration without a word, so the validator now rejects any
+backtick span — and any `prompt contains` line — inside a fence in that section, whether or
+not it was meant as a trigger.
+
+The over-collection is deliberate. Collecting too few words would hide a real collision
+behind a green tick; collecting too many fails loudly and takes one edit to fix.
+
+### Versions and self-tests
+
+`scripts/check-version-sync` reads four version locations, in two independent checks with two
+different failure modes.
+
+Three of them must be identical, per plugin: its entry in `.claude-plugin/marketplace.json`,
+its own `plugin.json`, and its skill's `metadata.version`. Bump them together or the sync
+check fails.
+
+The fourth is the **top-level** `version` in `.claude-plugin/marketplace.json` — the
+marketplace's own release number, not any plugin's. It is compared against the latest `v*` git
+tag: equal means released, ahead means a release is being prepared, behind is an error. A
+plugin bump that leaves it alone is the usual way to hit this one, so cutting a release means
+bumping this field too.
+
+`scripts/validate-fixtures` is outside `make test`, but the commit path runs it whenever
+anything under `scripts/` changes. Run it by hand while you edit `scripts/validate`, rather
+than finding out at commit time that a check can no longer be made to fail.
+
+### What the checks cannot tell you
+
+Green checks mean nothing _mechanically_ checkable is broken. They cannot tell you the prose
+is right: a stale table row, a wrong slash command name or an inaccurate description passes
+every one of them. That stays a matter of reading it.
 
 ## DDD (Dream-Driven Development)
 

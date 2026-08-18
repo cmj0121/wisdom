@@ -1,0 +1,487 @@
+#!/usr/bin/env bash
+# Negative fixtures for scripts/validate: mutate a temp copy of the repo to
+# break each semantic check in turn and assert the validator fails. A check
+# that cannot fail proves nothing, so any un-failable check fails this harness.
+#
+# Every fixture asserts the SPECIFIC message the broken check emits — a
+# validator that exits non-zero for an unrelated reason must not count as proof.
+#
+# Fixture bodies are literal markdown, so their backticks and $ are data, not
+# shell syntax. That holds for every single-quoted string below.
+# shellcheck disable=SC2016
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+TMP_DIR="$(mktemp -d)"
+trap 'rm -rf "$TMP_DIR"' EXIT
+
+ERRORS=0
+
+pass() { printf "  \033[32mPASS\033[0m %s\n" "$1"; }
+fail() {
+	printf "  \033[31mFAIL\033[0m %s\n" "$1"
+	ERRORS=$((ERRORS + 1))
+}
+
+# Everything the validator reads, copied once. Fixtures mutate $TMP_DIR/repo
+# and fresh_copy restores it from here; re-copying the whole subtree per
+# fixture cost 1.9s of the harness's 4.6s runtime for no gain.
+mkdir -p "$TMP_DIR/pristine" "$TMP_DIR/repo"
+cp -R "$REPO_ROOT/.claude-plugin" "$REPO_ROOT/plugins" "$TMP_DIR/pristine/"
+cp "$REPO_ROOT/README.md" "$TMP_DIR/pristine/"
+cp -R "$TMP_DIR/pristine/." "$TMP_DIR/repo/"
+
+# Paths the current fixture has changed. mutate() and replace() record their
+# own target; a fixture that writes to the copy directly records its own with
+# dirty. Forgetting one would leak into every later fixture, which is what the
+# check at the bottom of this file exists to catch.
+DIRTY=()
+
+dirty() { DIRTY+=("$@"); }
+
+# Undo the current fixture, restoring only what it touched. A path absent from
+# the pristine copy (plugins/ghost) is simply removed.
+fresh_copy() {
+	local path
+	for path in ${DIRTY[@]+"${DIRTY[@]}"}; do
+		rm -rf "${TMP_DIR:?}/repo/$path"
+		if [ -e "$TMP_DIR/pristine/$path" ]; then
+			cp -R "$TMP_DIR/pristine/$path" "$TMP_DIR/repo/$path"
+		fi
+	done
+	DIRTY=()
+}
+
+# expect_pass <label> — the empty substring matches any non-empty file, and
+# the validator always prints something.
+expect_pass() { expect_pass_with "" "$1"; }
+
+# expect_pass_with <expected-message-substring> <label>
+expect_pass_with() {
+	if ! bash "$REPO_ROOT/scripts/validate" "$TMP_DIR/repo" >"$TMP_DIR/out" 2>&1; then
+		fail "$2: validator failed on a copy it should accept"
+		sed 's/^/      /' "$TMP_DIR/out"
+	elif grep -qF "$1" "$TMP_DIR/out"; then
+		pass "$2"
+	else
+		fail "$2: validator passed, but without \"$1\""
+		sed 's/^/      /' "$TMP_DIR/out"
+	fi
+}
+
+# expect_fail <expected-message-substring> <label>
+expect_fail() {
+	if bash "$REPO_ROOT/scripts/validate" "$TMP_DIR/repo" >"$TMP_DIR/out" 2>&1; then
+		fail "$2: validator passed but should have failed"
+	elif grep -qF "$1" "$TMP_DIR/out"; then
+		pass "$2"
+	else
+		fail "$2: validator failed, but not with \"$1\""
+		sed 's/^/      /' "$TMP_DIR/out"
+	fi
+}
+
+# In-place sed that works with both BSD and GNU sed.
+mutate() {
+	local expr="$1" file="$2"
+	dirty "$file"
+	sed -i.bak "$expr" "$TMP_DIR/repo/$file"
+	rm "$TMP_DIR/repo/$file.bak"
+}
+
+# Replace an exact multi-line block; sed cannot do this portably.
+replace() {
+	dirty "$1"
+	python3 - "$TMP_DIR/repo/$1" "$2" "$3" <<'PY'
+import sys
+
+path, old, new = sys.argv[1], sys.argv[2], sys.argv[3]
+with open(path) as handle:
+    text = handle.read()
+assert old in text, f"fixture target not found in {path}: {old!r}"
+with open(path, "w") as handle:
+    handle.write(text.replace(old, new))
+PY
+}
+
+# The sentence tenth-man declares its trigger words with. Most fixtures work by
+# swapping it for something else, so it is written out once, here.
+TRIGGER_SENTENCE='This skill is triggered when the user'"'"'s prompt contains `challenge this` or `tenth man`.'
+
+# retrigger <new-body> — swap that sentence in tenth-man's SKILL.md.
+retrigger() {
+	replace plugins/tenth-man/skills/tenth-man/SKILL.md "$TRIGGER_SENTENCE" "$1"
+}
+
+echo "==> Baseline: unmutated copy"
+fresh_copy
+expect_pass "clean copy passes"
+# The magic-word census, read off the clean copy rather than hardcoded. The
+# fixtures below assert it to prove a section was not truncated; pinning the
+# numbers instead made adding one plugin break three fixtures that were never
+# about the count — and the hook that runs this file is gated on ^scripts/, so
+# a content-only commit would not even surface the breakage.
+CENSUS="$(grep -o '[0-9]* trigger word(s) across [0-9]* plugin(s)' "$TMP_DIR/out" || true)"
+if [ -n "$CENSUS" ]; then
+	pass "census reported: $CENSUS"
+else
+	fail "baseline: the validator printed no magic-word census at all"
+fi
+
+echo "==> Fixture: unresolvable cross-skill reference"
+fresh_copy
+dirty plugins/compactor/skills/compactor/SKILL.md
+echo 'See `nope:nope` for details.' >>"$TMP_DIR/repo/plugins/compactor/skills/compactor/SKILL.md"
+expect_fail "no plugin named 'nope'" "unresolved \`nope:nope\` reference is caught"
+
+echo "==> Fixture: reference to a skill the plugin does not have"
+fresh_copy
+dirty plugins/compactor/skills/compactor/SKILL.md
+echo 'See `agent-hale:agent-typo` for details.' >>"$TMP_DIR/repo/plugins/compactor/skills/compactor/SKILL.md"
+expect_fail "has no skill 'agent-typo'" "\`agent-hale:agent-typo\` (real plugin, unknown skill) is caught"
+
+echo "==> Fixture: <plugin>:<skill>-shaped token inside a fenced code block"
+fresh_copy
+dirty plugins/compactor/skills/compactor/SKILL.md
+printf '\n```sh\ndocker run `docker-run:latest`\n```\n' \
+	>>"$TMP_DIR/repo/plugins/compactor/skills/compactor/SKILL.md"
+expect_pass "fenced \`docker-run:latest\` is not mistaken for a skill reference"
+
+echo "==> Fixture: invalid model value"
+fresh_copy
+mutate 's/^model: haiku$/model: gpt-4/' plugins/lingua/skills/lingua/SKILL.md
+expect_fail "invalid model 'gpt-4'" "invalid 'model: gpt-4' is caught"
+
+echo "==> Fixture: SKILL.md with no YAML frontmatter"
+fresh_copy
+mutate '1,/^---$/d;1,/^---$/d' plugins/compactor/skills/compactor/SKILL.md
+expect_fail "no closed YAML frontmatter block" "missing frontmatter is caught"
+
+echo "==> Fixture: magic word claimed by two plugins"
+fresh_copy
+mutate 's/`challenge this`/`compact it`/' plugins/tenth-man/skills/tenth-man/SKILL.md
+expect_fail 'claimed by both compactor and tenth-man' \
+	"duplicated magic word \`compact it\` is caught"
+
+echo "==> Fixture: collision declared with the trigger sentence rephrased"
+fresh_copy
+retrigger 'Triggered when the prompt contains `compact it` or `tenth man`.'
+expect_fail 'claimed by both compactor and tenth-man' \
+	"collision survives a rephrased trigger sentence"
+
+echo "==> Fixture: collision declared as a bullet list"
+fresh_copy
+retrigger 'This skill is triggered when the user'"'"'s prompt contains:
+
+- `compact it`
+- `tenth man`'
+expect_fail 'claimed by both compactor and tenth-man' \
+	"collision survives a bullet-list declaration"
+
+echo "==> Fixture: '## Shortcut' section that declares no magic word"
+fresh_copy
+retrigger 'Trigger words: `challenge this` or `tenth man`.'
+expect_fail "'## Shortcut' section declares no trigger word" \
+	"a Shortcut section yielding zero words is a failure, not a silent pass"
+
+echo "==> Fixture: a second trigger sentence in the same Shortcut section"
+fresh_copy
+retrigger 'This skill is triggered when the user'"'"'s prompt contains `tenth man`.
+
+It is also triggered when the prompt contains `compact it`.'
+expect_fail 'claimed by both compactor and tenth-man' \
+	"a second \`prompt contains\` sentence is not invisible"
+
+echo "==> Fixture: trigger sentence wrapped across a blank line"
+fresh_copy
+retrigger 'This skill is triggered when the user'"'"'s prompt contains `tenth man`,
+
+`compact it`, or `devil advocate`.'
+expect_fail 'claimed by both compactor and tenth-man' \
+	"words after a mid-sentence blank line are still collected"
+
+echo "==> Fixture: trigger word on the line before the marker"
+fresh_copy
+retrigger 'This skill is triggered by `compact it` when the
+user'"'"'s prompt contains `tenth man`.'
+expect_fail 'claimed by both compactor and tenth-man' \
+	"a word before the marker on the previous line is still collected"
+
+echo "==> Fixture: fenced block with a '#' comment before the trigger sentence"
+fresh_copy
+retrigger '```sh
+# not a heading
+```
+
+'"$TRIGGER_SENTENCE"
+expect_pass_with "$CENSUS" \
+	"a fenced '#' comment does not truncate the Shortcut section"
+
+echo "==> Fixture: backtick span in a fence, with the marker left outside it"
+fresh_copy
+retrigger 'This skill is triggered when the user'"'"'s prompt contains `challenge this`, `tenth man`, and:
+
+```text
+- `compact it`
+```'
+expect_fail "hides a trigger declaration inside a code fence" \
+	"a fenced backtick span is not silently dropped, even with no marker beside it"
+
+echo "==> Fixture: trigger declared under a '###' subheading of '## Shortcut'"
+fresh_copy
+retrigger "$TRIGGER_SENTENCE"'
+
+### Additional Triggers
+
+Also triggered when the prompt contains `qa review`.'
+expect_fail 'claimed by both agent-ellis and tenth-man' \
+	"a '###' subsection does not end its '## Shortcut' parent"
+
+echo "==> Fixture: a same-level heading still ends the Shortcut section"
+fresh_copy
+retrigger "$TRIGGER_SENTENCE"'
+
+## Not Shortcut
+
+Nothing here declares `compact it`.'
+expect_pass_with "$CENSUS" \
+	"a following '##' heading ends the section, so its backticks are not triggers"
+
+echo "==> Fixture: trigger declaration buried in a fenced code block"
+fresh_copy
+retrigger 'This skill is triggered when the user'"'"'s prompt contains `tenth man`.
+
+```text
+It is also triggered when the prompt contains `challenge this`.
+```'
+expect_fail "hides a trigger declaration inside a code fence" \
+	"a declaration only a human can see in a fence fails loudly"
+
+echo "==> Fixture: a plugin skill with no '## Shortcut' section"
+fresh_copy
+mutate 's/^## Shortcut$/## Shortcuts/' plugins/tenth-man/skills/tenth-man/SKILL.md
+expect_fail "no '## Shortcut' section to declare its trigger words" \
+	"renaming the '## Shortcut' heading is caught, not silently ignored"
+
+echo "==> Fixture: a repeated '## Shortcut' section"
+fresh_copy
+retrigger "$TRIGGER_SENTENCE"'
+
+## Shortcut
+
+This skill is triggered when the user'"'"'s prompt contains `compact it`.'
+expect_fail 'claimed by both compactor and tenth-man' \
+	"a trigger under a repeated '## Shortcut' heading is still collected"
+
+echo "==> Fixture: unterminated code fence inside the Shortcut section"
+fresh_copy
+retrigger "$TRIGGER_SENTENCE"'
+
+```sh
+echo hi
+
+It is also triggered when the prompt contains `compact it`.'
+expect_fail "unterminated code fence hides everything after it" \
+	"an unterminated fence is an error, not a quiet truncation"
+
+echo "==> Fixture: tilde fence hiding a later trigger declaration"
+fresh_copy
+retrigger "$TRIGGER_SENTENCE"'
+
+~~~sh
+# looks like a heading
+~~~
+
+It is also triggered when the prompt contains `compact it`.'
+expect_fail 'claimed by both compactor and tenth-man' \
+	"a ~~~ fence is stripped like a \`\`\` one"
+
+echo "==> Fixture: paragraph starting with '#' inside the Shortcut section"
+fresh_copy
+retrigger "$TRIGGER_SENTENCE"'
+
+#1 rule of the devil'"'"'s advocate: it is also triggered by `compact it`.'
+expect_fail 'claimed by both compactor and tenth-man' \
+	"a '#1' paragraph is not a heading and does not truncate the section"
+
+echo "==> Fixture: shebang-like line inside the Shortcut section"
+fresh_copy
+retrigger "$TRIGGER_SENTENCE"'
+
+#!/usr/bin/env note
+
+It is also triggered when the prompt contains `compact it`.'
+expect_fail 'claimed by both compactor and tenth-man' \
+	"a '#!' shebang line is not a heading and does not truncate the section"
+
+echo "==> Fixture: seven-'#' line inside the Shortcut section"
+fresh_copy
+retrigger "$TRIGGER_SENTENCE"'
+
+####### deep note
+
+It is also triggered when the prompt contains `compact it`.'
+expect_fail 'claimed by both compactor and tenth-man' \
+	"seven '#' is too many for a heading and does not truncate the section"
+
+echo "==> Fixture: four-space-indented fence around a trigger declaration"
+fresh_copy
+retrigger "$TRIGGER_SENTENCE"'
+
+    ~~~
+    It is also triggered when the prompt contains `compact it`.
+    ~~~'
+expect_fail 'claimed by both compactor and tenth-man' \
+	"an indented code block does not toggle the fence state and hide a declaration"
+
+echo "==> Fixture: trigger word wrapped inside its backticks"
+fresh_copy
+retrigger 'This skill is triggered when the user'"'"'s prompt contains `challenge this`, `tenth man`, or `compact
+it`.'
+expect_fail 'claimed by both compactor and tenth-man' \
+	"a backtick span split across a line break is rejoined"
+
+echo "==> Fixture: README missing Installation section"
+fresh_copy
+mutate 's/^## Installation$/## Setup/' plugins/compactor/README.md
+expect_fail "no '## Installation' section" "missing '## Installation' section is caught"
+
+echo "==> Fixture: README missing License section"
+fresh_copy
+mutate 's/^## License$/## Licence/' plugins/compactor/README.md
+expect_fail "no '## License' section" "missing '## License' section is caught"
+
+echo "==> Fixture: README with no H1 title"
+fresh_copy
+mutate 's/^# Compactor Plugin$/## Compactor Plugin/' plugins/compactor/README.md
+expect_fail "no H1 title" "missing H1 title is caught"
+
+echo "==> Fixture: README of a trigger-declaring plugin with no Magic Word heading"
+fresh_copy
+mutate 's/^### Magic Words$/### Triggers/' plugins/compactor/README.md
+expect_fail "no 'Magic Word' heading" "undocumented magic words are caught"
+
+echo "==> Fixture: README documenting a magic word the skill never declares"
+fresh_copy
+replace plugins/lingua/README.md \
+	'| `reply in <lang>`   | Same as above                                 |' \
+	'| `reply in <lang>`   | Same as above                                 |
+| `lingua off`        | Suspend for the current session               |'
+expect_fail 'documents `lingua off`, which the skill does not declare' \
+	"a README magic word with no SKILL.md declaration is caught"
+
+echo "==> Fixture: SKILL.md trigger word missing from the README"
+fresh_copy
+mutate 's/`compact it`./`compact it` or `squash it`./' plugins/compactor/skills/compactor/SKILL.md
+expect_fail 'magic word `squash it` is declared in SKILL.md but undocumented here' \
+	"a declared trigger word absent from the README is caught"
+
+echo "==> Fixture: README cross-check is not disarmed by a failing Shortcut section"
+fresh_copy
+# The fence error below stops the collision check from reading compactor's
+# trigger words. The README cross-check must say so rather than read "no words
+# collected" as "this plugin declares none" and print a green tick over the
+# bogus row added here.
+replace plugins/compactor/skills/compactor/SKILL.md \
+	'This skill is triggered when the user'"'"'s prompt contains `compact it`.' \
+	'This skill is triggered when the user'"'"'s prompt contains `compact it`.
+
+```text
+- `compact it`
+```'
+replace plugins/compactor/README.md \
+	'- `compact it` → Compact the previous result' \
+	'- `compact it` → Compact the previous result
+- `totally-bogus-word` → nothing at all'
+expect_fail "could not be read (see the failure above)" \
+	"a plugin whose trigger declaration failed is not silently skipped by the README check"
+
+echo "==> Fixture: README spelling a trigger word with a placeholder"
+fresh_copy
+mutate 's/`compact it` →/`compact it <target>` →/' plugins/compactor/README.md
+expect_pass "\`compact it <target>\` documents the declared \`compact it\`"
+
+echo "==> Fixture: unterminated code fence in a README"
+fresh_copy
+dirty plugins/compactor/README.md
+printf '\n```text\nunclosed\n' >>"$TMP_DIR/repo/plugins/compactor/README.md"
+expect_fail "plugins/compactor/README.md: unterminated code fence" \
+	"an unterminated fence in a README is an error, not a quiet truncation"
+
+echo "==> Fixture: unterminated code fence in the top-level README"
+fresh_copy
+dirty README.md
+printf '\n```text\nunclosed\n' >>"$TMP_DIR/repo/README.md"
+expect_fail "README.md: unterminated code fence" \
+	"an unterminated fence in the TOP-LEVEL README is an error, not a quiet truncation"
+
+echo "==> Fixture: plugin directory absent from marketplace.json"
+fresh_copy
+dirty plugins/ghost
+mkdir -p "$TMP_DIR/repo/plugins/ghost"
+echo '# Ghost Plugin' >"$TMP_DIR/repo/plugins/ghost/README.md"
+expect_fail "plugins/ghost/README.md: no '## Installation' section" \
+	"README of an unregistered plugin directory is still checked"
+
+echo "==> Fixture: SKILL.md description drifting from the manifests"
+fresh_copy
+mutate 's/^description: Re-render the previous result into a compact, table-like view\.$/description: Re-render the previous result./' \
+	plugins/compactor/skills/compactor/SKILL.md
+expect_fail "compactor: description differs between its sources" \
+	"a SKILL.md description that drifts from plugin.json and marketplace.json is caught"
+
+echo "==> Fixture: plugin.json description drifting from the other two"
+fresh_copy
+mutate 's/"description": "Re-render the previous result into a compact, table-like view."/"description": "Re-render the previous result."/' \
+	plugins/compactor/.claude-plugin/plugin.json
+expect_fail "compactor: description differs between its sources" \
+	"a plugin.json description that drifts from SKILL.md and marketplace.json is caught"
+
+echo "==> Fixture: plugin missing from the top-level README"
+fresh_copy
+mutate 's/compactor//g' README.md
+expect_fail "plugin 'compactor' is registered in marketplace.json but not listed here" \
+	"a plugin the top-level README does not list is caught"
+
+echo "==> Fixture: roster row deleted, a prose mention left behind"
+fresh_copy
+# Drop every table row naming the plugin. `tenth-man` still appears in the
+# Model Tiers prose and in the fenced workflow diagram, so a substring search
+# over the README would still find it.
+mutate '/^|.*tenth-man/d' README.md
+expect_fail "plugin 'tenth-man' is registered in marketplace.json but not listed here" \
+	"a prose mention does not substitute for a deleted roster row"
+
+echo "==> Fixture: roster row hidden in a four-space-indented code block"
+fresh_copy
+mutate '/^|.*`compactor`/d' README.md
+printf '\n    | `compactor` | Re-renders the previous result |\n' >>"$TMP_DIR/repo/README.md"
+expect_fail "plugin 'compactor' is registered in marketplace.json but not listed here" \
+	"an indented code block is not a roster row"
+
+echo "==> Fixture: top-level README naming a plugin only inside a code fence"
+fresh_copy
+mutate 's/compactor//g' README.md
+printf '\n```text\ncompactor\n```\n' >>"$TMP_DIR/repo/README.md"
+expect_fail "plugin 'compactor' is registered in marketplace.json but not listed here" \
+	"a plugin named only inside a code fence does not count as listed"
+
+# fresh_copy restores only what a fixture declared, so an undeclared mutation
+# would silently poison every fixture after it. Restore, then prove the work
+# copy is the pristine one again.
+echo "==> Checking every fixture declared what it mutated"
+fresh_copy
+if diff -r "$TMP_DIR/pristine" "$TMP_DIR/repo" >"$TMP_DIR/drift" 2>&1; then
+	pass "no fixture leaked a mutation into the ones after it"
+else
+	fail "a fixture changed a path it never passed to dirty, so it leaked into later fixtures"
+	sed 's/^/      /' "$TMP_DIR/drift"
+fi
+
+echo ""
+if [ "$ERRORS" -gt 0 ]; then
+	echo "==> $ERRORS error(s) found"
+	exit 1
+else
+	echo "==> All fixtures behaved as expected"
+fi

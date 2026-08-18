@@ -42,16 +42,16 @@ Install via the wisdom marketplace:
 
 ### Magic Words
 
-Typing a prompt that contains `graph`, `diagram`, or `ascii` will auto-dispatch this skill via the
-shortcut plugin. These are magic words, not slash commands — the plugin ships a skill, so the
-slash form is the skill's own name.
+Typing a prompt that contains `draw a graph`, `draw a diagram`, or `ascii diagram` will
+auto-dispatch this skill via the shortcut plugin. These are magic words, not slash commands —
+the plugin ships a skill, so the slash form is the skill's own name.
 
 ### Examples
 
 ```text
 draw an ascii diagram of the plugin architecture
-graph the request flow from client to database
-show me a diagram of the module dependencies
+draw a graph of the request flow from client to database
+draw a diagram of the module dependencies
 ```
 
 ## License

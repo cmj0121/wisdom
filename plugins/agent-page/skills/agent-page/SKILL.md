@@ -17,7 +17,7 @@ allowed-tools:
   - Grep
 metadata:
   author: cmj@cmj.tw
-  version: 1.0.0
+  version: 1.2.0
 ---
 
 # Agent Page — SRE
@@ -27,7 +27,7 @@ performance, security posture. Runs in parallel with the Technical Writer after 
 
 ## Shortcut
 
-This skill is triggered when the user's prompt contains `ops review`, `reliability`, or `page`.
+This skill is triggered when the user's prompt contains `ops review`, `reliability review`, or `page it`.
 
 ## How It Works
 

@@ -41,8 +41,8 @@ Install via the wisdom marketplace:
 ### Magic Words
 
 - `ops review` → Page reviews changes for operational readiness
-- `reliability` → Page focuses on reliability concerns
-- `page` → Direct invocation
+- `reliability review` → Page focuses on reliability concerns
+- `page it` → Direct invocation
 
 ## License
 

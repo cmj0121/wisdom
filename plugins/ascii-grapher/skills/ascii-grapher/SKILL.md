@@ -11,14 +11,17 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: 1.1.0
+  version: 1.2.0
 ---
 
 # ASCII Grapher Skill
 
 ## Shortcut
 
-This skill is triggered when the user's prompt contains `graph` or `diagram` or `ascii`.
+This skill is triggered when the user's prompt contains `draw a graph`, `draw a diagram`,
+or `ascii diagram`.
+
+## How It Works
 
 ### Phase 1: Understand the Subject
 

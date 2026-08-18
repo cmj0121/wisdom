@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Version integrity checks for the marketplace:
 #   1. Every marketplace.json plugin version matches its plugin.json version.
-#   2. The marketplace.json top-level version never lags the latest git tag
+#   2. Every plugin.json version matches its SKILL.md metadata.version.
+#   3. The marketplace.json top-level version never lags the latest git tag
 #      (equal = released, ahead = next release in prep, behind = error).
 set -euo pipefail
 
@@ -9,7 +10,7 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 LATEST_TAG="$(git -C "$REPO_ROOT" tag --sort=-v:refname --list 'v*' 2>/dev/null | head -n1 || true)"
 
 python3 - "$REPO_ROOT" "$LATEST_TAG" <<'PY'
-import json, os, sys
+import json, os, re, sys
 
 root = sys.argv[1]
 latest_tag = sys.argv[2] if len(sys.argv) > 2 else ""
@@ -29,6 +30,8 @@ def bad(msg):
     errors += 1
 
 
+plugins = []
+
 print("==> Checking marketplace.json <-> plugin.json version sync")
 for p in mk["plugins"]:
     name = p["name"]
@@ -39,10 +42,53 @@ for p in mk["plugins"]:
         bad(f"{name}: missing {os.path.relpath(pj_path, root)}")
         continue
     pj_ver = json.load(open(pj_path)).get("version", "")
+    plugins.append((name, src, pj_ver))
     if mk_ver == pj_ver:
         ok(f"{name} {mk_ver}")
     else:
         bad(f"{name}: marketplace={mk_ver} != plugin.json={pj_ver}")
+
+
+def skill_version(path):
+    """metadata.version from a SKILL.md YAML frontmatter, or (None, reason)."""
+    lines = open(path, encoding="utf-8").read().splitlines()
+    if not lines or lines[0].strip() != "---":
+        return None, "no YAML frontmatter"
+    # `.strip()`, matching scripts/validate's frontmatter(): an exact-match
+    # `lines.index("---", 1)` gave a leading-space ' ---' the opposite verdict
+    # from the other script reading the same file.
+    end = next((i for i, line in enumerate(lines[1:], start=1) if line.strip() == "---"), None)
+    if end is None:
+        return None, "unterminated YAML frontmatter"
+    in_metadata = False
+    for line in lines[1:end]:
+        if not line.strip():
+            continue
+        if not in_metadata:
+            in_metadata = line.rstrip() == "metadata:"
+            continue
+        if line[0] not in " \t":
+            break  # dedent: the metadata block ended
+        m = re.match(r"\s+version:\s*(\S+)", line)
+        if m:
+            return m.group(1).strip("\"'"), None
+    return None, "no metadata.version in YAML frontmatter"
+
+
+print("==> Checking plugin.json <-> SKILL.md metadata.version sync")
+for name, src, pj_ver in plugins:
+    sk_path = os.path.join(root, src, "skills", name, "SKILL.md")
+    rel = os.path.relpath(sk_path, root)
+    if not os.path.isfile(sk_path):
+        bad(f"{name}: missing {rel}")
+        continue
+    sk_ver, reason = skill_version(sk_path)
+    if sk_ver is None:
+        bad(f"{name}: {rel}: {reason}")
+    elif sk_ver == pj_ver:
+        ok(f"{name} {sk_ver}")
+    else:
+        bad(f"{name}: plugin.json={pj_ver} != {rel} metadata.version={sk_ver}")
 
 
 def semver(v):

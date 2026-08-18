@@ -1,145 +1,122 @@
 #!/usr/bin/env bash
+# Structural checks for the marketplace:
+#   1. marketplace.json parses and carries its top-level fields.
+#   2. Every registered plugin declares its four entry fields, its source
+#      directory exists, its plugin.json parses and names the same plugin,
+#      and it ships a LICENSE.
+#   3. All four check scripts are present and executable.
+#
+# Deliberately NOT checked here — each is covered by a sibling script, and
+# duplicating it would only make one more place to keep in step:
+#   plugin.json / SKILL.md presence and version agreement  -> check-version-sync
+#   SKILL.md frontmatter, README.md presence               -> validate
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-MARKETPLACE="$REPO_ROOT/.claude-plugin/marketplace.json"
-ERRORS=0
 
-pass() { printf "  \033[32mPASS\033[0m %s\n" "$1"; }
-fail() {
-	printf "  \033[31mFAIL\033[0m %s\n" "$1"
-	ERRORS=$((ERRORS + 1))
-}
+python3 - "$REPO_ROOT" <<'PY'
+import json
+import os
+import sys
 
-echo "==> Validating marketplace.json"
+root = sys.argv[1]
+marketplace = os.path.join(root, ".claude-plugin", "marketplace.json")
 
-if ! python3 -c "import json, sys; json.load(open(sys.argv[1]))" "$MARKETPLACE" 2>/dev/null; then
-	fail "marketplace.json is not valid JSON"
-	exit 1
-fi
-pass "marketplace.json is valid JSON"
+GREEN, RED, RESET = "\033[32m", "\033[31m", "\033[0m"
+errors = 0
 
-# Check required top-level fields
-for field in name owner plugins; do
-	if python3 -c "
-import json, sys
-data = json.load(open(sys.argv[1]))
-assert '$field' in data
-" "$MARKETPLACE" 2>/dev/null; then
-		pass "marketplace.json has '$field' field"
-	else
-		fail "marketplace.json missing '$field' field"
-	fi
-done
 
-# Extract plugin list
-PLUGIN_COUNT=$(python3 -c "
-import json, sys
-data = json.load(open(sys.argv[1]))
-print(len(data['plugins']))
-" "$MARKETPLACE")
+def ok(msg):
+    print(f"  {GREEN}PASS{RESET} {msg}")
 
-echo ""
-echo "==> Found $PLUGIN_COUNT plugins"
 
-# Validate each plugin entry in marketplace.json
-for i in $(seq 0 $((PLUGIN_COUNT - 1))); do
-	PLUGIN_INFO=$(python3 -c "
-import json, sys
-data = json.load(open(sys.argv[1]))
-p = data['plugins'][$i]
-print(p.get('name', ''))
-print(p.get('description', ''))
-print(p.get('version', ''))
-print(p.get('source', ''))
-" "$MARKETPLACE")
+def bad(msg):
+    global errors
+    print(f"  {RED}FAIL{RESET} {msg}")
+    errors += 1
 
-	PLUGIN_NAME=$(echo "$PLUGIN_INFO" | sed -n '1p')
-	PLUGIN_VER=$(echo "$PLUGIN_INFO" | sed -n '3p')
-	PLUGIN_SRC=$(echo "$PLUGIN_INFO" | sed -n '4p')
 
-	echo ""
-	echo "--- plugin: $PLUGIN_NAME ---"
+def load_json(path):
+    """Parsed JSON at `path`, or None when it is missing or malformed."""
+    try:
+        with open(path) as handle:
+            return json.load(handle)
+    except (OSError, ValueError):
+        return None
 
-	# Check required fields
-	for field in name description version source; do
-		val=$(echo "$PLUGIN_INFO" | sed -n "$(($(echo "name description version source" | tr ' ' '\n' | grep -n "^${field}$" | cut -d: -f1)))p")
-		if [ -n "$val" ]; then
-			pass "has '$field'"
-		else
-			fail "missing '$field'"
-		fi
-	done
 
-	# Resolve source directory
-	PLUGIN_DIR="$REPO_ROOT/${PLUGIN_SRC#./}"
+print("==> Validating marketplace.json")
+mk = load_json(marketplace)
+if mk is None:
+    bad("marketplace.json is not valid JSON")
+    sys.exit(1)
+ok("marketplace.json is valid JSON")
 
-	if [ ! -d "$PLUGIN_DIR" ]; then
-		fail "source directory does not exist: $PLUGIN_SRC"
-		continue
-	fi
-	pass "source directory exists"
+for field in ("name", "owner", "plugins"):
+    if field in mk:
+        ok(f"marketplace.json has '{field}' field")
+    else:
+        bad(f"marketplace.json missing '{field}' field")
 
-	# Check plugin.json
-	PLUGIN_JSON="$PLUGIN_DIR/.claude-plugin/plugin.json"
-	if [ ! -f "$PLUGIN_JSON" ]; then
-		fail "missing .claude-plugin/plugin.json"
-	elif ! python3 -c "import json, sys; json.load(open(sys.argv[1]))" "$PLUGIN_JSON" 2>/dev/null; then
-		fail ".claude-plugin/plugin.json is not valid JSON"
-	else
-		pass ".claude-plugin/plugin.json is valid JSON"
+plugins = mk.get("plugins", [])
+print("")
+print(f"==> Found {len(plugins)} plugins")
 
-		# Cross-check name and version
-		PJ_NAME=$(python3 -c "import json, sys; print(json.load(open(sys.argv[1])).get('name',''))" "$PLUGIN_JSON")
-		PJ_VER=$(python3 -c "import json, sys; print(json.load(open(sys.argv[1])).get('version',''))" "$PLUGIN_JSON")
+for entry in plugins:
+    name = entry.get("name", "")
+    source = entry.get("source", "")
 
-		if [ "$PJ_NAME" = "$PLUGIN_NAME" ]; then
-			pass "plugin.json name matches marketplace.json"
-		else
-			fail "plugin.json name '$PJ_NAME' != marketplace.json name '$PLUGIN_NAME'"
-		fi
+    print("")
+    print(f"--- plugin: {name} ---")
 
-		if [ "$PJ_VER" = "$PLUGIN_VER" ]; then
-			pass "plugin.json version matches marketplace.json"
-		else
-			fail "plugin.json version '$PJ_VER' != marketplace.json version '$PLUGIN_VER'"
-		fi
-	fi
+    for field in ("name", "description", "version", "source"):
+        if entry.get(field, ""):
+            ok(f"has '{field}'")
+        else:
+            bad(f"missing '{field}'")
 
-	# Check SKILL.md with YAML frontmatter
-	SKILL_MD="$PLUGIN_DIR/skills/$PLUGIN_NAME/SKILL.md"
-	if [ ! -f "$SKILL_MD" ]; then
-		fail "missing skills/$PLUGIN_NAME/SKILL.md"
-	else
-		pass "skills/$PLUGIN_NAME/SKILL.md exists"
-		# Verify YAML frontmatter (starts with ---)
-		FIRST_LINE=$(awk 'NR==1{print; exit}' "$SKILL_MD")
-		if [ "$FIRST_LINE" = "---" ]; then
-			pass "SKILL.md has YAML frontmatter"
-		else
-			fail "SKILL.md missing YAML frontmatter (first line should be '---')"
-		fi
-	fi
+    plugin_dir = os.path.join(root, source[2:] if source.startswith("./") else source)
+    if not os.path.isdir(plugin_dir):
+        bad(f"source directory does not exist: {source}")
+        continue
+    ok("source directory exists")
 
-	# Check README.md
-	if [ -f "$PLUGIN_DIR/README.md" ]; then
-		pass "README.md exists"
-	else
-		fail "missing README.md"
-	fi
+    pj = load_json(os.path.join(plugin_dir, ".claude-plugin", "plugin.json"))
+    if pj is None:
+        bad(".claude-plugin/plugin.json is missing or not valid JSON")
+    else:
+        ok(".claude-plugin/plugin.json is valid JSON")
+        if pj.get("name", "") == name:
+            ok("plugin.json name matches marketplace.json")
+        else:
+            bad(f"plugin.json name '{pj.get('name', '')}' != marketplace.json name '{name}'")
 
-	# Check LICENSE
-	if [ -f "$PLUGIN_DIR/LICENSE" ]; then
-		pass "LICENSE exists"
-	else
-		fail "missing LICENSE"
-	fi
-done
+    if os.path.isfile(os.path.join(plugin_dir, "LICENSE")):
+        ok("LICENSE exists")
+    else:
+        bad("missing LICENSE")
 
-echo ""
-if [ "$ERRORS" -gt 0 ]; then
-	echo "==> $ERRORS error(s) found"
-	exit 1
-else
-	echo "==> All checks passed"
-fi
+# The check scripts themselves. Deleting one is invisible to every `files:`
+# gated hook — pre-commit builds its candidate list with
+# `--diff-filter=ACMRTUXB`, which drops deletions — and a hook whose own entry
+# vanishes only fails when it runs unconditionally. Three of the four now do;
+# scripts/validate-fixtures stays gated on `^scripts/` for its runtime, so this
+# unconditional check is what stands between it and a silent removal.
+#
+# The list is hardcoded on purpose. Globbing scripts/* would make the check
+# vacuously true — a deleted script simply would not be looked for — which is
+# the exact blind spot it exists to close.
+print("==> Checking the check scripts")
+for script in ("test", "check-version-sync", "validate", "validate-fixtures"):
+    path = os.path.join(root, "scripts", script)
+    if os.access(path, os.X_OK) and os.path.isfile(path):
+        ok(f"scripts/{script} is present and executable")
+    else:
+        bad(f"scripts/{script} is missing or not executable")
+
+print("")
+if errors:
+    print(f"==> {errors} error(s) found")
+    sys.exit(1)
+print("==> All checks passed")
+PY

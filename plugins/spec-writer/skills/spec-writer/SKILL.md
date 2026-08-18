@@ -10,7 +10,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: 1.0.0
+  version: 1.0.1
 ---
 
 # Spec Writer Skill
@@ -21,6 +21,8 @@ agent-twain (structured technical documents), and ascii-grapher (architecture di
 ## Shortcut
 
 This skill is triggered when the user's prompt contains `write spec`, `draft spec`, or `spec-writer`.
+
+## How It Works
 
 ### Phase 1: Understand
 

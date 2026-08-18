@@ -23,7 +23,7 @@ allowed-tools:
   - WebSearch
 metadata:
   author: cmj@cmj.tw
-  version: 1.3.0
+  version: 1.4.0
 ---
 
 # Agent Smith — Project Leader
@@ -60,26 +60,17 @@ If the file is absent, behave as before (match the user's language). Do not crea
 
 ## The Team
 
-| Agent           | Role             | Responsibility                                  |
-| --------------- | ---------------- | ----------------------------------------------- |
-| **agent-smith** | Project Leader   | Plans, dispatches, coordinates the scrum team   |
-| **agent-ward**  | Architect        | System design, API design, tech stack decisions |
-| **agent-hale**  | Developer        | Writes code and tests                           |
-| **agent-ellis** | QA               | Code review, test execution, acceptance check   |
-| **agent-twain** | Technical Writer | User docs, API docs, migration guides           |
-| **agent-page**  | SRE              | Observability, reliability, performance review  |
-| **agent-ross**  | Release Manager  | CI/CD, Docker, cloud deploy, commits (optional) |
+Seven agents — role, then the support tools each may invoke:
 
-### Support Tools
+- **agent-smith** — Project Leader · `tenth-man`
+- **agent-ward** — Architect · `spec-writer`, `tenth-man`, `ascii-grapher`
+- **agent-hale** — Developer · `test-runner`
+- **agent-ellis** — QA · `test-runner`, `dep-auditor`
+- **agent-twain** — Technical Writer · `spec-writer`, `ascii-grapher`, `changelog-gen`
+- **agent-page** — SRE · `ascii-grapher`, `test-runner`, `dep-auditor`
+- **agent-ross** — Release Manager · `changelog-gen`
 
-| Tool            | Available To                        |
-| --------------- | ----------------------------------- |
-| `spec-writer`   | agent-ward, agent-twain             |
-| `tenth-man`     | agent-smith, agent-ward             |
-| `ascii-grapher` | agent-ward, agent-twain, agent-page |
-| `test-runner`   | agent-hale, agent-ellis, agent-page |
-| `changelog-gen` | agent-ross, agent-twain             |
-| `dep-auditor`   | agent-page, agent-ellis             |
+Full role descriptions live in the README.
 
 ## Clarification Protocol
 

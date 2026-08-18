@@ -11,7 +11,7 @@ allowed-tools:
   - WebSearch
 metadata:
   author: cmj@cmj.tw
-  version: 1.2.0
+  version: 1.3.0
 ---
 
 # Agent Ward — Architect
@@ -22,7 +22,7 @@ architectural consistency after.
 
 ## Shortcut
 
-This skill is triggered when the user's prompt contains `design it`, `architect`, or `ward`.
+This skill is triggered when the user's prompt contains `design it`, `architect this`, or `ward`.
 
 ## How It Works
 
