@@ -17,11 +17,15 @@ latest_tag = sys.argv[2] if len(sys.argv) > 2 else ""
 mk = json.load(open(os.path.join(root, ".claude-plugin", "marketplace.json")))
 
 GREEN, RED, RESET = "\033[32m", "\033[31m", "\033[0m"
+# Quiet by default; WISDOM_VERBOSE=1 restores the per-item PASS lines. See the same
+# comment in scripts/test for why an environment variable and not a flag.
+WISDOM_VERBOSE = os.environ.get("WISDOM_VERBOSE", "") not in ("", "0")
 errors = 0
 
 
 def ok(msg):
-    print(f"  {GREEN}PASS{RESET} {msg}")
+    if WISDOM_VERBOSE:
+        print(f"  {GREEN}PASS{RESET} {msg}")
 
 
 def bad(msg):
