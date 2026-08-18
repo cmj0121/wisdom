@@ -2,7 +2,6 @@
 name: tenth-man
 description: Devil's advocate that challenges assumptions and surfaces risks to prevent groupthink.
 license: MIT
-model: fable
 allowed-tools:
   - Read
   - Glob
@@ -11,7 +10,7 @@ allowed-tools:
   - Bash(git diff:*)
 metadata:
   author: cmj@cmj.tw
-  version: 1.1.1
+  version: 1.1.2
 ---
 
 # Tenth Man Skill
