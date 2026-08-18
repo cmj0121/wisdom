@@ -106,15 +106,14 @@ dispatches hale for fixes when it blocks.
 
 ## Model Tiers
 
-Each skill declares a `model` in its `SKILL.md` frontmatter so the right task runs on the
-right-sized model. The rule: pin a model only when it matters — the strongest model where
-reasoning quality is high-stakes and errors are hard to reverse, a cheaper model for
-mechanical, high-frequency work — and otherwise inherit the session default.
+A skill declares a `model` in its `SKILL.md` frontmatter only to run mechanical work on a
+cheaper model. Nothing here pins upward: reasoning-heavy skills inherit whatever model the
+session already runs on, so the user's own choice — not the marketplace — decides how much
+model a plan or a review gets.
 
-- **Strongest (`fable`)** — upstream, high-stakes, hard-to-reverse reasoning:
-  `agent-smith`, `agent-ward`, `tenth-man`, `sec-review`
-- **Default (inherit)** — already strong on the session model; often dispatched in parallel:
-  `agent-hale`, `agent-ellis`, `agent-twain`, `agent-page`, `agent-ross`, `spec-writer`
+- **Default (inherit)** — everything not listed below, including the reasoning-heavy skills:
+  `agent-smith`, `agent-ward`, `agent-hale`, `agent-ellis`, `agent-twain`, `agent-page`,
+  `agent-ross`, `spec-writer`, `tenth-man`, `sec-review`
 - **Economical (`haiku`)** — mechanical, deterministic, high-frequency:
   `changelog-gen`, `ascii-grapher`, `test-runner`, `dep-auditor`, `compactor`, `shortcut`, `lingua`
 
