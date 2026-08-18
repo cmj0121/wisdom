@@ -12,12 +12,28 @@ clean: $(SUBDIR)	# clean-up environment
 # scripts/validate-fixtures is deliberately absent: it is the validator's own
 # self-test rather than a check on this repo's contents, and it costs ~2.8s.
 # pre-commit runs it whenever scripts/ changes.
+#
+# All three run even after one fails -- a run that stops at the first failure
+# hides the other two -- so the loop must say so itself: the last line of a
+# failing run used to be the THIRD script's success sentence.
 test:				# run the three repo checks (not the validator self-test)
-	@rc=0; \
+	@failed=0; summary=""; \
 	for script in test check-version-sync validate; do \
-		bash "scripts/$$script" || rc=1; \
+		if bash "scripts/$$script"; then \
+			summary="$$summary  \033[32mPASS\033[0m scripts/$$script\n"; \
+		else \
+			failed=$$((failed + 1)); \
+			summary="$$summary  \033[31mFAIL\033[0m scripts/$$script\n"; \
+		fi; \
 	done; \
-	exit $$rc
+	printf '\n==> Summary\n'; \
+	printf '%b' "$$summary"; \
+	if [ $$failed -eq 0 ]; then \
+		printf '==> All 3 checks passed\n'; \
+		exit 0; \
+	fi; \
+	printf '==> %d of 3 checks FAILED -- re-run with WISDOM_VERBOSE=1 for per-item detail\n' "$$failed"; \
+	exit 1
 
 run:				# run in the local environment
 
