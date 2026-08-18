@@ -14,7 +14,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: 1.1.0
+  version: 1.2.0
 ---
 
 # Changelog Generator
@@ -23,7 +23,7 @@ Support tool that generates changelog entries from git commit history using conv
 
 ## Shortcut
 
-This skill is triggered when the user's prompt contains `changelog` or `changelog-gen`.
+This skill is triggered when the user's prompt contains `generate changelog` or `changelog-gen`.
 
 ## How It Works
 

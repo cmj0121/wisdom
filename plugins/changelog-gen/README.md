@@ -24,7 +24,7 @@ Install via the wisdom marketplace:
 
 ### Magic Words
 
-- `changelog` → Generate changelog from recent commits
+- `generate changelog` → Generate changelog from recent commits
 - `changelog-gen` → Direct invocation
 
 ## License

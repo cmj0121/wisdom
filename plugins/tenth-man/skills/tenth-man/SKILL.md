@@ -11,7 +11,7 @@ allowed-tools:
   - Bash(git diff:*)
 metadata:
   author: cmj@cmj.tw
-  version: 1.1.0
+  version: 1.1.1
 ---
 
 # Tenth Man Skill

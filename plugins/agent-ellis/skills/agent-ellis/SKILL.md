@@ -10,7 +10,7 @@ allowed-tools:
   - Grep
 metadata:
   author: cmj@cmj.tw
-  version: 1.1.0
+  version: 1.3.0
 ---
 
 # Agent Ellis — QA
@@ -20,7 +20,7 @@ acceptance against `PLAN.md`, reports findings through the chain.
 
 ## Shortcut
 
-This skill is triggered when the user's prompt contains `review code`, `qa`, or `ellis`.
+This skill is triggered when the user's prompt contains `review code`, `qa review`, or `ellis`.
 
 ## How It Works
 

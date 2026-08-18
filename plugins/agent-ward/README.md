@@ -39,7 +39,7 @@ Install via the wisdom marketplace:
 ### Magic Words
 
 - `design it` → Ward produces a design for the requested feature
-- `architect` → Direct invocation
+- `architect this` → Direct invocation
 - `ward` → Direct invocation
 
 ## License

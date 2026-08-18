@@ -41,7 +41,7 @@ Install via the wisdom marketplace:
 ### Magic Words
 
 - `review code` → Full QA review of current changes
-- `qa` → Full QA review
+- `qa review` → Full QA review
 - `ellis` → Direct invocation
 
 ## License

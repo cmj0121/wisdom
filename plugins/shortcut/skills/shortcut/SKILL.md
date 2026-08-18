@@ -9,7 +9,7 @@ allowed-tools:
   - Grep
 metadata:
   author: cmj@cmj.tw
-  version: 1.1.0
+  version: 1.2.1
 ---
 
 # Shortcut Skill
@@ -37,6 +37,17 @@ Also scan command directories:
 In each `.md` file, find the `## Shortcut` section and extract backtick-quoted words
 from lines matching `prompt contains \`{word}\``. A file may define multiple magic
 words; multi-word phrases match as exact substrings.
+
+### Authoring Rule
+
+The rule above is what dispatch reads. It is not what a marketplace validator reads:
+a collision check cannot afford to miss a declaration, so it deliberately treats
+**every** backtick span inside a `## Shortcut` section — and under a plugin README's
+Magic Words heading — as a magic word.
+
+So when writing those two sections, put nothing in backticks that is not a magic word,
+and write everything else plain. That is a constraint on authors; it does not widen the
+extraction rule above.
 
 ## Dispatch Rules
 
