@@ -36,15 +36,15 @@ has a clear role, responsibility boundary, and reporting chain.
 
 ### Support Tools
 
-| Tool            | Description                                      | Available To                        |
-| --------------- | ------------------------------------------------ | ----------------------------------- |
-| `spec-writer`   | Technical specs with architecture diagrams       | agent-ward, agent-twain             |
-| `tenth-man`     | Challenges assumptions and surfaces risks        | agent-smith, agent-ward             |
-| `ascii-grapher` | ASCII diagrams for architecture, flows, concepts | agent-ward, agent-twain, agent-page |
-| `test-runner`   | Detects test framework and runs test suite       | agent-hale, agent-ellis, agent-page |
-| `changelog-gen` | Generates changelog from git history             | agent-ross, agent-twain             |
-| `dep-auditor`   | Audits dependencies for vulns and outdated pkgs  | agent-page, agent-ellis             |
-| `sec-review`    | Whole-project security scan, mapped to CWE IDs   | agent-ellis, agent-page             |
+| Tool            | Description                                      | Available To                         |
+| --------------- | ------------------------------------------------ | ------------------------------------ |
+| `spec-writer`   | Technical specs with architecture diagrams       | agent-ward, agent-twain              |
+| `tenth-man`     | Challenges assumptions and surfaces risks        | agent-smith, agent-ward              |
+| `ascii-grapher` | ASCII diagrams for architecture, flows, concepts | agent-ward, agent-twain, agent-page  |
+| `test-runner`   | Detects test framework and runs test suite       | agent-hale, agent-ellis, agent-page  |
+| `changelog-gen` | Generates changelog from git history             | agent-ross, agent-twain              |
+| `dep-auditor`   | Audits dependencies for vulns and outdated pkgs  | agent-ellis                          |
+| `sec-review`    | Security scan mapped to CWE IDs                  | agent-ellis (diff), agent-ross (all) |
 
 ### Utilities
 

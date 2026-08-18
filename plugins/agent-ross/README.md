@@ -20,17 +20,18 @@ Install via the wisdom marketplace:
 
 ## Role in the Team
 
-| Agent             | Role           | Ross's Relationship                   |
-| ----------------- | -------------- | ------------------------------------- |
-| **agent-smith**   | Project Leader | Assigns release and commit tasks      |
-| **agent-page**    | SRE            | Provides ops verdict before release   |
-| **changelog-gen** | Support Tool   | Generates changelogs from git history |
-| **test-runner**   | Support Tool   | Runs pre-release test verification    |
+| Agent             | Role           | Ross's Relationship                                     |
+| ----------------- | -------------- | ------------------------------------------------------- |
+| **agent-smith**   | Project Leader | Assigns release and commit tasks                        |
+| **agent-page**    | SRE            | Provides ops verdict before release                     |
+| **changelog-gen** | Support Tool   | Generates changelogs from git history                   |
+| **test-runner**   | Support Tool   | Re-verifies tests when no upstream verdict reached Ross |
+| **sec-review**    | Support Tool   | Whole-project security scan at the release gate         |
 
 ## How It Works
 
 1. **Commit** — Generates conventional commit messages (replaces git-committer)
-2. **Pre-Release** — Verifies tests, CI status, clean branch
+2. **Pre-Release** — Verifies tests, runs the whole-project security scan, checks CI and branch state
 3. **Cleanup** — Runs `/simplify`, then folds fix commits into the commits they fix
 4. **Tag** — Semantic versioning, changelog generation
 5. **Deploy** — Docker build, K8s apply, Terraform, cloud platforms

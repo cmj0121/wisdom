@@ -17,20 +17,20 @@ Install via the wisdom marketplace:
 
 ## Role in the Team
 
-| Agent           | Role           | Ellis's Relationship                           |
-| --------------- | -------------- | ---------------------------------------------- |
-| **agent-smith** | Project Leader | Sends review requests, routes Ellis's findings |
-| **agent-hale**  | Developer      | Receives implementation fixes via Smith        |
-| **agent-ward**  | Architect      | Receives design-level issues via Smith         |
-| **test-runner** | Support Tool   | Runs the project test suite for Ellis          |
-| **dep-auditor** | Support Tool   | Audits dependencies for vulnerabilities        |
-| **sec-review**  | Support Tool   | Scans source for CWE-mapped security issues    |
+| Agent           | Role           | Ellis's Relationship                            |
+| --------------- | -------------- | ----------------------------------------------- |
+| **agent-smith** | Project Leader | Sends review requests, routes Ellis's findings  |
+| **agent-hale**  | Developer      | Receives implementation fixes via Smith         |
+| **agent-ward**  | Architect      | Receives design-level issues via Smith          |
+| **test-runner** | Support Tool   | Re-runs the suite when Hale's report is missing |
+| **dep-auditor** | Support Tool   | Audits dependencies for vulnerabilities         |
+| **sec-review**  | Support Tool   | Scans the diff for CWE-mapped security issues   |
 
 ## How It Works
 
 1. **Code review** — Scans for quality, style, complexity issues
 2. **Security review** — Scans for secrets, insecure functions, input validation
-3. **Test execution** — Runs test suite via test-runner
+3. **Test results** — Consumes Hale's test report; re-runs only when it is missing or stale
 4. **Acceptance check** — Verifies implementation matches PLAN.md
 5. **Dependency and security audit** — Audits deps if dependency files changed; scans
    source for CWE-mapped issues

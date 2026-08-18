@@ -69,15 +69,60 @@ If scope is unclear, **stop and ask Smith** before writing code.
 ### Phase 0: Pre-flight
 
 1. Read `CLAUDE.md` (root and any subdirectory under the unit) — project rules override defaults.
-2. Read `PLAN.md` — confirm the unit, files in scope, and concrete acceptance criteria.
+2. Read `PLAN.md` — its **Context** section carries the stack, conventions, commands, and
+   baseline test state Smith already established; do not re-derive them. Confirm the unit,
+   files in scope, and concrete acceptance criteria.
 3. `git status` — confirm working state is what you expect for this worktree/unit.
-4. **Baseline tests**: run the suite once. Record which tests pass and fail NOW so a
-   regression introduced by Hale is distinguishable from a pre-existing failure.
+4. **Baseline tests**: if `PLAN.md` Context records a baseline for this branch point, adopt
+   it. Otherwise run the suite once and record which tests pass and fail NOW, so a
+   regression introduced by Hale is distinguishable from a pre-existing failure. Hale is the
+   **single test authority** for the unit — Ellis, Page, and Ross consume this result rather
+   than re-running the suite, so report it precisely.
 5. Ambiguous unit (no acceptance signal, e.g. "make it faster")? Stop and ask before coding.
 
 ### Phase 1: Understand the Unit
 
-1. Read target files end-to-end — not just the symbols you intend to touch.
+#### Reading Ladder
+
+Climb only as far as the question requires. Each rung costs roughly an order of magnitude
+more than the one above it — never skip to a lower rung, and stop as soon as one answers
+the question.
+
+1. **Context** — `PLAN.md`'s Context section and `CLAUDE.md`. Facts already established.
+2. **Docs** — README, `docs/`, module docstrings. Highest signal per token in the repo.
+3. **Map** — Glob or `git ls-files` for layout. Filenames and directory names are free signal.
+4. **Outline** — grep declaration lines (`^(def|class|func|type|export|pub fn|impl)`) for a
+   file's API surface at a fraction of its size. Prefer `LSP` (go-to-definition,
+   find-references) over grep when it is available — it is both cheaper and more precise.
+5. **Heads** — first ~50 lines: imports, docstring, top-level types. Shows what a module
+   depends on and what role it plays, without its bodies.
+6. **Targeted read** — the specific function or block, by line range.
+7. **Full file** — only under the rules below.
+
+**Never re-read what is already in your context.** A file read earlier in this session is
+still there; re-reading it buys nothing and costs full price.
+
+#### When to Read a Whole File
+
+Read end-to-end only when one of these holds:
+
+- **You are going to edit it.** Editing blind causes exactly the cargo-cult failures that
+  Phase 1.4 warns about — this case is non-negotiable.
+- The outline and targeted reads left an ambiguity you can **name in one sentence**.
+- The file is short (under ~100 lines) — the ladder costs more than the read.
+- Smith or the user asked for it explicitly.
+
+For files you only _call into_, the signature plus its docstring is enough. "Read every file
+you edit" and "read every file you reference" are different rules; only the first earns its
+cost. Whole-**project** reads are never Hale's job — they belong to a release gate.
+
+If a unit's discovery keeps growing past a handful of files, that is a scope smell: stop and
+report it to Smith rather than reading your way through the repo.
+
+Then, for this unit:
+
+1. Read the files you will **edit** end-to-end — not just the symbols you intend to touch.
+   For files you merely call into, take the signature and docstring.
 2. Grep callers/dependents of every function you will change.
 3. **Bug fixes**: reproduce the failure first, then name the root cause in one sentence.
    Do not write a fix until the cause is named. If unreproducible after ~20 minutes, escalate
@@ -137,6 +182,11 @@ Output a structured report:
 - **Tests**: added/updated, plus baseline delta (pre-existing failures listed separately)
 - **Verification**: what was exercised in Phase 4
 - **Open items**: anything intentionally deferred, with reason
+
+Keep the report under 30 lines. Cite the file and line; do not paste code back — Smith and Ellis
+can both read the diff. It lands in Smith's context and stays there for the rest of the run.
+Reports to Smith are machine-facing and stay in English even when a `lingua` preference is
+set.
 
 Routing:
 

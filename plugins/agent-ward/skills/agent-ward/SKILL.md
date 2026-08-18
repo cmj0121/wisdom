@@ -28,10 +28,22 @@ This skill is triggered when the user's prompt contains `design it`, `architect 
 
 ### Phase 1: Understand the Context
 
-1. Read `PLAN.md` (if present) for goal and units of work.
+1. Read `PLAN.md` (if present) for goal and units of work. Its **Context** section already
+   records stack, layout, conventions, and commands — inherit rather than re-derive.
 2. Read existing codebase: structure, key modules, patterns.
 3. Identify constraints: language, framework, conventions, dependencies.
 4. Use WebSearch/WebFetch for external research if needed.
+
+**Reading discipline.**
+Read in ascending cost, and stop as soon as a rung answers the question: `PLAN.md` Context
+and `CLAUDE.md` → README and `docs/` → Glob for layout → grep declaration lines (or `LSP`)
+for a file's API surface → first ~50 lines of a file → targeted line ranges → whole file.
+Docs and declaration lines carry the most meaning per token; whole-file reads are for files
+you will edit, files short enough that the ladder costs more, or an ambiguity you can name.
+Never re-read what is already in your context.
+
+Design needs the shape of the system, not its every line — Ward should rarely reach the
+bottom rung.
 
 ### Phase 2: Design
 
