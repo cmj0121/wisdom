@@ -24,6 +24,7 @@ Install via the wisdom marketplace:
 | **agent-ward**  | Architect      | Receives design-level issues via Smith         |
 | **test-runner** | Support Tool   | Runs the project test suite for Ellis          |
 | **dep-auditor** | Support Tool   | Audits dependencies for vulnerabilities        |
+| **sec-review**  | Support Tool   | Scans source for CWE-mapped security issues    |
 
 ## How It Works
 
@@ -31,7 +32,8 @@ Install via the wisdom marketplace:
 2. **Security review** — Scans for secrets, insecure functions, input validation
 3. **Test execution** — Runs test suite via test-runner
 4. **Acceptance check** — Verifies implementation matches PLAN.md
-5. **Dependency audit** — Audits deps if dependency files changed
+5. **Dependency and security audit** — Audits deps if dependency files changed; scans
+   source for CWE-mapped issues
 6. **Verdict** — FAIL / WARN / PASS / SKIP with categorized findings
 
 ## Usage

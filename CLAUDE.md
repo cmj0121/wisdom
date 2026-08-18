@@ -31,6 +31,10 @@ plugins/<name>/
 Each SKILL.md has YAML frontmatter declaring:
 
 - `name`, `description`, `license`
+- `model`: which model tier runs the skill — `fable` / `opus` / `sonnet` / `haiku`, a full
+  model ID, or omitted to inherit the session default. Pin only where it matters: the
+  strongest model for high-stakes, hard-to-reverse reasoning, a cheaper one for mechanical
+  high-frequency work. Read at session start, so changes take effect on the next session.
 - `allowed-tools`: explicit tool permissions the skill needs
 - `metadata`: author and version
 

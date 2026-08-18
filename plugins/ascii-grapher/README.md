@@ -37,13 +37,14 @@ Install via the wisdom marketplace:
 ### Slash Command
 
 ```text
-/graph
+/ascii-grapher
 ```
 
 ### Magic Words
 
 Typing a prompt that contains `graph`, `diagram`, or `ascii` will auto-dispatch this skill via the
-shortcut plugin.
+shortcut plugin. These are magic words, not slash commands — the plugin ships a skill, so the
+slash form is the skill's own name.
 
 ### Examples
 

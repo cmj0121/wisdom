@@ -37,8 +37,10 @@ Install via the wisdom marketplace:
 2. **Design** — Dispatches to agent-ward for architecture (if needed)
 3. **Implement** — Dispatches to agent-hale, reviewed by agent-ellis
 4. **Docs & Ops** — Dispatches to agent-twain and agent-page in parallel
-5. **Release** — Dispatches to agent-ross (if installed)
-6. **Merge** — Presents summary, waits for approval, merges
+5. **Assess** — Scores the result and re-plans, iterating in Autonomous mode
+6. **Release** — Dispatches to agent-ross (if installed)
+7. **Merge** — Presents summary, waits for approval, merges
+8. **Lessons** — Appends a short reflection to the project's `LESSONS.md`
 
 ## Usage
 

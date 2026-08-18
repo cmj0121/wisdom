@@ -2,7 +2,7 @@
 
 > Help your Claude Code more efficiently and effectively, like me
 
-This project is the Claude Code Plug-in for me and you can use it like me.
+This project is the collection of Claude Code plugins I use, and you can use it the way I do.
 
 ## Installation
 
@@ -44,62 +44,65 @@ has a clear role, responsibility boundary, and reporting chain.
 | `test-runner`   | Detects test framework and runs test suite       | agent-hale, agent-ellis, agent-page |
 | `changelog-gen` | Generates changelog from git history             | agent-ross, agent-twain             |
 | `dep-auditor`   | Audits dependencies for vulns and outdated pkgs  | agent-page, agent-ellis             |
+| `sec-review`    | Whole-project security scan, mapped to CWE IDs   | agent-ellis, agent-page             |
 
-### System Tool
+### Utilities
 
-| Tool       | Description                                     |
-| ---------- | ----------------------------------------------- |
-| `shortcut` | Auto-dispatch skills when you type a magic word |
+Standalone plugins, not part of the scrum chain. Each works on its own.
+
+| Tool        | Description                                                      |
+| ----------- | ---------------------------------------------------------------- |
+| `shortcut`  | Auto-dispatches a skill when your prompt contains its magic word |
+| `compactor` | Re-renders the previous result as a dense, scannable table       |
+| `lingua`    | Replies in the language you choose, remembered per project       |
 
 ### Workflow
 
 ```text
-             plan       design     code (parallel)    review        docs
- ┌──────┐  ┌───────┐  ┌───────┐  ┌──────┐ ┌──────┐  ┌──────┐     ┌───────┐
- │ User │─>│ smith │─>│ ward  │─>│hale-1│ │hale-2│─>│ellis │──┬─>│ twain │
- └──────┘  └───┬───┘  └───────┘  └──────┘ └──────┘  └──┬───┘  │  └───────┘
-               │                   ▲  ▲       ▲         │      │
-               │                   │  └───────┼── fix ──┘      │   ops
-               │                   │  worktree│                │  ┌───────┐
-               │                   └──────────┘                └─>│ page  │
-               │                                                  └───┬───┘
-               │                                              deploy  │
-               │           ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
-               │           ┌──────────────────┐
-               │           │  ross (optional) │
-               │           └──────────────────┘
-               │
-               │        ┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
-               └ ─ ─ ─    tenth-man  spec-writer
-                        │ ascii-grapher  test-runner      │
-                          changelog-gen  dep-auditor
-                        └ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
+  ┌──────┐   idea   ┌─────────┐  challenge  ┌───────────┐
+  │ user │─────────>│  smith  │<───────────>│ tenth-man │
+  └──────┘          └────┬────┘   verdict   └───────────┘
+                         │
+                         │  PLAN.md — Context · Units of Work · Decisions · Iteration Log
+                         │
+     ┌───────────────────┼────────────────────┬─────────────────────┐
+     │ design            │ dispatch           │ docs · ops          │ release (optional)
+     ▼                   ▼                    ▼                     ▼
+┌─────────┐      ┌───────────────┐      ┌───────────┐          ┌─────────┐
+│  ward   │─────>│    hale ×N    │      │   twain   │          │  ross   │
+│         │      │   worktrees   │      │   page    │          │         │
+└────┬────┘      └───────┬───────┘      └───────────┘          └─────────┘
+     ▲                   │
+     │                   ▼
+     │           ┌───────────────┐
+     │           │     ellis     │
+     │           └───────┬───────┘
+     │  redesign         │  fix → re-dispatch hale
+     └───────────────────┘
 ```
 
-Smith dispatches **independent units to parallel hale instances**, each in an isolated
-git worktree. After QA passes, smith merges all worktrees back sequentially.
+Smith plans first, writing `PLAN.md` as the run's shared memory, then dispatches
+**independent units to parallel hale instances**, each in an isolated git worktree. Ellis
+reviews each unit as it lands. After QA passes, smith merges the worktrees back
+sequentially, then runs docs and ops in parallel before the release step.
 
-### Dependency Graph
+### Verdict Routing
+
+No agent talks to another directly. Every finding returns to smith, which decides where it
+goes next — this is what keeps a review from turning into a side conversation between two
+agents that smith cannot see.
 
 ```text
-agent-smith (Project Leader)
-    ├──▶ agent-ward (Architect)
-    ├──▶ agent-hale (Developer)
-    ├──▶ agent-ellis (QA) ──findings──▶ agent-hale (fix) or agent-ward (redesign)
-    ├──▶ agent-twain (Technical Writer)
-    ├──▶ agent-page (SRE)
-    └──▶ agent-ross (Release Manager, optional)
-
-Support tools (invoked by roles as needed):
-    spec-writer    ──▶ agent-ward, agent-twain
-    tenth-man      ──▶ agent-smith, agent-ward
-    ascii-grapher  ──▶ agent-ward, agent-twain, agent-page
-    test-runner    ──▶ agent-hale, agent-ellis, agent-page
-    changelog-gen  ──▶ agent-ross, agent-twain
-    dep-auditor    ──▶ agent-page, agent-ellis
-
-System: shortcut (auto-dispatch)
+  ┌───────┐  __REVIEW_VERDICT__   ┌───────┐   implementation-level   ┌──────┐
+  │ ellis │──────────────────────>│ smith │─────────────────────────>│ hale │
+  └───────┘    FAIL · WARN        └───┬───┘                          └──────┘
+                                      │      design-level            ┌──────┐
+                                      └─────────────────────────────>│ ward │
+                                                                     └──────┘
 ```
+
+Page reports the same way with `__OPS_VERDICT__` (READY · CONCERN · BLOCK), and smith
+dispatches hale for fixes when it blocks.
 
 ## Model Tiers
 

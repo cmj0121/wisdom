@@ -17,13 +17,14 @@ Install via the wisdom marketplace:
 
 ## Role in the Team
 
-| Agent             | Role           | Page's Relationship               |
-| ----------------- | -------------- | --------------------------------- |
-| **agent-smith**   | Project Leader | Assigns ops review tasks          |
-| **agent-hale**    | Developer      | Fixes ops issues flagged by Page  |
-| **test-runner**   | Support Tool   | Runs performance/load tests       |
-| **dep-auditor**   | Support Tool   | Audits dependency vulnerabilities |
-| **ascii-grapher** | Support Tool   | Produces infrastructure diagrams  |
+| Agent             | Role           | Page's Relationship                |
+| ----------------- | -------------- | ---------------------------------- |
+| **agent-smith**   | Project Leader | Assigns ops review tasks           |
+| **agent-hale**    | Developer      | Fixes ops issues flagged by Page   |
+| **test-runner**   | Support Tool   | Runs performance/load tests        |
+| **dep-auditor**   | Support Tool   | Audits dependency vulnerabilities  |
+| **sec-review**    | Support Tool   | Scans source for CWE-mapped issues |
+| **ascii-grapher** | Support Tool   | Produces infrastructure diagrams   |
 
 ## How It Works
 

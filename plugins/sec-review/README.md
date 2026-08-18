@@ -15,6 +15,20 @@ Install via the wisdom marketplace:
 /plugin install sec-review
 ```
 
+## How It Works
+
+1. **Scope** — Enumerates source with `git ls-files`, skipping vendored and generated code,
+   then identifies the languages and entry points in use
+2. **Review** — Reads and greps for common weakness classes, mapping each to its CWE
+3. **Triage** — Rates findings by severity and discards what the codebase makes unreachable
+4. **Report** — Lists each finding with its location, CWE ID, and a concrete fix
+
+Covered weakness classes include injection (SQL, command, template), XSS, hardcoded
+secrets, broken authentication and access control, insecure deserialization, path
+traversal, SSRF, weak cryptography, and missing input validation.
+
+Read-only: it reports, and never edits the project.
+
 ## Usage
 
 ### Magic Words
