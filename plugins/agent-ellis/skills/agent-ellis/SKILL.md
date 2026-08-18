@@ -10,7 +10,7 @@ allowed-tools:
   - Grep
 metadata:
   author: cmj@cmj.tw
-  version: 1.3.0
+  version: 1.4.0
 ---
 
 # Agent Ellis — QA

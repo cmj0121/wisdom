@@ -11,7 +11,7 @@ allowed-tools:
   - WebSearch
 metadata:
   author: cmj@cmj.tw
-  version: 1.3.0
+  version: 1.3.1
 ---
 
 # Agent Ward — Architect

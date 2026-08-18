@@ -12,7 +12,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # Agent Twain — Technical Writer

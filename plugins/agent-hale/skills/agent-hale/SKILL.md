@@ -28,7 +28,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: 1.2.1
+  version: 1.3.0
 ---
 
 # Agent Hale — Developer

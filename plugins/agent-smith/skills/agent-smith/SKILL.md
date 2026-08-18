@@ -24,7 +24,7 @@ allowed-tools:
   - WebSearch
 metadata:
   author: cmj@cmj.tw
-  version: 1.5.0
+  version: 1.6.0
 ---
 
 # Agent Smith — Project Leader
