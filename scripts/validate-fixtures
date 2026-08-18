@@ -13,6 +13,11 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TMP_DIR="$(mktemp -d)"
+
+# The fixtures assert on the validator's exact per-item lines, the magic-word
+# census among them, and those lines are quiet by default. This harness is the
+# one caller that wants every one of them, so it always runs it verbose.
+export WISDOM_VERBOSE=1
 trap 'rm -rf "$TMP_DIR"' EXIT
 
 ERRORS=0

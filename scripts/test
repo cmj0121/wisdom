@@ -23,15 +23,47 @@ root = sys.argv[1]
 marketplace = os.path.join(root, ".claude-plugin", "marketplace.json")
 
 GREEN, RED, RESET = "\033[32m", "\033[31m", "\033[0m"
+# Quiet by default: one PASS line per item per check buried the single FAIL
+# line that mattered, and left a success sentence as the last thing on screen.
+# WISDOM_VERBOSE=1 restores the full listing. An environment variable rather
+# than a flag because scripts/validate already spends its only positional
+# argument on the repo-root override, and because one variable covers all of
+# scripts/ however they are invoked — directly, through make, or by a
+# pre-commit hook.
+#
+# Prefixed, and NOT the conventional bare VERBOSE: that name is already
+# exported globally in plenty of shells for other build systems, and inheriting
+# it would silently restore the very wall of output this exists to remove — for
+# one user, with nothing on screen to connect it to a variable they set months
+# ago. Discoverability is covered instead by the failure summary in the
+# Makefile, which names the variable outright.
+WISDOM_VERBOSE = os.environ.get("WISDOM_VERBOSE", "") not in ("", "0")
 errors = 0
+# The plugin block being checked. Its failures name no plugin — "missing
+# LICENSE" is the whole message — so when quiet the heading is held back and
+# printed by the first bad() under it rather than dropped.
+pending_heading = None
+
+
+def heading(msg):
+    global pending_heading
+    if WISDOM_VERBOSE:
+        print("")
+        print(msg)
+    else:
+        pending_heading = msg
 
 
 def ok(msg):
-    print(f"  {GREEN}PASS{RESET} {msg}")
+    if WISDOM_VERBOSE:
+        print(f"  {GREEN}PASS{RESET} {msg}")
 
 
 def bad(msg):
-    global errors
+    global errors, pending_heading
+    if pending_heading is not None:
+        print(pending_heading)
+        pending_heading = None
     print(f"  {RED}FAIL{RESET} {msg}")
     errors += 1
 
@@ -66,8 +98,7 @@ for entry in plugins:
     name = entry.get("name", "")
     source = entry.get("source", "")
 
-    print("")
-    print(f"--- plugin: {name} ---")
+    heading(f"--- plugin: {name} ---")
 
     for field in ("name", "description", "version", "source"):
         if entry.get(field, ""):
