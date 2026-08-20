@@ -1,0 +1,109 @@
+{
+  "skill": "compactor",
+  "about": "Trigger eval queries for this skill's description. A query is labelled with whether the skill should activate for it; the negatives are near-misses that share vocabulary with the skill but need something else. Split fixed so successive description edits are compared on the same ground: tune against train, judge against validation.",
+  "how_to_run": "No runner is committed. `claude plugin eval` is the intended one and is in early access; until it is available, run each query with `claude -p --output-format json` and count the runs whose transcript contains a Skill tool_use naming this skill.",
+  "runs_per_query": 3,
+  "trigger_rate_threshold": 0.5,
+  "queries": [
+    {
+      "query": "that was too long, give me the short version",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "can you put what you just said in a table",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "condense the previous answer",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "trim that down, just the data",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "reformat that so it fits on one screen",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "same information, fewer words",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "too much prose in that answer, tabulate it",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "shorten your last response",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "just the numbers from that, nothing else",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "make that last bit scannable",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "summarise this document for me",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "compress these log files",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "minify this javascript bundle",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "shorten this variable name",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "explain that again but simpler",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "translate what you said into Chinese",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "what did you just say, i missed it",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "compact this git repo, the .git dir is huge",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "reduce the size of these images",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "strip whitespace from this string",
+      "should_trigger": false,
+      "split": "validation"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 ---
 name: spec-writer
-description: Writes technical specifications with architecture diagrams.
+description: Writes technical specifications — requirements, interfaces, data models and architecture diagrams. Use when a design needs recording before it is built, when the user asks for a spec, RFC or design document, or when another agent needs a written contract to work from.
 license: MIT
 allowed-tools:
   - Read
@@ -10,7 +10,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: 1.0.1
+  version: "2.0.0"
 ---
 
 # Spec Writer Skill

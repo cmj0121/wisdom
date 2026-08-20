@@ -1,7 +1,7 @@
 {
   "name": "agent-ward",
-  "description": "Architect agent — system design, API design, and tech stack decisions.",
-  "version": "1.3.2",
+  "description": "Architect agent — designs systems and APIs and decides the tech stack. Use before implementation starts on anything non-trivial, when the user asks how something should be structured, weighs one library or protocol against another, or needs a design reviewed for consistency.",
+  "version": "2.0.0",
   "license": "MIT",
   "author": {
     "name": "cmj",

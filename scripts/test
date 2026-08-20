@@ -10,6 +10,7 @@
 # duplicating it would only make one more place to keep in step:
 #   plugin.json / SKILL.md presence and version agreement  -> check-version-sync
 #   SKILL.md frontmatter, README.md presence               -> validate
+#   SKILL.md against the Agent Skills standard             -> check-skill-spec
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -138,7 +139,7 @@ for entry in plugins:
 # vacuously true — a deleted script simply would not be looked for — which is
 # the exact blind spot it exists to close.
 print("==> Checking the check scripts")
-for script in ("test", "check-version-sync", "validate", "validate-fixtures"):
+for script in ("test", "check-version-sync", "validate", "check-skill-spec", "validate-fixtures"):
     path = os.path.join(root, "scripts", script)
     if os.access(path, os.X_OK) and os.path.isfile(path):
         ok(f"scripts/{script} is present and executable")

@@ -13,12 +13,15 @@ clean: $(SUBDIR)	# clean-up environment
 # self-test rather than a check on this repo's contents, and it costs ~2.8s.
 # pre-commit runs it whenever scripts/ changes.
 #
-# All three run even after one fails -- a run that stops at the first failure
-# hides the other two -- so the loop must say so itself: the last line of a
-# failing run used to be the THIRD script's success sentence.
-test:				# run the three repo checks (not the validator self-test)
-	@failed=0; summary=""; \
-	for script in test check-version-sync validate; do \
+# All four run even after one fails -- a run that stops at the first failure
+# hides the rest -- so the loop must say so itself: the last line of a failing
+# run used to be the LAST script's success sentence. The count is derived from
+# the loop rather than written twice, so adding a fifth check cannot leave the
+# summary claiming four.
+test:				# run the four repo checks (not the validator self-test)
+	@failed=0; total=0; summary=""; \
+	for script in test check-version-sync validate check-skill-spec; do \
+		total=$$((total + 1)); \
 		if bash "scripts/$$script"; then \
 			summary="$$summary  \033[32mPASS\033[0m scripts/$$script\n"; \
 		else \
@@ -29,10 +32,10 @@ test:				# run the three repo checks (not the validator self-test)
 	printf '\n==> Summary\n'; \
 	printf '%b' "$$summary"; \
 	if [ $$failed -eq 0 ]; then \
-		printf '==> All 3 checks passed\n'; \
+		printf '==> All %d checks passed\n' "$$total"; \
 		exit 0; \
 	fi; \
-	printf '==> %d of 3 checks FAILED -- re-run with WISDOM_VERBOSE=1 for per-item detail\n' "$$failed"; \
+	printf '==> %d of %d checks FAILED -- re-run with WISDOM_VERBOSE=1 for per-item detail\n' "$$failed" "$$total"; \
 	exit 1
 
 run:				# run in the local environment

@@ -1,6 +1,6 @@
 ---
 name: agent-hale
-description: Developer agent — writes clean, robust and maintainable code.
+description: Developer agent — writes clean, robust, maintainable code and its tests from an agreed plan or design. Use when implementation is the task and the approach is already settled, or when the user asks for something to be coded, and prizes correctness over cleverness.
 license: MIT
 allowed-tools:
   - Bash(git status:*)
@@ -28,7 +28,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: 1.3.0
+  version: "2.0.0"
 ---
 
 # Agent Hale — Developer

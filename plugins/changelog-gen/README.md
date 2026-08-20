@@ -1,6 +1,8 @@
 # Changelog Generator Plugin
 
-> Generates changelog from git history using conventional commits.
+> Generates changelog entries from git history, grouping conventional commits by type. Use when a
+> release needs notes, when the user asks what changed since a tag, or when a CHANGELOG has fallen
+> behind the commits it is supposed to describe.
 
 A shared support tool that parses conventional commit messages and generates
 structured changelogs in Keep a Changelog format.

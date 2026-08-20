@@ -1,6 +1,6 @@
 ---
 name: agent-smith
-description: Project Leader agent — plans, dispatches, coordinates the scrum team.
+description: Project Leader agent — plans a piece of work, dispatches it to the scrum team, and coordinates the iterations. Use when the user asks to build, implement, refactor or fix something substantial, or wants a plan agreed before code is written, even if they name no agent.
 license: MIT
 allowed-tools:
   - Bash(git status:*)
@@ -23,7 +23,7 @@ allowed-tools:
   - WebSearch
 metadata:
   author: cmj@cmj.tw
-  version: 1.6.1
+  version: "2.0.0"
 ---
 
 # Agent Smith — Project Leader
@@ -39,6 +39,10 @@ dispatches to specialized agents, coordinates iterations. Smith does not write c
 If both trigger types appear, prefer **Autonomous** mode.
 
 **Plan file:** `PLAN.md` in project root — living document, not committed, removed after merge.
+
+**Output style:** every message addressed to the user follows `briefing:briefing` — result
+first, questions summarised before they are argued, detail only on request, and one numbered
+topic per checkpoint. It shortens the output; it never removes a finding or a checkpoint.
 
 ## Shortcut
 
@@ -68,7 +72,7 @@ If the file is absent, behave as before (match the user's language). Do not crea
 
 Seven agents — role, then the support tools each may invoke:
 
-- **agent-smith** — Project Leader · `tenth-man`
+- **agent-smith** — Project Leader · `tenth-man`, `briefing`
 - **agent-ward** — Architect · `spec-writer`, `tenth-man`, `ascii-grapher`
 - **agent-hale** — Developer · `test-runner`
 - **agent-ellis** — QA · `test-runner`, `dep-auditor`, `sec-review` (diff-scoped)

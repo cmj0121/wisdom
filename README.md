@@ -50,11 +50,12 @@ has a clear role, responsibility boundary, and reporting chain.
 
 Standalone plugins, not part of the scrum chain. Each works on its own.
 
-| Tool        | Description                                                      |
-| ----------- | ---------------------------------------------------------------- |
-| `shortcut`  | Auto-dispatches a skill when your prompt contains its magic word |
-| `compactor` | Re-renders the previous result as a dense, scannable table       |
-| `lingua`    | Replies in the language you choose, remembered per project       |
+| Tool        | Description                                                               |
+| ----------- | ------------------------------------------------------------------------- |
+| `shortcut`  | Auto-dispatches a skill when your prompt contains its magic word          |
+| `compactor` | Re-renders the previous result as a dense, scannable table                |
+| `lingua`    | Replies in the language you choose, remembered per project                |
+| `briefing`  | Compact output and one-topic-at-a-time discussion for smith and tenth-man |
 
 ### Workflow
 
@@ -117,61 +118,88 @@ model a plan or a review gets.
 - **Economical (`haiku`)** — mechanical, deterministic, high-frequency:
   `changelog-gen`, `ascii-grapher`, `test-runner`, `dep-auditor`, `compactor`, `shortcut`, `lingua`
 
-`model` accepts `fable` / `opus` / `sonnet` / `haiku` or a full model ID; omit the field to
-inherit the session default. Changes take effect on the next session — skill frontmatter is
-read at session start.
+`model` accepts `fable` / `opus` / `sonnet` / `haiku`, a full model ID, or `inherit`; omitting
+the field means the same as `inherit`. Changes take effect on the next session — skill
+frontmatter is read at session start.
+
+A pin applies for the rest of the turn, not just while the skill runs, so a skill an agent
+invokes mid-task would move the session that invoked it. The four an agent can reach —
+`ascii-grapher`, `test-runner`, `changelog-gen`, `dep-auditor` — therefore also set
+`context: fork`, which aims the pin at a forked subagent instead, and `background: false`, so
+their caller still gets the result in the same turn. `compactor`, `shortcut` and `lingua` pin
+bare: you invoke those yourself, so the only turn they move is their own.
 
 ## Development
 
 Plugins are markdown and JSON, so there is no build step — what keeps the marketplace
-coherent is three checks, each owning one failure domain.
+coherent is four checks, each owning one failure domain. The last of them measures the repo
+against the [Agent Skills standard](https://agentskills.io/specification).
 
 | Check                        | Domain            | Fails when                                                       |
 | ---------------------------- | ----------------- | ---------------------------------------------------------------- |
 | `scripts/test`               | structural        | a required file is missing, or a manifest name/version disagrees |
 | `scripts/check-version-sync` | version integrity | a plugin's three versions disagree, or the release lags its tag  |
 | `scripts/validate`           | semantic          | a reference, model, magic word, description, section or roster   |
+| `scripts/check-skill-spec`   | standard          | a `SKILL.md` breaks the Agent Skills standard                    |
 
-They stay three scripts rather than one because they fail for different reasons — a missing
+They stay four scripts rather than one because they fail for different reasons — a missing
 file is a packaging mistake, a version drift is a release mistake, an unresolved skill
-reference is an authoring mistake — and because each is worth running on its own while you
-fix that one class of problem.
+reference is an authoring mistake, an unknown frontmatter field is a portability mistake —
+and because each is worth running on its own while you fix that one class of problem.
 
-A fourth script, `scripts/validate-fixtures`, is the semantic validator's own self-test: it
-mutates a throwaway copy of the repo to break each check in turn and asserts the validator
-catches it. It stays out of `make test` — a suite of checks and the proof those checks can
-still fail are different jobs.
+A fifth script, `scripts/validate-fixtures`, is the self-test for the last two: it mutates a
+throwaway copy of the repo to break each check in turn and asserts the check catches it. It
+stays out of `make test` — a suite of checks and the proof those checks can still fail are
+different jobs.
 
 ```text
                              ┌─ scripts/test                structural
    make test ──────────┐     │
-                       ├────>┼─ scripts/check-version-sync  version integrity
-   git commit ──┬──────┘     │
-   (pre-commit) │            └─ scripts/validate            semantic
+                       │     ├─ scripts/check-version-sync  version integrity
+   git commit ──┬──────┼────>┤
+   (pre-commit) │      │     ├─ scripts/validate            semantic
+   CI ──────────┤      └     │
+                │            └─ scripts/check-skill-spec    Agent Skills standard
                 │
-                └──────────────> scripts/validate-fixtures  validator self-test
-                                 (only when scripts/ changes)
+                └──────────────> scripts/validate-fixtures  self-test
+                                 (pre-commit: only when scripts/ changes; CI: always)
 ```
 
-`make test` runs the first three and reports all three; it does not stop at the first failure.
-It never runs `scripts/validate-fixtures`. Committing runs all four: the same three
-unconditionally, plus the fixtures self-test whenever a file under `scripts/` changes. So the
-commit path is the wider of the two, and a green `make test` says nothing about whether the
-validator's own tests still hold.
+`make test` runs the first four and reports all four; it does not stop at the first failure.
+It never runs `scripts/validate-fixtures`. Committing runs all five: the same four
+unconditionally, plus the fixtures self-test whenever a file under `scripts/` changes. CI runs
+all five unconditionally. So a green `make test` says nothing about whether the checks' own
+tests still hold.
 
-Three of the four are deliberately ungated, and the reason is worth knowing before you add a
+Four of the five are deliberately ungated, and the reason is worth knowing before you add a
 `files:` pattern of your own. pre-commit builds its candidate file list with
 `--diff-filter=ACMRTUXB`, which excludes deletions, so a commit that only _deletes_ a file
 presents zero candidates — and a gated hook with nothing to match is skipped, however exactly
 its pattern would have fitted the deleted path. Deleting `plugins/<name>/LICENSE`, the
 top-level `README.md`, or a check script is precisely what the structural, version and
-semantic checks exist to catch, so all three run on every commit regardless of what you
-touched.
+semantic and standard checks exist to catch, so all four run on every commit regardless of
+what you touched.
+
+### Trigger evals
+
+A skill only helps if it activates, and the `description` is the only thing Claude has at the
+moment it decides. The seven utility skills — `test-runner`, `dep-auditor`, `sec-review`,
+`changelog-gen`, `ascii-grapher`, `spec-writer`, `compactor` — each carry
+`evals/trigger-queries.json`: 20 labelled prompts, ten that should activate the skill and ten
+near-misses that share its vocabulary but need something else. Split 60/40 into train and
+validation, so a reworded description is tuned on one half and judged on the other rather than
+fitted to the phrasings used to tune it.
+
+The scrum agents have no such file. They are dispatched by `agent-smith` rather than triggered
+by a prompt, and by design each is the next one's nearest near-miss.
+
+No runner is committed: `claude plugin eval` is the intended one and is in early access, so
+its case format is not yet public.
 
 Only `scripts/validate-fixtures` stays gated, on `^scripts/`: it costs a few seconds and says
-nothing new unless the validator changes. That gate has the same blind spot — deleting
+nothing new unless a check changes. That gate has the same blind spot — deleting
 `scripts/validate` presents no `scripts/` file either — which is why `scripts/test` asserts
-that all four check scripts exist and are executable.
+that all five check scripts exist and are executable, and why CI runs the fixtures every time.
 
 ### What the semantic validator enforces
 

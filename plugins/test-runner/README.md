@@ -1,6 +1,8 @@
 # Test Runner Plugin
 
-> Detects test framework and runs the project test suite.
+> Detects the project's test framework, runs its suite, and reports what passed, what failed and why.
+> Use when a change needs verifying, when the user asks to run the tests, or when an agent needs the
+> current state of the suite before judging finished work.
 
 A shared support tool that auto-detects and runs the project's test framework.
 Used by multiple team agents for self-checks, QA, and pre-release verification.

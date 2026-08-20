@@ -1,6 +1,8 @@
 # Agent Hale Plugin
 
-> Developer agent — writes clean, robust and maintainable code.
+> Developer agent — writes clean, robust, maintainable code and its tests from an agreed plan or
+> design. Use when implementation is the task and the approach is already settled, or when the user
+> asks for something to be coded, and prizes correctness over cleverness.
 
 Agent Hale is the developer of the scrum team. Hale receives units of work from
 `agent-smith`, reads the plan and designs from `agent-ward`, and writes clean,

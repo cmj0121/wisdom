@@ -24,7 +24,7 @@ repos:
       - id: shfmt
 
   # -------- marketplace integrity --------
-  # These four are the repo's own checks. Three run unconditionally; see each
+  # These five are the repo's own checks. Four run unconditionally; see each
   # comment for why, and read them together — the reasoning is one argument.
   - repo: local
     hooks:
@@ -64,10 +64,21 @@ repos:
       # file to it — measured; a deletion-only commit presents nothing at all —
       # so `always_run` here would be the only way it could catch that. The
       # unconditional marketplace-semantic-validate above already fails on a
-      # missing entry, and scripts/test checks all four scripts exist.
+      # missing entry, and scripts/test checks the scripts exist. It now covers
+      # the fixtures for check-skill-spec too, which live in the same file.
+      # Same again. It reads only SKILL.md files, but a commit that deletes one
+      # is exactly when "does every skill still follow the standard" has a new
+      # answer, and a gated hook would see nothing on such a commit (~0.05s).
+      - id: skill-spec
+        name: agent skills standard
+        description: Fail if a SKILL.md carries an unknown frontmatter field, or breaks the Agent Skills naming, description, shape or progressive-disclosure rules.
+        entry: scripts/check-skill-spec
+        language: script
+        pass_filenames: false
+        always_run: true
       - id: marketplace-validator-fixtures
         name: marketplace validator fixtures
-        description: Fail if a semantic check can no longer be made to fail. Runs only when scripts/ changes.
+        description: Fail if a semantic or standard check can no longer be made to fail. Runs only when scripts/ changes.
         entry: scripts/validate-fixtures
         language: script
         pass_filenames: false

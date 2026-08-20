@@ -1,0 +1,109 @@
+{
+  "skill": "sec-review",
+  "about": "Trigger eval queries for this skill's description. A query is labelled with whether the skill should activate for it; the negatives are near-misses that share vocabulary with the skill but need something else. Split fixed so successive description edits are compared on the same ground: tune against train, judge against validation.",
+  "how_to_run": "No runner is committed. `claude plugin eval` is the intended one and is in early access; until it is available, run each query with `claude -p --output-format json` and count the runs whose transcript contains a Skill tool_use naming this skill.",
+  "runs_per_query": 3,
+  "trigger_rate_threshold": 0.5,
+  "queries": [
+    {
+      "query": "is there anything insecure anywhere in this codebase",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "do a security pass over the whole repo, not just my branch",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "we're filling in a vendor security questionnaire, find our weak spots",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "any injection or broken-auth bugs in here",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "map whatever security issues you find to CWE ids",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "i inherited this codebase, how bad is the security",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "find hardcoded secrets and unsafe deserialisation",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "which parts of this app would a pentester go for first",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "full security review of ~/work/payments please",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "audit the source for vulnerabilities before the compliance deadline",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "check our dependencies for known CVEs",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "review the changes on my branch",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "how should i hash passwords in this app",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "set up HTTPS on this server",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "explain the OWASP top 10 to me",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "rotate this leaked API key",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "is jose a good JWT library",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "write a threat model document for the payments service",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "configure a WAF rule to block that pattern",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "our pen test report says X is broken, go fix it",
+      "should_trigger": false,
+      "split": "validation"
+    }
+  ]
+}

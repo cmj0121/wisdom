@@ -28,17 +28,48 @@ plugins/<name>/
 
 ### Skill Definitions (SKILL.md)
 
-Each SKILL.md has YAML frontmatter declaring:
+Frontmatter follows the [Agent Skills standard](https://agentskills.io/specification), and
+this repo treats its fields as two layers. `scripts/check-skill-spec` enforces the split, and
+its `CLAUDE_CODE_EXTENSIONS` map is where the second layer is declared.
 
-- `name`, `description`, `license`
-- `model`: which model tier runs the skill — `fable` / `opus` / `sonnet` / `haiku`, a full
-  model ID, or omitted to inherit the session default. Pin downward only — a cheaper model
-  for mechanical, high-frequency work. Reasoning-heavy skills omit the field and inherit
-  whatever the session runs on. Read at session start, so changes take effect next session.
-- `allowed-tools`: explicit tool permissions the skill needs
-- `metadata`: author and version
+**The standard's six** — portable to any client, including claude.ai uploads and the Skills
+API, both of which reject an unknown key with a hard error rather than ignoring it:
 
-The body contains phase-by-phase instructions that guide the AI agent through a workflow.
+- `name`: 1–64 chars, lowercase alphanumerics and single hyphens, no leading, trailing or
+  doubled hyphen, no `anthropic` or `claude`, and it must equal the skill's directory name
+- `description`: what the skill does **and when to use it**, third person, no XML tags. The
+  standard's ceiling is 1024 characters; this repo's is 400 and its skills sit near 250,
+  because the same string is catalogue copy in `/plugin`, in `.claude-plugin/marketplace.json`
+  and in both READMEs
+- `license`
+- `allowed-tools`: a **YAML list** — the one place this repo knowingly departs from the
+  standard, which types the field as a space-separated string. 70 of its grants contain a
+  space (`Bash(git status:*)`), which a space-separated string cannot express, and the only
+  space-free spelling (`Bash(git:*)`) widens the grant from one subcommand to all of git. Of
+  the two remaining spellings, a list is rejected loudly on its type by a spec-strict reader,
+  while a comma-separated string gets split on spaces into `Bash(git` and `status:*),` —
+  patterns that match nothing, silently dropping a permission. The standard marks this field
+  Experimental, so it is the one to depart from
+- `metadata`: string keys to string values only — hence `version: "2.0.0"`, quoted
+- `compatibility`: unused here; most skills do not need it
+
+**Claude Code extensions this repo has adopted** — each costs portability, so each needs a
+reason recorded next to it:
+
+- `model`: `fable` / `opus` / `sonnet` / `haiku`, a full model ID, or `inherit`; omitting the
+  field means the same as `inherit`. Pin downward only. Read at session start, so changes take
+  effect next session.
+- `context: fork` and `background: false`: a `model` pin applies for the **rest of the turn**,
+  not just while the skill runs, so a skill an agent invokes mid-task would move the session
+  that invoked it. Any pinned skill an agent can reach sets both — `fork` aims the pin at a
+  subagent, `background: false` keeps the result inline for the caller.
+
+Adding a third extension means adding it to `CLAUDE_CODE_EXTENSIONS` with the same kind of
+reason. Anything outside both layers fails the check.
+
+The body contains phase-by-phase instructions that guide the AI agent through a workflow, and
+must stay under 500 lines — the check warns at 350, which is the point where there is still a
+choice about which sections move into `references/`.
 
 ### Skill Discovery (Three Tiers)
 
@@ -49,12 +80,15 @@ The body contains phase-by-phase instructions that guide the AI agent through a 
 ## Checks
 
 Run `make test` before handing work back: it runs `scripts/test` (structure),
-`scripts/check-version-sync` (versions) and `scripts/validate` (semantics), and reports all
-three rather than stopping at the first failure. Those same three run on every commit,
-ungated — pre-commit's candidate list excludes deletions, so a path-gated hook sees nothing on
-a deletion-only commit and is skipped. After editing `scripts/validate`, also run
-`scripts/validate-fixtures` — its negative-fixture self-test, and the one hook still gated
-(on `^scripts/`), which the commit path runs but `make test` does not.
+`scripts/check-version-sync` (versions), `scripts/validate` (semantics) and
+`scripts/check-skill-spec` (the Agent Skills standard), and reports all four rather than
+stopping at the first failure. Those same four run on every commit, ungated — pre-commit's
+candidate list excludes deletions, so a path-gated hook sees nothing on a deletion-only commit
+and is skipped. After editing `scripts/validate` or `scripts/check-skill-spec`, also run
+`scripts/validate-fixtures` — the negative-fixture self-test for both, and the one hook still
+gated (on `^scripts/`), which the commit path runs but `make test` does not. CI
+(`.github/workflows/checks.yml`) runs all five plus the full pre-commit suite on every push
+and pull request.
 
 What that means for edits here:
 
@@ -76,8 +110,14 @@ What that means for edits here:
 - A plugin registered in `.claude-plugin/marketplace.json` must also be named in the
   top-level `README.md` prose; a mention only inside a code fence does not count.
 - Write a `<plugin>:<skill>` reference only when both halves exist in this repo.
-- `model:` must be a known tier or a full `claude-*` ID; to inherit the session default, omit
-  the field — `inherit` is not a valid value.
+- `model:` must be a known tier, `inherit`, or a full `claude-*` ID. Omitting the field and
+  writing `inherit` do the same thing.
+- Frontmatter may carry only the standard's six fields plus the Claude Code extensions listed
+  in `CLAUDE_CODE_EXTENSIONS` (`scripts/check-skill-spec`). A new one needs a recorded reason.
+- The seven utility skills carry `evals/trigger-queries.json`: 20 labelled prompts, half of
+  them near-misses, split train/validation. Rewriting a `description` means re-running them,
+  tuning on train and judging on validation. No runner is committed — `claude plugin eval` is
+  the intended one and is still in early access.
 
 Passing checks only prove nothing mechanically checkable is broken. Prose accuracy — a stale
 table row, a wrong command name — is not covered and still needs review.

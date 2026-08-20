@@ -1,6 +1,8 @@
 # Agent Ellis Plugin
 
-> QA agent — code review, test execution, and acceptance verification.
+> QA agent — reviews code quality and security, runs the test suite, and verifies work against its
+> acceptance criteria. Use when a change needs reviewing before it lands, when tests should be run and
+> judged, or when the user asks whether something is actually done.
 
 Agent Ellis is the QA agent of the scrum team. Ellis reviews code for quality and
 security, runs the test suite, verifies acceptance criteria against `PLAN.md`, and

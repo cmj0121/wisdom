@@ -1,8 +1,10 @@
 ---
 name: dep-auditor
-description: Audits dependencies for vulnerabilities and outdated packages.
+description: Audits project dependencies for known vulnerabilities and outdated versions across npm, pip, go, cargo and bundler. Use before a release, when a lockfile changes, or when the user asks whether the dependencies are safe or current.
 license: MIT
 model: haiku
+context: fork
+background: false
 allowed-tools:
   - Bash(npm audit:*)
   - Bash(npm outdated:*)
@@ -19,7 +21,7 @@ allowed-tools:
   - Grep
 metadata:
   author: cmj@cmj.tw
-  version: 1.1.0
+  version: "2.0.0"
 ---
 
 # Dependency Auditor

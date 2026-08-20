@@ -1,6 +1,8 @@
 # Agent Twain Plugin
 
-> Technical Writer agent — user docs, API docs, and migration guides.
+> Technical Writer agent — writes user documentation, API references, migration guides and tutorials.
+> Use when a change needs documenting, when existing docs have gone stale, or when the user asks for
+> something to be explained to its readers rather than to them.
 
 Named after Mark Twain — master of clear, concise writing.
 

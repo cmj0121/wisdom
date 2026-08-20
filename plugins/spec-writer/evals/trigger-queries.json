@@ -1,0 +1,109 @@
+{
+  "skill": "spec-writer",
+  "about": "Trigger eval queries for this skill's description. A query is labelled with whether the skill should activate for it; the negatives are near-misses that share vocabulary with the skill but need something else. Split fixed so successive description edits are compared on the same ground: tune against train, judge against validation.",
+  "how_to_run": "No runner is committed. `claude plugin eval` is the intended one and is in early access; until it is available, run each query with `claude -p --output-format json` and count the runs whose transcript contains a Skill tool_use naming this skill.",
+  "runs_per_query": 3,
+  "trigger_rate_threshold": 0.5,
+  "queries": [
+    {
+      "query": "write up the design before we build it",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "i need an RFC for this API change",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "document the interface contract between these two services",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "we agreed on the approach, put it in a spec",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "draft a technical specification for the new billing flow",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "the team needs something written down to work from",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "write the requirements and data model for this feature",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "produce a design doc reviewers can comment on",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "formalise this proposal so it can be reviewed",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "capture the architecture decision and the alternatives we rejected",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "design this system for me",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "write the user guide for this feature",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "write the changelog for the release",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "generate an OpenAPI schema from these handlers",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "review this spec and tell me what's missing",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "what is an RFC, exactly",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "write a job description for a backend engineer",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "summarise the notes from yesterday's meeting",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "turn this spec into Jira tickets",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "write the tests described in this spec",
+      "should_trigger": false,
+      "split": "validation"
+    }
+  ]
+}

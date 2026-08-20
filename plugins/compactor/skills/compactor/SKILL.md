@@ -1,6 +1,6 @@
 ---
 name: compactor
-description: Re-render the previous result into a compact, table-like view.
+description: Re-renders the previous result as a dense, scannable table, dropping prose framing while keeping every distinct data point. Use when an answer arrived longer than it needed to be and the user wants it condensed rather than re-derived.
 license: MIT
 model: haiku
 allowed-tools:
@@ -9,7 +9,7 @@ allowed-tools:
   - Grep
 metadata:
   author: cmj@cmj.tw
-  version: 1.1.0
+  version: "2.0.0"
 ---
 
 # Compactor

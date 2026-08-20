@@ -1,0 +1,109 @@
+{
+  "skill": "ascii-grapher",
+  "about": "Trigger eval queries for this skill's description. A query is labelled with whether the skill should activate for it; the negatives are near-misses that share vocabulary with the skill but need something else. Split fixed so successive description edits are compared on the same ground: tune against train, judge against validation.",
+  "how_to_run": "No runner is committed. `claude plugin eval` is the intended one and is in early access; until it is available, run each query with `claude -p --output-format json` and count the runs whose transcript contains a Skill tool_use naming this skill.",
+  "runs_per_query": 3,
+  "trigger_rate_threshold": 0.5,
+  "queries": [
+    {
+      "query": "draw how these services talk to each other",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "i need a picture of this state machine for the README",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "sketch the request flow so it survives in a commit message",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "visualise the module dependencies in this package",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "show me the auth handshake as a diagram",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "can you lay out the pipeline stages graphically",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "make a text diagram of this data model",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "the architecture is hard to follow, illustrate it",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "draw the deployment topology",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "put the retry logic in a flowchart",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "explain in words how these services talk to each other",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "create this diagram in Figma",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "what does this ASCII art in the header mean",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "format this markdown table so the pipes line up",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "plot the latency numbers as a chart",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "design a logo for the project",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "convert this architecture screenshot into code",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "align these comment blocks",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "render this markdown file as HTML",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "generate a mermaid sequence diagram for the docs site",
+      "should_trigger": false,
+      "split": "validation"
+    }
+  ]
+}

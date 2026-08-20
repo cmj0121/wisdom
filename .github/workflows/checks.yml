@@ -1,0 +1,65 @@
+# Until this workflow existed, every check in this repo ran only in a local
+# pre-commit hook, so a contributor who had never run `make` could open a pull
+# request that no check had ever seen.
+name: checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  marketplace:
+    name: marketplace checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # check-version-sync compares the top-level marketplace version
+          # against the latest v* tag, which a shallow clone does not have.
+          fetch-depth: 0
+
+      - name: Structure, versions, semantics, and the Agent Skills standard
+        run: make test
+
+      # Not part of `make test`: this is the validator's own self-test rather
+      # than a check on the repo's contents, and it is the slowest of the five.
+      # CI is the one place that can afford to always run it.
+      - name: Negative fixtures
+        run: bash scripts/validate-fixtures
+
+  lint:
+    name: pre-commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # The shfmt hook shells out to a binary it does not install, and unlike
+      # shellcheck the runner image does not ship one. Pinned rather than
+      # tracking latest, so a formatter release cannot fail an unrelated PR.
+      - name: Install shfmt
+        env:
+          SHFMT_VERSION: v3.13.1
+        run: |
+          sudo curl -fsSL -o /usr/local/bin/shfmt \
+            "https://github.com/mvdan/sh/releases/download/${SHFMT_VERSION}/shfmt_${SHFMT_VERSION}_linux_amd64"
+          sudo chmod +x /usr/local/bin/shfmt
+          shfmt --version
+
+      # Runs every hook, including the four above. That overlap is deliberate:
+      # the job above tells you which repo check failed, this one tells you the
+      # commit would have been rejected locally too.
+      - uses: pre-commit/action@v3.0.1

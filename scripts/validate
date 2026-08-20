@@ -3,7 +3,7 @@
 #   1. Cross-skill references (`<plugin>:<skill>`) resolve to a real skill of a
 #      marketplace plugin, or to a known external plugin.
 #   2. Every SKILL.md has a closed YAML frontmatter block, and its 'model:'
-#      value (when present) is a known tier or a full model ID.
+#      value (when present) is a known tier, 'inherit', or a full model ID.
 #   3. Every plugin skill has a '## Shortcut' section declaring at least one
 #      magic (trigger) word, and no word is claimed by two different plugins.
 #   4. Every plugin README has the required sections, and its magic-word
@@ -54,7 +54,10 @@ def bad(msg):
 # these: their skill directories do not exist in this repo.
 EXTERNAL_PLUGINS = {"frontend-design"}
 
-MODEL_TIERS = {"fable", "opus", "sonnet", "haiku"}
+# 'inherit' is documented by Claude Code as a value of 'model:', meaning "keep
+# the active model". Omitting the field does the same thing, so rejecting it was
+# never load-bearing -- but it rejected something the platform accepts.
+MODEL_TIERS = {"fable", "opus", "sonnet", "haiku", "inherit"}
 MODEL_ID_RE = re.compile(r"^claude-[a-z0-9.-]+$")
 # A skill reference is a backtick span whose ENTIRE content is <plugin>:<skill>;
 # substrings inside longer spans (shell commands, ini sections) must not match.

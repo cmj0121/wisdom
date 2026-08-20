@@ -1,6 +1,6 @@
 ---
 name: agent-page
-description: SRE agent — observability, reliability, and performance review.
+description: SRE agent — reviews code and infrastructure for operational readiness: observability, reliability, performance and security posture. Use before a release, when a change touches deployment or monitoring, or when the user asks whether something is safe to run in production.
 license: MIT
 allowed-tools:
   - Bash(git log:*)
@@ -17,7 +17,7 @@ allowed-tools:
   - Grep
 metadata:
   author: cmj@cmj.tw
-  version: 1.3.0
+  version: "2.0.0"
 ---
 
 # Agent Page — SRE

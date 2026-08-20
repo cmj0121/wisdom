@@ -1,8 +1,10 @@
 ---
 name: changelog-gen
-description: Generates changelog from git history using conventional commits.
+description: Generates changelog entries from git history, grouping conventional commits by type. Use when a release needs notes, when the user asks what changed since a tag, or when a CHANGELOG has fallen behind the commits it is supposed to describe.
 license: MIT
 model: haiku
+context: fork
+background: false
 allowed-tools:
   - Bash(git log:*)
   - Bash(git tag:*)
@@ -14,7 +16,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: 1.2.0
+  version: "2.0.0"
 ---
 
 # Changelog Generator

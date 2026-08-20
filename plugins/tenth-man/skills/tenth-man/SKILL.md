@@ -1,6 +1,6 @@
 ---
 name: tenth-man
-description: Devil's advocate that challenges assumptions and surfaces risks to prevent groupthink.
+description: Devil's advocate — challenges the assumptions behind a plan, surfaces hidden risks, and names the blind spots a group has agreed past. Use before committing to a decision, when consensus arrived suspiciously fast, or when the user asks what could go wrong.
 license: MIT
 allowed-tools:
   - Read
@@ -10,7 +10,7 @@ allowed-tools:
   - Bash(git diff:*)
 metadata:
   author: cmj@cmj.tw
-  version: 1.1.2
+  version: "2.0.0"
 ---
 
 # Tenth Man Skill
@@ -62,6 +62,15 @@ Keep suggestions concrete and actionable.
 - Invoked by `agent-smith`: challenge the plan, return verdict (Go/Pause/Reconsider) with top items. Smith acts on verdict.
 - Invoked by `agent-ward`: challenge the architecture design, return findings. Ward may revise.
 - Invoked directly by user: run the full 5-phase workflow on the provided subject.
+
+## Output Style
+
+Follow `briefing:briefing` for everything addressed to the user: the verdict first, each
+challenge in one line before its explanation, detail only where asked, and one numbered topic
+at a time when the review opens a decision.
+
+Brevity applies to the wording, never to the findings. A challenge that is real is reported
+even when reporting it is inconvenient, and its severity is stated plainly.
 
 ## Tone
 

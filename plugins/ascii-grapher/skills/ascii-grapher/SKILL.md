@@ -1,8 +1,10 @@
 ---
 name: ascii-grapher
-description: Draw ASCII diagrams for architecture, flows, and concepts.
+description: Draws ASCII diagrams for architecture, data flows, state machines and concepts. Use when a structure is easier to see than to read, when the user asks for a diagram in plain text, or when a design needs a picture that survives in a terminal or a commit message.
 license: MIT
 model: haiku
+context: fork
+background: false
 allowed-tools:
   - Read
   - Glob
@@ -11,7 +13,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: 1.2.0
+  version: "2.0.0"
 ---
 
 # ASCII Grapher Skill
