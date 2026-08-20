@@ -10,7 +10,8 @@ allowed-tools:
   - Bash(git diff:*)
 metadata:
   author: cmj@cmj.tw
-  version: "2.0.0"
+  version: "2.1.0"
+  shortcut: "challenge this, tenth man"
 ---
 
 # Tenth Man Skill

@@ -9,7 +9,7 @@ allowed-tools:
   - Grep
 metadata:
   author: cmj@cmj.tw
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # Shortcut Skill
@@ -34,20 +34,24 @@ Also scan command directories:
 
 ## Magic Word Extraction
 
-In each `.md` file, find the `## Shortcut` section and extract backtick-quoted words
-from lines matching `prompt contains \`{word}\``. A file may define multiple magic
-words; multi-word phrases match as exact substrings.
+Read the file's YAML frontmatter and take `metadata.shortcut`, a comma-separated string:
 
-### Authoring Rule
+```yaml
+metadata:
+  shortcut: "challenge this, tenth man"
+```
 
-The rule above is what dispatch reads. It is not what a marketplace validator reads:
-a collision check cannot afford to miss a declaration, so it deliberately treats
-**every** backtick span inside a `## Shortcut` section — and under a plugin README's
-Magic Words heading — as a magic word.
+A file may declare several words; multi-word phrases match as exact substrings.
 
-So when writing those two sections, put nothing in backticks that is not a magic word,
-and write everything else plain. That is a constraint on authors; it does not widen the
-extraction rule above.
+### Files without a `metadata.shortcut`
+
+Fall back to the older contract: find the `## Shortcut` section and take backtick-quoted
+words from lines matching `prompt contains {word}`.
+
+The fallback exists because this skill scans user-level and project-level directories as
+well as plugin ones, and a skill written by someone else may still declare its words the
+old way. A file that has `metadata.shortcut` is read only from frontmatter — its
+`## Shortcut` section is prose for human readers, and a backtick there means nothing.
 
 ## Dispatch Rules
 

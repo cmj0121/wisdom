@@ -4,8 +4,9 @@
 #      marketplace plugin, or to a known external plugin.
 #   2. Every SKILL.md has a closed YAML frontmatter block, and its 'model:'
 #      value (when present) is a known tier, 'inherit', or a full model ID.
-#   3. Every plugin skill has a '## Shortcut' section declaring at least one
-#      magic (trigger) word, and no word is claimed by two different plugins.
+#   3. Every plugin skill declares at least one magic (trigger) word in
+#      'metadata.shortcut', its '## Shortcut' section spells each one out for
+#      human readers, and no word is claimed by two different plugins.
 #   4. Every plugin README has the required sections, and its magic-word
 #      section documents exactly the trigger words the skill declares.
 #   5. The top-level README lists every plugin the marketplace registers.
@@ -84,10 +85,13 @@ MAGIC_HEADING_RE = re.compile(r"magic word", re.IGNORECASE)
 # is safe because the opposite direction independently requires the span to
 # contain the declared word literally, so `compact <the> it` is still rejected.
 PLACEHOLDER_RE = re.compile(r"\s*<[^>]*>")
-# The shortcut skill's own dispatch contract (plugins/shortcut/skills/shortcut/
-# SKILL.md, "Magic Word Extraction"): backtick-quoted words on lines matching
-# ``prompt contains `{word}` ``. Key on that marker, not on one exact sentence.
-TRIGGER_MARKER = "prompt contains"
+# Where a skill declares its trigger words. Until v2.1.0 this was the prose of
+# the '## Shortcut' section, which meant a collision check could not afford to
+# miss a declaration and so read EVERY backtick span there as one — forcing an
+# authoring rule that reserved backticks in that section. The declaration now
+# lives in frontmatter, where it is unambiguous, and the section is checked for
+# agreeing with it rather than parsed as the source of truth.
+SHORTCUT_KEY = "shortcut"
 
 mk = json.load(open(os.path.join(root, ".claude-plugin", "marketplace.json")))
 plugin_names = {p["name"] for p in mk["plugins"]}
@@ -202,6 +206,35 @@ def frontmatter_field(front, key):
     return None
 
 
+def frontmatter_metadata(front, key):
+    """Value of `key:` inside the frontmatter's `metadata:` mapping, or None.
+
+    Only two levels deep and only in this repo's shape, which is all the
+    frontmatter here has ever been. A key outside a `metadata:` block is not
+    found, so a misplaced `shortcut:` fails as an absent one rather than
+    quietly working.
+    """
+    inside, prefix = False, "  " + key + ":"
+    for line in front:
+        if not line.startswith(" "):
+            inside = line.startswith("metadata:")
+            continue
+        if inside and line.startswith(prefix):
+            return line[len(prefix):].strip().strip("\"'")
+    return None
+
+
+def declared_words(value):
+    """Split a `metadata.shortcut` string into its words, in declaration order."""
+    seen, out = set(), []
+    for word in value.split(","):
+        word = " ".join(word.split())
+        if word and word not in seen:
+            seen.add(word)
+            out.append(word)
+    return out
+
+
 def section_lines(lines, wanted):
     """RAW body lines of EVERY heading `wanted` accepts, or None when there is none.
 
@@ -252,22 +285,6 @@ def backtick_spans(lines):
     return [" ".join(span.split()) for span in BACKTICK_RE.findall(text)]
 
 
-def trigger_words(section):
-    """Magic words declared by the prose body of a '## Shortcut' section.
-
-    Once the body carries a TRIGGER_MARKER anywhere, EVERY backtick span in it
-    counts. That is deliberately over-inclusive: the section exists only to
-    declare triggers, so a word written there is a declaration however the
-    sentence wraps, however many marker sentences there are, and whether the
-    word sits before or after the marker. Collecting too few is the dangerous
-    direction — it hides a real collision behind a green tick — while
-    collecting too many fails loudly and is trivial to see.
-    """
-    if not any(TRIGGER_MARKER in line for line in section):
-        return []
-    return backtick_spans(section)
-
-
 print("==> Checking cross-skill references")
 for path in skill_files:
     rel = os.path.relpath(path, root)
@@ -313,55 +330,53 @@ for path in skill_files:
     else:
         bad(f"{rel}: invalid model '{model}'")
 
-print("==> Checking magic-word collisions")
+print("==> Checking magic-word declarations and collisions")
 # plugin -> the trigger words it declares. Three states, kept apart on purpose:
 # a list of words, [] for a plugin that legitimately declares none, and
 # UNCHECKED when a failure below stopped this check from reading its words at
 # all. The README cross-check reads this dict, and reading "no entry" as
 # "declares nothing" silently switched that cross-check off for exactly the
-# plugin whose Shortcut section had just failed here — the safety net
-# disarming itself when its subject breaks.
+# plugin whose declaration had just failed here — the safety net disarming
+# itself when its subject breaks.
 UNCHECKED = object()
 triggers = {}
 before = errors
 for path in skill_files:
     rel = os.path.relpath(path, root)
     plugin = os.path.relpath(path, os.path.join(root, "plugins")).split(os.sep)[0]
-    section = shortcut_section(read_lines(path))
-    if section is None:
+    front = frontmatter(read_lines(path))
+    raw = None if front is None else frontmatter_metadata(front, SHORTCUT_KEY)
+    words = [] if raw is None else declared_words(raw)
+
+    if not words:
         if plugin in SHORTCUT_EXEMPT:
             triggers[plugin] = []
         else:
             triggers[plugin] = UNCHECKED
             bad(
-                f"{rel}: no '## Shortcut' section to declare its trigger words"
-                " (a skill that never dispatches belongs in SHORTCUT_EXEMPT in scripts/validate)"
+                f"{rel}: declares no trigger word in 'metadata.shortcut'"
+                " (a comma-separated string; a skill that never dispatches belongs"
+                " in SHORTCUT_EXEMPT in scripts/validate)"
             )
         continue
-    body = classify(section)
-    prose = [line for line, kind, _ in body if kind == "prose"]
-    fenced = [line for line, kind, _ in body if kind == "fenced"]
-    # A fence is where a declaration goes to die: prose_lines() strips it, so
-    # anything it holds is dropped without a word. Keying only on
-    # TRIGGER_MARKER was not enough — put the marker in the prose and the word
-    # alone in the fence and it vanished silently. Nothing in a '## Shortcut'
-    # section needs a fence, so any marker OR any backtick span inside one is
-    # an error.
-    if any(TRIGGER_MARKER in line for line in fenced) or backtick_spans(fenced):
-        triggers[plugin] = UNCHECKED
+    triggers[plugin] = words
+
+    # The section is documentation now, not the declaration, so this runs one
+    # way only: every declared word must appear there in backticks, and a
+    # backtick span that is not a trigger word is simply prose. That relaxation
+    # is the whole point of moving the declaration into frontmatter.
+    section = shortcut_section(read_lines(path))
+    if section is None:
+        bad(f"{rel}: declares trigger words but has no '## Shortcut' section spelling them out")
+        continue
+    spans = backtick_spans(prose_lines(section))
+    missing = [w for w in words if w not in spans]
+    if missing:
         bad(
-            f"{rel}: '## Shortcut' hides a trigger declaration inside a code fence,"
-            " where neither dispatch nor this check can read it"
-            " (move it out of the fence)"
+            f"{rel}: '## Shortcut' does not spell out "
+            + ", ".join(f"`{w}`" for w in missing)
+            + " (declared in metadata.shortcut; a reader of the section would never see it)"
         )
-        continue
-    words = trigger_words(prose)
-    if not words:
-        triggers[plugin] = UNCHECKED
-        bad(f"{rel}: '## Shortcut' section declares no trigger word")
-        continue
-    if triggers.get(plugin) is not UNCHECKED:
-        triggers.setdefault(plugin, []).extend(words)
 
 # The collision check is `triggers` read the other way round, so it is derived
 # from it rather than accumulated beside it. Sorting the claimants also keeps
@@ -375,12 +390,8 @@ for plugin, words in triggers.items():
 for word in sorted(claims):
     owners = sorted(claims[word])
     if len(owners) > 1:
-        bad(
-            f"magic word `{word}` claimed by both {' and '.join(owners)}"
-            " (inside a '## Shortcut' section, backticks are reserved for trigger words)"
-        )
+        bad(f"magic word `{word}` claimed by both {' and '.join(owners)}")
 if errors == before:
-    # No UNCHECKED entry can exist here: every path that sets one also fails.
     declaring = [p for p, words in triggers.items() if words]
     ok(f"{len(claims)} trigger word(s) across {len(declaring)} plugin(s), no collisions")
 

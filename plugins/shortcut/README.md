@@ -19,15 +19,21 @@ Install via the wisdom marketplace:
 
 ### Magic Word Registration
 
-Any skill or command file (`.md`) can register a shortcut by adding a `## Shortcut` section:
+Any skill or command file can register a shortcut by declaring the words in its YAML
+frontmatter, as a comma-separated string:
 
-```markdown
-## Shortcut
-
-This skill is triggered when the user's prompt contains `review`.
+```yaml
+metadata:
+  shortcut: "review code, qa review"
 ```
 
-The word inside backticks (`review`) becomes the magic word.
+A `## Shortcut` section in the body then spells the same words out for human readers. It is
+documentation: once frontmatter declares the words, a backtick in that section is ordinary
+prose and can name a file, a tool or another skill freely.
+
+Files with no `metadata.shortcut` fall back to the older contract — backtick-quoted words on
+a line reading "triggered when the user's prompt contains ..." inside the `## Shortcut`
+section — so a skill written before this change keeps working.
 
 ### Three-Tier Scanning
 
