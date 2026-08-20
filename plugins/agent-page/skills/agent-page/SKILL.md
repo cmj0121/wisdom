@@ -7,7 +7,7 @@ allowed-tools: >-
   Bash(npm audit:*), Bash(pip audit:*), Bash(go vet:*), Read, Glob, Grep
 metadata:
   author: cmj@cmj.tw
-  version: 1.3.0
+  version: "2.0.0"
 ---
 
 # Agent Page — SRE

@@ -5,7 +5,7 @@ license: MIT
 allowed-tools: Read
 metadata:
   author: cmj@cmj.tw
-  version: 2.0.0
+  version: "2.0.0"
 ---
 
 # Briefing — Output Style

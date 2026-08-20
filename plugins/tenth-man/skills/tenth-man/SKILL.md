@@ -5,7 +5,7 @@ license: MIT
 allowed-tools: Read, Glob, Grep, Bash(git log:*), Bash(git diff:*)
 metadata:
   author: cmj@cmj.tw
-  version: 1.1.2
+  version: "2.0.0"
 ---
 
 # Tenth Man Skill

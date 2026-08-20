@@ -9,7 +9,7 @@ allowed-tools: >-
   Bash(terraform:*), Bash(gh:*), Bash(pre-commit run:*), Read, Glob, Grep, Write, Edit
 metadata:
   author: cmj@cmj.tw
-  version: 1.3.0
+  version: "2.0.0"
 ---
 
 # Agent Ross — Release Manager

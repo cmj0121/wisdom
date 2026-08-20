@@ -9,7 +9,7 @@ allowed-tools: >-
   Glob, Grep, Write, Edit
 metadata:
   author: cmj@cmj.tw
-  version: 1.3.0
+  version: "2.0.0"
 ---
 
 # Agent Hale — Developer

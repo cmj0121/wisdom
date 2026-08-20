@@ -5,7 +5,7 @@ license: MIT
 allowed-tools: Bash(git status:*), Bash(git diff:*), Read, Glob, Grep
 metadata:
   author: cmj@cmj.tw
-  version: 1.4.0
+  version: "2.0.0"
 ---
 
 # Agent Ellis — QA

@@ -5,7 +5,7 @@ license: MIT
 allowed-tools: Bash(git log:*), Bash(git diff:*), Read, Glob, Grep, Write, Edit
 metadata:
   author: cmj@cmj.tw
-  version: 1.1.0
+  version: "2.0.0"
 ---
 
 # Agent Twain — Technical Writer

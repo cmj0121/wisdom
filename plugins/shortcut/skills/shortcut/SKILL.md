@@ -6,7 +6,7 @@ model: haiku
 allowed-tools: Read, Glob, Grep
 metadata:
   author: cmj@cmj.tw
-  version: 1.2.1
+  version: "2.0.0"
 ---
 
 # Shortcut Skill

@@ -5,7 +5,7 @@ license: MIT
 allowed-tools: Read, Glob, Grep, WebFetch, WebSearch
 metadata:
   author: cmj@cmj.tw
-  version: 1.3.2
+  version: "2.0.0"
 ---
 
 # Agent Ward — Architect

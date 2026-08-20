@@ -6,7 +6,7 @@ model: haiku
 allowed-tools: Read, Write, Edit, Glob
 metadata:
   author: cmj@cmj.tw
-  version: 1.1.2
+  version: "2.0.0"
 ---
 
 # Lingua — Response Language

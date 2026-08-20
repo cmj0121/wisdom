@@ -5,7 +5,7 @@ license: MIT
 allowed-tools: Bash(git ls-files:*), Bash(grep:*), Read, Glob, Grep
 metadata:
   author: cmj@cmj.tw
-  version: 1.1.1
+  version: "2.0.0"
 ---
 
 # Security Reviewer

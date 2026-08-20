@@ -5,7 +5,7 @@ license: MIT
 allowed-tools: Read, Glob, Grep, Write, Edit
 metadata:
   author: cmj@cmj.tw
-  version: 1.0.1
+  version: "2.0.0"
 ---
 
 # Spec Writer Skill
