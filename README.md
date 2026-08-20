@@ -50,11 +50,12 @@ has a clear role, responsibility boundary, and reporting chain.
 
 Standalone plugins, not part of the scrum chain. Each works on its own.
 
-| Tool        | Description                                                      |
-| ----------- | ---------------------------------------------------------------- |
-| `shortcut`  | Auto-dispatches a skill when your prompt contains its magic word |
-| `compactor` | Re-renders the previous result as a dense, scannable table       |
-| `lingua`    | Replies in the language you choose, remembered per project       |
+| Tool        | Description                                                               |
+| ----------- | ------------------------------------------------------------------------- |
+| `shortcut`  | Auto-dispatches a skill when your prompt contains its magic word          |
+| `compactor` | Re-renders the previous result as a dense, scannable table                |
+| `lingua`    | Replies in the language you choose, remembered per project                |
+| `briefing`  | Compact output and one-topic-at-a-time discussion for smith and tenth-man |
 
 ### Workflow
 

@@ -25,6 +25,10 @@ If both trigger types appear, prefer **Autonomous** mode.
 
 **Plan file:** `PLAN.md` in project root — living document, not committed, removed after merge.
 
+**Output style:** every message addressed to the user follows `briefing:briefing` — result
+first, questions summarised before they are argued, detail only on request, and one numbered
+topic per checkpoint. It shortens the output; it never removes a finding or a checkpoint.
+
 ## Shortcut
 
 This skill is triggered when the user's prompt contains `develop`, `implement it`,
@@ -53,7 +57,7 @@ If the file is absent, behave as before (match the user's language). Do not crea
 
 Seven agents — role, then the support tools each may invoke:
 
-- **agent-smith** — Project Leader · `tenth-man`
+- **agent-smith** — Project Leader · `tenth-man`, `briefing`
 - **agent-ward** — Architect · `spec-writer`, `tenth-man`, `ascii-grapher`
 - **agent-hale** — Developer · `test-runner`
 - **agent-ellis** — QA · `test-runner`, `dep-auditor`, `sec-review` (diff-scoped)

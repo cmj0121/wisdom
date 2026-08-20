@@ -97,6 +97,12 @@
       "source": "./plugins/compactor"
     },
     {
+      "name": "briefing",
+      "description": "Output style for planning and review agents — keeps results compact, summarises each question before answering it, and drives discussion one numbered topic at a time. Use when running agent-smith or tenth-man, or when the user asks for shorter output or to decide one thing at a time.",
+      "version": "2.0.0",
+      "source": "./plugins/briefing"
+    },
+    {
       "name": "sec-review",
       "description": "Whole-project security reviewer mapping findings to CWE.",
       "version": "1.1.1",
