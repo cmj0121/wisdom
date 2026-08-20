@@ -10,8 +10,8 @@
 #   1. Frontmatter carries no key outside the two allowed sets.
 #   2. 'name' obeys the standard's grammar and matches its directory.
 #   3. 'description' is present, within limits, third-person, tag-free.
-#   4. 'compatibility', 'metadata' and 'allowed-tools' hold the shapes the
-#      standard gives them.
+#   4. 'compatibility' and 'metadata' hold the shapes the standard gives
+#      them; 'allowed-tools' holds the one shape this repo departs to.
 #   5. The SKILL.md body stays inside the recommended budget.
 #   6. Bundled-file references resolve, stay one level deep, and use forward
 #      slashes; long reference files carry a table of contents.
@@ -241,6 +241,20 @@ def check_description(label, fields):
         )
 
 
+# allowed-tools is the one field here that deliberately does not follow the
+# standard, which types it as a space-separated string. Seventy of this repo's
+# grants contain a space -- Bash(git status:*) -- so a space-separated string
+# cannot express them, and the only space-free spelling, Bash(git:*), widens the
+# grant from one subcommand to all of git.
+#
+# That leaves a comma-separated string or a YAML list, and both are readable by
+# Claude Code. The list wins on how each fails elsewhere: a consumer that
+# follows the standard strictly rejects a list loudly on its type, but splits a
+# comma string on spaces into 'Bash(git' and 'status:*),' -- tool patterns that
+# match nothing, silently dropping a permission grant. A loud failure on a
+# permissions field beats a quiet one.
+#
+# The standard marks this field Experimental, so it is the one to depart from.
 def check_shapes(label, fields):
     compat = fields.get("compatibility")
     if compat is not None:
@@ -259,11 +273,11 @@ def check_shapes(label, fields):
                     bad(f"{label}: metadata.{k} must hold a string value")
 
     tools = fields.get("allowed-tools")
-    if tools is not None and not isinstance(tools, str):
+    if tools is not None and not isinstance(tools, list):
         bad(
-            f"{label}: allowed-tools must be a string, not a list"
-            " -- the standard types it as one, and Claude Code reads a"
-            " comma-separated string as well as a list"
+            f"{label}: allowed-tools must be a YAML list, not a string"
+            " -- see the note above check_shapes for why this one field"
+            " deliberately departs from the standard's type"
         )
 
 

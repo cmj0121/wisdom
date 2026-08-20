@@ -3,7 +3,10 @@ name: compactor
 description: Re-renders the previous result as a dense, scannable table, dropping prose framing while keeping every distinct data point. Use when an answer arrived longer than it needed to be and the user wants it condensed rather than re-derived.
 license: MIT
 model: haiku
-allowed-tools: Read, Glob, Grep
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
 metadata:
   author: cmj@cmj.tw
   version: "2.0.0"

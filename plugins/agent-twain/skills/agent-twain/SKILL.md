@@ -2,7 +2,14 @@
 name: agent-twain
 description: Technical Writer agent — writes user documentation, API references, migration guides and tutorials. Use when a change needs documenting, when existing docs have gone stale, or when the user asks for something to be explained to its readers rather than to them.
 license: MIT
-allowed-tools: Bash(git log:*), Bash(git diff:*), Read, Glob, Grep, Write, Edit
+allowed-tools:
+  - Bash(git log:*)
+  - Bash(git diff:*)
+  - Read
+  - Glob
+  - Grep
+  - Write
+  - Edit
 metadata:
   author: cmj@cmj.tw
   version: "2.0.0"

@@ -42,9 +42,14 @@ API, both of which reject an unknown key with a hard error rather than ignoring 
   because the same string is catalogue copy in `/plugin`, in `.claude-plugin/marketplace.json`
   and in both READMEs
 - `license`
-- `allowed-tools`: a **string**, not a YAML list. The standard says space-separated; this repo
-  uses commas, because 70 of its grants contain a space (`Bash(git status:*)`) and the only
-  space-free spelling would widen the grant to all of git
+- `allowed-tools`: a **YAML list** — the one place this repo knowingly departs from the
+  standard, which types the field as a space-separated string. 70 of its grants contain a
+  space (`Bash(git status:*)`), which a space-separated string cannot express, and the only
+  space-free spelling (`Bash(git:*)`) widens the grant from one subcommand to all of git. Of
+  the two remaining spellings, a list is rejected loudly on its type by a spec-strict reader,
+  while a comma-separated string gets split on spaces into `Bash(git` and `status:*),` —
+  patterns that match nothing, silently dropping a permission. The standard marks this field
+  Experimental, so it is the one to depart from
 - `metadata`: string keys to string values only — hence `version: "2.0.0"`, quoted
 - `compatibility`: unused here; most skills do not need it
 

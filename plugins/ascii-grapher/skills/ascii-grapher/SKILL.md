@@ -5,7 +5,12 @@ license: MIT
 model: haiku
 context: fork
 background: false
-allowed-tools: Read, Glob, Grep, Write, Edit
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - Write
+  - Edit
 metadata:
   author: cmj@cmj.tw
   version: "2.0.0"

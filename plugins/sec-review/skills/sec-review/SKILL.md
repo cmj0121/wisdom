@@ -2,7 +2,12 @@
 name: sec-review
 description: Reviews the whole project source for security issues and maps each finding to a CWE. Use when the user wants a security review of the codebase rather than of a diff, since diff-only reviewers inspect the current branch and nothing older.
 license: MIT
-allowed-tools: Bash(git ls-files:*), Bash(grep:*), Read, Glob, Grep
+allowed-tools:
+  - Bash(git ls-files:*)
+  - Bash(grep:*)
+  - Read
+  - Glob
+  - Grep
 metadata:
   author: cmj@cmj.tw
   version: "2.0.0"

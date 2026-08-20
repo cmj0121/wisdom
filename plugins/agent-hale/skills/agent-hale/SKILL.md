@@ -2,11 +2,30 @@
 name: agent-hale
 description: Developer agent — writes clean, robust, maintainable code and its tests from an agreed plan or design. Use when implementation is the task and the approach is already settled, or when the user asks for something to be coded, and prizes correctness over cleverness.
 license: MIT
-allowed-tools: >-
-  Bash(git status:*), Bash(git diff:*), Bash(npm test:*), Bash(npm run:*), Bash(npx:*), Bash(pytest:*),
-  Bash(python -m pytest:*), Bash(ruff:*), Bash(mypy:*), Bash(eslint:*), Bash(tsc:*), Bash(go test:*), Bash(go
-  vet:*), Bash(go build:*), Bash(make:*), Bash(cargo test:*), Bash(cargo check:*), Bash(cargo clippy:*), Read,
-  Glob, Grep, Write, Edit
+allowed-tools:
+  - Bash(git status:*)
+  - Bash(git diff:*)
+  - Bash(npm test:*)
+  - Bash(npm run:*)
+  - Bash(npx:*)
+  - Bash(pytest:*)
+  - Bash(python -m pytest:*)
+  - Bash(ruff:*)
+  - Bash(mypy:*)
+  - Bash(eslint:*)
+  - Bash(tsc:*)
+  - Bash(go test:*)
+  - Bash(go vet:*)
+  - Bash(go build:*)
+  - Bash(make:*)
+  - Bash(cargo test:*)
+  - Bash(cargo check:*)
+  - Bash(cargo clippy:*)
+  - Read
+  - Glob
+  - Grep
+  - Write
+  - Edit
 metadata:
   author: cmj@cmj.tw
   version: "2.0.0"

@@ -2,9 +2,19 @@
 name: agent-page
 description: SRE agent — reviews code and infrastructure for operational readiness: observability, reliability, performance and security posture. Use before a release, when a change touches deployment or monitoring, or when the user asks whether something is safe to run in production.
 license: MIT
-allowed-tools: >-
-  Bash(git log:*), Bash(git diff:*), Bash(docker:*), Bash(docker-compose:*), Bash(kubectl:*), Bash(terraform:*),
-  Bash(npm audit:*), Bash(pip audit:*), Bash(go vet:*), Read, Glob, Grep
+allowed-tools:
+  - Bash(git log:*)
+  - Bash(git diff:*)
+  - Bash(docker:*)
+  - Bash(docker-compose:*)
+  - Bash(kubectl:*)
+  - Bash(terraform:*)
+  - Bash(npm audit:*)
+  - Bash(pip audit:*)
+  - Bash(go vet:*)
+  - Read
+  - Glob
+  - Grep
 metadata:
   author: cmj@cmj.tw
   version: "2.0.0"

@@ -5,7 +5,15 @@ license: MIT
 model: haiku
 context: fork
 background: false
-allowed-tools: Bash(git log:*), Bash(git tag:*), Bash(git diff:*), Read, Glob, Grep, Write, Edit
+allowed-tools:
+  - Bash(git log:*)
+  - Bash(git tag:*)
+  - Bash(git diff:*)
+  - Read
+  - Glob
+  - Grep
+  - Write
+  - Edit
 metadata:
   author: cmj@cmj.tw
   version: "2.0.0"
