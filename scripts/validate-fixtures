@@ -101,6 +101,20 @@ expect_spec_fail() {
 	fi
 }
 
+# expect_spec_warn <expected-message-substring> <label> — the check must still
+# pass, but must have said something on the way.
+expect_spec_warn() {
+	if ! bash "$REPO_ROOT/scripts/check-skill-spec" "$TMP_DIR/repo" >"$TMP_DIR/out" 2>&1; then
+		fail "$2: spec check failed on a copy it should only warn about"
+		sed 's/^/      /' "$TMP_DIR/out"
+	elif grep -qF "$1" "$TMP_DIR/out"; then
+		pass "$2"
+	else
+		fail "$2: spec check passed, but without warning \"$1\""
+		sed 's/^/      /' "$TMP_DIR/out"
+	fi
+}
+
 expect_spec_pass() {
 	if bash "$REPO_ROOT/scripts/check-skill-spec" "$TMP_DIR/repo" >"$TMP_DIR/out" 2>&1; then
 		pass "$1"
@@ -593,6 +607,13 @@ fresh_copy
 dirty "$SPEC_SKILL"
 for _ in $(seq 1 520); do echo "filler" >>"$TMP_DIR/repo/$SPEC_SKILL"; done
 expect_spec_fail "over the 500 budget" "a body that should have been split is rejected"
+
+echo "==> Fixture: a body approaching, but not over, the budget"
+fresh_copy
+dirty "$SPEC_SKILL"
+for _ in $(seq 1 380); do echo "filler" >>"$TMP_DIR/repo/$SPEC_SKILL"; done
+expect_spec_warn "approaching the 500 budget" \
+	"a body nearing the ceiling warns without failing"
 
 echo "==> Fixture: a reference to a file that is not bundled"
 fresh_copy

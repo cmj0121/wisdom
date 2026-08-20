@@ -34,7 +34,7 @@ import sys
 
 root = sys.argv[1]
 
-GREEN, RED, RESET = "\033[32m", "\033[31m", "\033[0m"
+GREEN, RED, YELLOW, RESET = "\033[32m", "\033[31m", "\033[33m", "\033[0m"
 # Quiet by default; WISDOM_VERBOSE=1 restores the per-item PASS lines. Same
 # reasoning as scripts/test and scripts/validate.
 WISDOM_VERBOSE = os.environ.get("WISDOM_VERBOSE", "") not in ("", "0")
@@ -50,6 +50,12 @@ def bad(msg):
     global errors
     print(f"  {RED}FAIL{RESET} {msg}")
     errors += 1
+
+
+def warn(msg):
+    # Always printed, unlike the PASS lines: a warning nobody reads is not a
+    # warning. It does not affect the exit status.
+    print(f"  {YELLOW}WARN{RESET} {msg}")
 
 
 # ---------------------------------------------------------------- the policy
@@ -92,6 +98,11 @@ DESCRIPTION_PREFERRED_MAX = 400
 COMPATIBILITY_MAX = 500
 # https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
 BODY_MAX_LINES = 500
+# Splitting a skill is worth doing as it approaches the ceiling, not once it is
+# over: a body that must be read in full every run saves nothing by moving to a
+# second file, so the useful moment to split is while there is still a choice
+# about which sections to move. This warns; it does not fail.
+BODY_WARN_LINES = 350
 # A reference file past this length gets previewed rather than read whole, so
 # it needs a contents list for the preview to still show its full scope.
 TOC_REQUIRED_OVER = 100
@@ -177,9 +188,7 @@ def rel(path):
 
 def check_fields(label, fields):
     for key in fields:
-        if key in STANDARD_FIELDS:
-            continue
-        if key in CLAUDE_CODE_EXTENSIONS:
+        if key in ALLOWED_FIELDS:
             continue
         bad(
             f"{label}: unknown frontmatter key '{key}'"
@@ -263,6 +272,12 @@ def check_body(label, path, body):
         bad(
             f"{label}: body is {len(body)} lines, over the {BODY_MAX_LINES} budget"
             " -- move detail into references/ and link to it"
+        )
+    elif len(body) > BODY_WARN_LINES:
+        warn(
+            f"{label}: body is {len(body)} lines, approaching the {BODY_MAX_LINES}"
+            " budget -- consider moving the conditional sections into references/"
+            " while there is still a choice about which"
         )
 
     skill_dir = os.path.dirname(path)
