@@ -1,7 +1,7 @@
 {
   "name": "tenth-man",
   "description": "Devil's advocate — challenges the assumptions behind a plan, surfaces hidden risks, and names the blind spots a group has agreed past. Use before committing to a decision, when consensus arrived suspiciously fast, or when the user asks what could go wrong.",
-  "version": "2.1.0",
+  "version": "2.0.0",
   "license": "MIT",
   "author": {
     "name": "cmj",

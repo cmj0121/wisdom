@@ -85,7 +85,7 @@ MAGIC_HEADING_RE = re.compile(r"magic word", re.IGNORECASE)
 # is safe because the opposite direction independently requires the span to
 # contain the declared word literally, so `compact <the> it` is still rejected.
 PLACEHOLDER_RE = re.compile(r"\s*<[^>]*>")
-# Where a skill declares its trigger words. Until v2.1.0 this was the prose of
+# Where a skill declares its trigger words. Before v2.0.0 this was the prose of
 # the '## Shortcut' section, which meant a collision check could not afford to
 # miss a declaration and so read EVERY backtick span there as one — forcing an
 # authoring rule that reserved backticks in that section. The declaration now

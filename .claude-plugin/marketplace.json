@@ -1,6 +1,6 @@
 {
   "name": "wisdom",
-  "version": "2.1.0",
+  "version": "2.0.0",
   "owner": {
     "name": "cmj",
     "url": "https://github.com/cmj0121"
@@ -9,109 +9,109 @@
     {
       "name": "shortcut",
       "description": "Dispatches the skill or command whose declared magic word appears in the prompt. Use at the start of a turn to check whether the user typed a registered trigger phrase, and to list every shortcut available across personal, project and plugin skills.",
-      "version": "2.1.0",
+      "version": "2.0.0",
       "source": "./plugins/shortcut"
     },
     {
       "name": "agent-smith",
       "description": "Project Leader agent — plans a piece of work, dispatches it to the scrum team, and coordinates the iterations. Use when the user asks to build, implement, refactor or fix something substantial, or wants a plan agreed before code is written, even if they name no agent.",
-      "version": "2.1.0",
+      "version": "2.0.0",
       "source": "./plugins/agent-smith"
     },
     {
       "name": "agent-ward",
       "description": "Architect agent — designs systems and APIs and decides the tech stack. Use before implementation starts on anything non-trivial, when the user asks how something should be structured, weighs one library or protocol against another, or needs a design reviewed for consistency.",
-      "version": "2.1.0",
+      "version": "2.0.0",
       "source": "./plugins/agent-ward"
     },
     {
       "name": "agent-hale",
       "description": "Developer agent — writes clean, robust, maintainable code and its tests from an agreed plan or design. Use when implementation is the task and the approach is already settled, or when the user asks for something to be coded, and prizes correctness over cleverness.",
-      "version": "2.1.0",
+      "version": "2.0.0",
       "source": "./plugins/agent-hale"
     },
     {
       "name": "agent-ellis",
       "description": "QA agent — reviews code quality and security, runs the test suite, and verifies work against its acceptance criteria. Use when a change needs reviewing before it lands, when tests should be run and judged, or when the user asks whether something is actually done.",
-      "version": "2.1.0",
+      "version": "2.0.0",
       "source": "./plugins/agent-ellis"
     },
     {
       "name": "agent-twain",
       "description": "Technical Writer agent — writes user documentation, API references, migration guides and tutorials. Use when a change needs documenting, when existing docs have gone stale, or when the user asks for something to be explained to its readers rather than to them.",
-      "version": "2.1.0",
+      "version": "2.0.0",
       "source": "./plugins/agent-twain"
     },
     {
       "name": "agent-page",
       "description": "SRE agent — reviews code and infrastructure for operational readiness: observability, reliability, performance and security posture. Use before a release, when a change touches deployment or monitoring, or when the user asks whether something is safe to run in production.",
-      "version": "2.1.0",
+      "version": "2.0.0",
       "source": "./plugins/agent-page"
     },
     {
       "name": "agent-ross",
       "description": "Release Manager agent — writes commit messages, runs CI/CD and Docker builds, deploys, and tags releases. Use when finished work needs to ship, when a changelog or version bump is due, or when the user asks to commit, deploy or cut a release.",
-      "version": "2.1.0",
+      "version": "2.0.0",
       "source": "./plugins/agent-ross"
     },
     {
       "name": "spec-writer",
       "description": "Writes technical specifications — requirements, interfaces, data models and architecture diagrams. Use when a design needs recording before it is built, when the user asks for a spec, RFC or design document, or when another agent needs a written contract to work from.",
-      "version": "2.1.0",
+      "version": "2.0.0",
       "source": "./plugins/spec-writer"
     },
     {
       "name": "tenth-man",
       "description": "Devil's advocate — challenges the assumptions behind a plan, surfaces hidden risks, and names the blind spots a group has agreed past. Use before committing to a decision, when consensus arrived suspiciously fast, or when the user asks what could go wrong.",
-      "version": "2.1.0",
+      "version": "2.0.0",
       "source": "./plugins/tenth-man"
     },
     {
       "name": "ascii-grapher",
       "description": "Draws ASCII diagrams for architecture, data flows, state machines and concepts. Use when a structure is easier to see than to read, when the user asks for a diagram in plain text, or when a design needs a picture that survives in a terminal or a commit message.",
-      "version": "2.1.0",
+      "version": "2.0.0",
       "source": "./plugins/ascii-grapher"
     },
     {
       "name": "test-runner",
       "description": "Detects the project's test framework, runs its suite, and reports what passed, what failed and why. Use when a change needs verifying, when the user asks to run the tests, or when an agent needs the current state of the suite before judging finished work.",
-      "version": "2.1.0",
+      "version": "2.0.0",
       "source": "./plugins/test-runner"
     },
     {
       "name": "changelog-gen",
       "description": "Generates changelog entries from git history, grouping conventional commits by type. Use when a release needs notes, when the user asks what changed since a tag, or when a CHANGELOG has fallen behind the commits it is supposed to describe.",
-      "version": "2.1.0",
+      "version": "2.0.0",
       "source": "./plugins/changelog-gen"
     },
     {
       "name": "dep-auditor",
       "description": "Audits project dependencies for known vulnerabilities and outdated versions across npm, pip, go, cargo and bundler. Use before a release, when a lockfile changes, or when the user asks whether the dependencies are safe or current.",
-      "version": "2.1.0",
+      "version": "2.0.0",
       "source": "./plugins/dep-auditor"
     },
     {
       "name": "compactor",
       "description": "Re-renders the previous result as a dense, scannable table, dropping prose framing while keeping every distinct data point. Use when an answer arrived longer than it needed to be and the user wants it condensed rather than re-derived.",
-      "version": "2.1.0",
+      "version": "2.0.0",
       "source": "./plugins/compactor"
     },
     {
       "name": "briefing",
       "description": "Output style for planning and review agents — keeps results compact, summarises each question before answering it, and drives discussion one numbered topic at a time. Use when running agent-smith or tenth-man, or when the user asks for shorter output or to decide one thing at a time.",
-      "version": "2.1.0",
+      "version": "2.0.0",
       "source": "./plugins/briefing"
     },
     {
       "name": "sec-review",
       "description": "Reviews the whole project source for security issues and maps each finding to a CWE. Use when the user wants a security review of the codebase rather than of a diff, since diff-only reviewers inspect the current branch and nothing older.",
-      "version": "2.1.0",
+      "version": "2.0.0",
       "source": "./plugins/sec-review"
     },
     {
       "name": "lingua",
       "description": "Answers in the user's chosen language whatever language they write in, and can restate their question in correct terminology first. Use when the user asks to reply in a particular language, or when a project has a stored language preference to load or update.",
-      "version": "2.1.0",
+      "version": "2.0.0",
       "source": "./plugins/lingua"
     }
   ]
