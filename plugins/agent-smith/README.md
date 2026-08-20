@@ -1,6 +1,8 @@
 # Agent Smith Plugin
 
-> Project Leader agent — plans, dispatches, coordinates the scrum team.
+> Project Leader agent — plans a piece of work, dispatches it to the scrum team, and coordinates the
+> iterations. Use when the user asks to build, implement, refactor or fix something substantial, or
+> wants a plan agreed before code is written, even if they name no agent.
 
 Agent Smith is the leader of the scrum team. Smith owns the full lifecycle: analyzing
 project context, producing plans, dispatching to specialized agents, and coordinating

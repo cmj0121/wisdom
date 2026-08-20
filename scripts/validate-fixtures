@@ -454,14 +454,17 @@ expect_fail "plugins/ghost/README.md: no '## Installation' section" \
 
 echo "==> Fixture: SKILL.md description drifting from the manifests"
 fresh_copy
-mutate 's/^description: Re-render the previous result into a compact, table-like view\.$/description: Re-render the previous result./' \
+# Matched by shape, not by content: pinning the wording made this fixture
+# break every time the description was edited, for a reason that was never
+# about drift.
+mutate 's/^description: .*/description: Something else entirely./' \
 	plugins/compactor/skills/compactor/SKILL.md
 expect_fail "compactor: description differs between its sources" \
 	"a SKILL.md description that drifts from plugin.json and marketplace.json is caught"
 
 echo "==> Fixture: plugin.json description drifting from the other two"
 fresh_copy
-mutate 's/"description": "Re-render the previous result into a compact, table-like view."/"description": "Re-render the previous result."/' \
+mutate 's/"description": ".*"/"description": "Something else entirely."/' \
 	plugins/compactor/.claude-plugin/plugin.json
 expect_fail "compactor: description differs between its sources" \
 	"a plugin.json description that drifts from SKILL.md and marketplace.json is caught"

@@ -1,6 +1,6 @@
 ---
 name: test-runner
-description: Detects test framework and runs the project test suite.
+description: Detects the project's test framework, runs its suite, and reports what passed, what failed and why. Use when a change needs verifying, when the user asks to run the tests, or when an agent needs the current state of the suite before judging finished work.
 license: MIT
 model: haiku
 context: fork

@@ -1,6 +1,8 @@
 # Compactor Plugin
 
-> Re-render the previous result into a compact, table-like view.
+> Re-renders the previous result as a dense, scannable table, dropping prose framing while keeping
+> every distinct data point. Use when an answer arrived longer than it needed to be and the user wants
+> it condensed rather than re-derived.
 
 A shared support tool that takes the previous result and re-renders it as a
 dense, scannable, table-like view — stripping prose and filler.

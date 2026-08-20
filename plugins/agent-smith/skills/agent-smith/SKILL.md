@@ -1,6 +1,6 @@
 ---
 name: agent-smith
-description: Project Leader agent — plans, dispatches, coordinates the scrum team.
+description: Project Leader agent — plans a piece of work, dispatches it to the scrum team, and coordinates the iterations. Use when the user asks to build, implement, refactor or fix something substantial, or wants a plan agreed before code is written, even if they name no agent.
 license: MIT
 allowed-tools: >-
   Bash(git status:*), Bash(git checkout -b:*), Bash(git checkout:*), Bash(git log:*), Bash(git stash), Bash(git

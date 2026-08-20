@@ -1,6 +1,6 @@
 ---
 name: shortcut
-description: Auto-dispatch skills and commands when the user types a magic word.
+description: Dispatches the skill or command whose declared magic word appears in the prompt. Use at the start of a turn to check whether the user typed a registered trigger phrase, and to list every shortcut available across personal, project and plugin skills.
 license: MIT
 model: haiku
 allowed-tools: Read, Glob, Grep

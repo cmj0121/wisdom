@@ -1,6 +1,8 @@
 # Security Reviewer Plugin
 
-> Whole-project security reviewer mapping findings to CWE.
+> Reviews the whole project source for security issues and maps each finding to a CWE. Use when the
+> user wants a security review of the codebase rather than of a diff, since diff-only reviewers
+> inspect the current branch and nothing older.
 
 A shared support tool that reads the **whole project** source and surfaces potential
 security issues, mapping each to a related CWE ID. Unlike the built-in diff-only

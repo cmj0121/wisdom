@@ -1,6 +1,6 @@
 ---
 name: agent-ellis
-description: QA agent — code review, test execution, and acceptance verification.
+description: QA agent — reviews code quality and security, runs the test suite, and verifies work against its acceptance criteria. Use when a change needs reviewing before it lands, when tests should be run and judged, or when the user asks whether something is actually done.
 license: MIT
 allowed-tools: Bash(git status:*), Bash(git diff:*), Read, Glob, Grep
 metadata:

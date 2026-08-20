@@ -1,6 +1,8 @@
 # ASCII Grapher Plugin
 
-> Draw ASCII diagrams for architecture, flows, and concepts.
+> Draws ASCII diagrams for architecture, data flows, state machines and concepts. Use when a structure
+> is easier to see than to read, when the user asks for a diagram in plain text, or when a design
+> needs a picture that survives in a terminal or a commit message.
 
 The ascii-grapher plugin creates plain-text diagrams directly in your terminal — no external tools
 needed. Describe what you want to visualize (or point it at your code) and get a clean ASCII diagram

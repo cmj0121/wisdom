@@ -1,6 +1,8 @@
 # Tenth Man Plugin
 
-> Devil's advocate that challenges assumptions and surfaces risks to prevent groupthink.
+> Devil's advocate — challenges the assumptions behind a plan, surfaces hidden risks, and names the
+> blind spots a group has agreed past. Use before committing to a decision, when consensus arrived
+> suspiciously fast, or when the user asks what could go wrong.
 
 Named after the "tenth man rule" — if nine people agree, the tenth must argue the opposite.
 This plugin systematically challenges plans, proposals, designs, and code changes to surface

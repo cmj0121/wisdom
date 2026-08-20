@@ -1,6 +1,6 @@
 ---
 name: agent-ward
-description: Architect agent — system design, API design, and tech stack decisions.
+description: Architect agent — designs systems and APIs and decides the tech stack. Use before implementation starts on anything non-trivial, when the user asks how something should be structured, weighs one library or protocol against another, or needs a design reviewed for consistency.
 license: MIT
 allowed-tools: Read, Glob, Grep, WebFetch, WebSearch
 metadata:

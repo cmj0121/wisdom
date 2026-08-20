@@ -1,6 +1,6 @@
 ---
 name: tenth-man
-description: Devil's advocate that challenges assumptions and surfaces risks to prevent groupthink.
+description: Devil's advocate — challenges the assumptions behind a plan, surfaces hidden risks, and names the blind spots a group has agreed past. Use before committing to a decision, when consensus arrived suspiciously fast, or when the user asks what could go wrong.
 license: MIT
 allowed-tools: Read, Glob, Grep, Bash(git log:*), Bash(git diff:*)
 metadata:
