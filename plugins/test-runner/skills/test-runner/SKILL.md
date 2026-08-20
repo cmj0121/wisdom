@@ -3,6 +3,8 @@ name: test-runner
 description: Detects test framework and runs the project test suite.
 license: MIT
 model: haiku
+context: fork
+background: false
 allowed-tools: >-
   Bash(npm test:*), Bash(npm run:*), Bash(npx:*), Bash(pytest:*), Bash(python -m pytest:*), Bash(go test:*),
   Bash(make test:*), Bash(cargo test:*), Bash(mvn test:*), Bash(gradle test:*), Bash(bundle exec:*), Bash(mix

@@ -3,6 +3,8 @@ name: dep-auditor
 description: Audits dependencies for vulnerabilities and outdated packages.
 license: MIT
 model: haiku
+context: fork
+background: false
 allowed-tools: >-
   Bash(npm audit:*), Bash(npm outdated:*), Bash(pip audit:*), Bash(pip list --outdated:*), Bash(go list:*),
   Bash(govulncheck:*), Bash(cargo audit:*), Bash(cargo outdated:*), Bash(bundle audit:*), Bash(gh api:*), Read,

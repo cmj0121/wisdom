@@ -3,6 +3,8 @@ name: ascii-grapher
 description: Draw ASCII diagrams for architecture, flows, and concepts.
 license: MIT
 model: haiku
+context: fork
+background: false
 allowed-tools: Read, Glob, Grep, Write, Edit
 metadata:
   author: cmj@cmj.tw
