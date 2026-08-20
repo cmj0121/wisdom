@@ -1,7 +1,7 @@
 {
   "name": "test-runner",
   "description": "Detects the project's test framework, runs its suite, and reports what passed, what failed and why. Use when a change needs verifying, when the user asks to run the tests, or when an agent needs the current state of the suite before judging finished work.",
-  "version": "2.1.0",
+  "version": "2.0.0",
   "license": "MIT",
   "author": {
     "name": "cmj",
