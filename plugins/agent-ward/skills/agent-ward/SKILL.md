@@ -2,12 +2,7 @@
 name: agent-ward
 description: Architect agent — system design, API design, and tech stack decisions.
 license: MIT
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - WebFetch
-  - WebSearch
+allowed-tools: Read, Glob, Grep, WebFetch, WebSearch
 metadata:
   author: cmj@cmj.tw
   version: 1.3.2

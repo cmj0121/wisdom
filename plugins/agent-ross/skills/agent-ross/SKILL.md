@@ -2,31 +2,11 @@
 name: agent-ross
 description: Release Manager agent — CI/CD, Docker, cloud deploy, and release tagging.
 license: MIT
-allowed-tools:
-  - Bash(git add:*)
-  - Bash(git commit -m:*)
-  - Bash(git commit --no-verify -m:*)
-  - Bash(git reset --soft:*)
-  - Bash(git status:*)
-  - Bash(git log:*)
-  - Bash(git diff:*)
-  - Bash(git config:*)
-  - Bash(git tag:*)
-  - Bash(git merge:*)
-  - Bash(git checkout:*)
-  - Bash(git branch:*)
-  - Bash(docker:*)
-  - Bash(docker-compose:*)
-  - Bash(docker buildx:*)
-  - Bash(kubectl:*)
-  - Bash(terraform:*)
-  - Bash(gh:*)
-  - Bash(pre-commit run:*)
-  - Read
-  - Glob
-  - Grep
-  - Write
-  - Edit
+allowed-tools: >-
+  Bash(git add:*), Bash(git commit -m:*), Bash(git commit --no-verify -m:*), Bash(git reset --soft:*), Bash(git
+  status:*), Bash(git log:*), Bash(git diff:*), Bash(git config:*), Bash(git tag:*), Bash(git merge:*), Bash(git
+  checkout:*), Bash(git branch:*), Bash(docker:*), Bash(docker-compose:*), Bash(docker buildx:*), Bash(kubectl:*),
+  Bash(terraform:*), Bash(gh:*), Bash(pre-commit run:*), Read, Glob, Grep, Write, Edit
 metadata:
   author: cmj@cmj.tw
   version: 1.3.0

@@ -2,30 +2,11 @@
 name: agent-hale
 description: Developer agent — writes clean, robust and maintainable code.
 license: MIT
-allowed-tools:
-  - Bash(git status:*)
-  - Bash(git diff:*)
-  - Bash(npm test:*)
-  - Bash(npm run:*)
-  - Bash(npx:*)
-  - Bash(pytest:*)
-  - Bash(python -m pytest:*)
-  - Bash(ruff:*)
-  - Bash(mypy:*)
-  - Bash(eslint:*)
-  - Bash(tsc:*)
-  - Bash(go test:*)
-  - Bash(go vet:*)
-  - Bash(go build:*)
-  - Bash(make:*)
-  - Bash(cargo test:*)
-  - Bash(cargo check:*)
-  - Bash(cargo clippy:*)
-  - Read
-  - Glob
-  - Grep
-  - Write
-  - Edit
+allowed-tools: >-
+  Bash(git status:*), Bash(git diff:*), Bash(npm test:*), Bash(npm run:*), Bash(npx:*), Bash(pytest:*),
+  Bash(python -m pytest:*), Bash(ruff:*), Bash(mypy:*), Bash(eslint:*), Bash(tsc:*), Bash(go test:*), Bash(go
+  vet:*), Bash(go build:*), Bash(make:*), Bash(cargo test:*), Bash(cargo check:*), Bash(cargo clippy:*), Read,
+  Glob, Grep, Write, Edit
 metadata:
   author: cmj@cmj.tw
   version: 1.3.0

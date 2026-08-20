@@ -2,14 +2,7 @@
 name: agent-twain
 description: Technical Writer agent — user docs, API docs, and migration guides.
 license: MIT
-allowed-tools:
-  - Bash(git log:*)
-  - Bash(git diff:*)
-  - Read
-  - Glob
-  - Grep
-  - Write
-  - Edit
+allowed-tools: Bash(git log:*), Bash(git diff:*), Read, Glob, Grep, Write, Edit
 metadata:
   author: cmj@cmj.tw
   version: 1.1.0

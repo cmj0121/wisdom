@@ -2,12 +2,7 @@
 name: sec-review
 description: Whole-project security reviewer mapping findings to CWE.
 license: MIT
-allowed-tools:
-  - Bash(git ls-files:*)
-  - Bash(grep:*)
-  - Read
-  - Glob
-  - Grep
+allowed-tools: Bash(git ls-files:*), Bash(grep:*), Read, Glob, Grep
 metadata:
   author: cmj@cmj.tw
   version: 1.1.1

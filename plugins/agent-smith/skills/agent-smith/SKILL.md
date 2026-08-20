@@ -2,25 +2,10 @@
 name: agent-smith
 description: Project Leader agent — plans, dispatches, coordinates the scrum team.
 license: MIT
-allowed-tools:
-  - Bash(git status:*)
-  - Bash(git checkout -b:*)
-  - Bash(git checkout:*)
-  - Bash(git log:*)
-  - Bash(git stash)
-  - Bash(git restore:*)
-  - Bash(git diff:*)
-  - Bash(git merge:*)
-  - Bash(git branch:*)
-  - Bash(rm PLAN.md)
-  - Bash(gh issue view:*)
-  - Read
-  - Glob
-  - Grep
-  - Write
-  - Edit
-  - WebFetch
-  - WebSearch
+allowed-tools: >-
+  Bash(git status:*), Bash(git checkout -b:*), Bash(git checkout:*), Bash(git log:*), Bash(git stash), Bash(git
+  restore:*), Bash(git diff:*), Bash(git merge:*), Bash(git branch:*), Bash(rm PLAN.md), Bash(gh issue view:*),
+  Read, Glob, Grep, Write, Edit, WebFetch, WebSearch
 metadata:
   author: cmj@cmj.tw
   version: 1.6.1

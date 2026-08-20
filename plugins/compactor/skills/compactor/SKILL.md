@@ -3,10 +3,7 @@ name: compactor
 description: Re-render the previous result into a compact, table-like view.
 license: MIT
 model: haiku
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
+allowed-tools: Read, Glob, Grep
 metadata:
   author: cmj@cmj.tw
   version: 1.1.0

@@ -2,12 +2,7 @@
 name: agent-ellis
 description: QA agent — code review, test execution, and acceptance verification.
 license: MIT
-allowed-tools:
-  - Bash(git status:*)
-  - Bash(git diff:*)
-  - Read
-  - Glob
-  - Grep
+allowed-tools: Bash(git status:*), Bash(git diff:*), Read, Glob, Grep
 metadata:
   author: cmj@cmj.tw
   version: 1.4.0

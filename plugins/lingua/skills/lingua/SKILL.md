@@ -3,11 +3,7 @@ name: lingua
 description: Response-language preference — answer in your chosen language and refine your questions.
 license: MIT
 model: haiku
-allowed-tools:
-  - Read
-  - Write
-  - Edit
-  - Glob
+allowed-tools: Read, Write, Edit, Glob
 metadata:
   author: cmj@cmj.tw
   version: 1.1.2

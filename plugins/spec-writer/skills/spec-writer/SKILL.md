@@ -2,12 +2,7 @@
 name: spec-writer
 description: Writes technical specifications with architecture diagrams.
 license: MIT
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - Write
-  - Edit
+allowed-tools: Read, Glob, Grep, Write, Edit
 metadata:
   author: cmj@cmj.tw
   version: 1.0.1

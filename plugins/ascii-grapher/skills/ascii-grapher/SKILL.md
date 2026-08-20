@@ -3,12 +3,7 @@ name: ascii-grapher
 description: Draw ASCII diagrams for architecture, flows, and concepts.
 license: MIT
 model: haiku
-allowed-tools:
-  - Read
-  - Glob
-  - Grep
-  - Write
-  - Edit
+allowed-tools: Read, Glob, Grep, Write, Edit
 metadata:
   author: cmj@cmj.tw
   version: 1.2.0

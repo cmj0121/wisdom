@@ -2,19 +2,9 @@
 name: agent-page
 description: SRE agent — observability, reliability, and performance review.
 license: MIT
-allowed-tools:
-  - Bash(git log:*)
-  - Bash(git diff:*)
-  - Bash(docker:*)
-  - Bash(docker-compose:*)
-  - Bash(kubectl:*)
-  - Bash(terraform:*)
-  - Bash(npm audit:*)
-  - Bash(pip audit:*)
-  - Bash(go vet:*)
-  - Read
-  - Glob
-  - Grep
+allowed-tools: >-
+  Bash(git log:*), Bash(git diff:*), Bash(docker:*), Bash(docker-compose:*), Bash(kubectl:*), Bash(terraform:*),
+  Bash(npm audit:*), Bash(pip audit:*), Bash(go vet:*), Read, Glob, Grep
 metadata:
   author: cmj@cmj.tw
   version: 1.3.0
