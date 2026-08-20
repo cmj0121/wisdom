@@ -1,0 +1,109 @@
+{
+  "skill": "test-runner",
+  "about": "Trigger eval queries for this skill's description. A query is labelled with whether the skill should activate for it; the negatives are near-misses that share vocabulary with the skill but need something else. Split fixed so successive description edits are compared on the same ground: tune against train, judge against validation.",
+  "how_to_run": "No runner is committed. `claude plugin eval` is the intended one and is in early access; until it is available, run each query with `claude -p --output-format json` and count the runs whose transcript contains a Skill tool_use naming this skill.",
+  "runs_per_query": 3,
+  "trigger_rate_threshold": 0.5,
+  "queries": [
+    {
+      "query": "can you check whether anything broke after that refactor",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "run the suite and tell me what's red",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "i just pulled main, is this branch green",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "pytest or npm test, whichever this repo uses — just run it",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "before i open the PR i want to know the tests pass",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "which tests are failing right now",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "did my change break anything",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "execute the test suite and summarise the failures",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "is ~/src/api safe to merge, test-wise",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "my manager asked whether the branch is passing",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "write a unit test for the parser function",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "why is my pytest fixture with scope=session not being reused",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "add pytest and pytest-cov to the dev dependencies",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "explain what makes a test flaky",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "set up a GitHub Actions workflow that runs tests on PRs",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "the suite takes 20 minutes, how do i speed it up",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "convert these mocha tests to vitest",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "what testing framework should i pick for a new go service",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "run the linter over src/",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "benchmark this hot function",
+      "should_trigger": false,
+      "split": "validation"
+    }
+  ]
+}

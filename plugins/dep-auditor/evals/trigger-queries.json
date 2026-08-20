@@ -1,0 +1,109 @@
+{
+  "skill": "dep-auditor",
+  "about": "Trigger eval queries for this skill's description. A query is labelled with whether the skill should activate for it; the negatives are near-misses that share vocabulary with the skill but need something else. Split fixed so successive description edits are compared on the same ground: tune against train, judge against validation.",
+  "how_to_run": "No runner is committed. `claude plugin eval` is the intended one and is in early access; until it is available, run each query with `claude -p --output-format json` and count the runs whose transcript contains a Skill tool_use naming this skill.",
+  "runs_per_query": 3,
+  "trigger_rate_threshold": 0.5,
+  "queries": [
+    {
+      "query": "are any of our packages known-vulnerable",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "check whether anything in package-lock is out of date",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "before we ship, is there a CVE anywhere in our deps",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "npm audit flagged something but i want the picture across go and python too",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "the lockfile changed in this PR, anything worrying in it",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "which of our dependencies are behind their latest release",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "we haven't touched dependencies in a year, how bad is it",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "third-party library security check please",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "audit the Gemfile before the release",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "is this repo safe from a supply-chain point of view",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "add lodash to the project",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "why does npm install fail with EACCES on my mac",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "explain what a lockfile actually does",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "our bundle is too big, which dependency should i drop",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "pin the python version in pyproject.toml",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "review this query builder for SQL injection",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "resolve this merge conflict in package-lock.json",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "what's the difference between dependencies and devDependencies",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "publish this package to npm",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "upgrade react from 17 to 18 and fix the breakage",
+      "should_trigger": false,
+      "split": "validation"
+    }
+  ]
+}
