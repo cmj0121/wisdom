@@ -47,6 +47,18 @@ jobs:
         with:
           node-version: "20"
 
+      # The shfmt hook shells out to a binary it does not install, and unlike
+      # shellcheck the runner image does not ship one. Pinned rather than
+      # tracking latest, so a formatter release cannot fail an unrelated PR.
+      - name: Install shfmt
+        env:
+          SHFMT_VERSION: v3.13.1
+        run: |
+          sudo curl -fsSL -o /usr/local/bin/shfmt \
+            "https://github.com/mvdan/sh/releases/download/${SHFMT_VERSION}/shfmt_${SHFMT_VERSION}_linux_amd64"
+          sudo chmod +x /usr/local/bin/shfmt
+          shfmt --version
+
       # Runs every hook, including the four above. That overlap is deliberate:
       # the job above tells you which repo check failed, this one tells you the
       # commit would have been rejected locally too.
