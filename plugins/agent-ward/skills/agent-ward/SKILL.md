@@ -10,7 +10,8 @@ allowed-tools:
   - WebSearch
 metadata:
   author: cmj@cmj.tw
-  version: "2.0.0"
+  version: "2.1.0"
+  shortcut: "design it, architect this, ward"
 ---
 
 # Agent Ward — Architect

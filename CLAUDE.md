@@ -98,15 +98,17 @@ What that means for edits here:
   must not lag the latest `v*` git tag. That is a fourth location and a separate check.
 - A plugin's `description` must read identically in `.claude-plugin/marketplace.json`, its
   `plugin.json` and its `SKILL.md` frontmatter.
-- Every skill needs a `## Shortcut` section declaring its magic words in backticks; `shortcut`
-  itself is the sole exception. Magic words must be unique across all plugins.
+- Every skill declares its magic words in `metadata.shortcut`, a comma-separated string;
+  `shortcut` itself is the sole exception. Magic words must be unique across all plugins. Its
+  `## Shortcut` section must spell each declared word out in backticks for human readers, but
+  that section is documentation — an extra backtick span there is ordinary prose.
 - A plugin README must document exactly the magic words its skill declares — no extras, none
   missing — and keep its H1, `## Installation` and `## License` sections.
-- Inside a `## Shortcut` section, and under a plugin README's Magic Words heading, EVERY
-  backtick span is read as a magic word. Write anything else there — filenames, tool names,
-  skill references — without backticks. Elsewhere in the same file backticks are normal.
-  Such a section ends only at a heading of the same or higher level, so its subsections are
-  still inside it, and a code fence there is rejected outright rather than read as prose.
+- Under a plugin README's Magic Words heading — and only there — EVERY backtick span is read
+  as a magic word, because that check runs both ways: no declared word may go undocumented and
+  no documented word may be invented. Write anything else under that heading without
+  backticks. Such a section ends only at a heading of the same or higher level, so its
+  subsections are still inside it, and a fenced block there is stripped before it is read.
 - A plugin registered in `.claude-plugin/marketplace.json` must also be named in the
   top-level `README.md` prose; a mention only inside a code fence does not count.
 - Write a `<plugin>:<skill>` reference only when both halves exist in this repo.

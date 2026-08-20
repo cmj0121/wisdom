@@ -21,7 +21,8 @@ allowed-tools:
   - Grep
 metadata:
   author: cmj@cmj.tw
-  version: "2.0.0"
+  version: "2.1.0"
+  shortcut: "audit deps, dep-auditor"
 ---
 
 # Dependency Auditor

@@ -200,189 +200,122 @@ fresh_copy
 mutate '1,/^---$/d;1,/^---$/d' plugins/compactor/skills/compactor/SKILL.md
 expect_fail "no closed YAML frontmatter block" "missing frontmatter is caught"
 
+# ---------------------------------------------------------------------------
+# Magic words. The declaration lives in `metadata.shortcut`; the '## Shortcut'
+# section spells it out for human readers and is checked one way only, which is
+# what lets a backtick there mean nothing in particular.
+# ---------------------------------------------------------------------------
+
+# A literal single quote, for splicing into the single-quoted fixture bodies
+# below. Same trick as TRIGGER_SENTENCE above, named so the bodies stay legible.
+Q="'"
+
+# spell_out <plugin> <old-word> <new-word> — keep the '## Shortcut' section in
+# step with a changed declaration, so a fixture about one thing does not also
+# trip the spell-out check.
+spell_out() {
+	mutate "s/\`$2\`/\`$3\`/" "plugins/$1/skills/$1/SKILL.md"
+}
+
+# declare_words <plugin> <comma-separated> — rewrite metadata.shortcut.
+declare_words() {
+	mutate "s/^  shortcut: .*/  shortcut: \"$2\"/" "plugins/$1/skills/$1/SKILL.md"
+}
+
 echo "==> Fixture: magic word claimed by two plugins"
 fresh_copy
-mutate 's/`challenge this`/`compact it`/' plugins/tenth-man/skills/tenth-man/SKILL.md
-expect_fail 'claimed by both compactor and tenth-man' \
+declare_words tenth-man "compact it, tenth man"
+spell_out tenth-man "challenge this" "compact it"
+expect_fail "claimed by both compactor and tenth-man" \
 	"duplicated magic word \`compact it\` is caught"
 
-echo "==> Fixture: collision declared with the trigger sentence rephrased"
+echo "==> Fixture: a plugin skill declaring no magic word"
 fresh_copy
-retrigger 'Triggered when the prompt contains `compact it` or `tenth man`.'
-expect_fail 'claimed by both compactor and tenth-man' \
-	"collision survives a rephrased trigger sentence"
+mutate '/^  shortcut: /d' plugins/compactor/skills/compactor/SKILL.md
+expect_fail "declares no trigger word in 'metadata.shortcut'" \
+	"an absent declaration is a failure, not a silent pass"
 
-echo "==> Fixture: collision declared as a bullet list"
+echo "==> Fixture: an empty declaration"
 fresh_copy
-retrigger 'This skill is triggered when the user'"'"'s prompt contains:
+declare_words compactor ""
+expect_fail "declares no trigger word in 'metadata.shortcut'" \
+	"an empty declaration is caught"
 
-- `compact it`
-- `tenth man`'
-expect_fail 'claimed by both compactor and tenth-man' \
-	"collision survives a bullet-list declaration"
-
-echo "==> Fixture: '## Shortcut' section that declares no magic word"
+echo "==> Fixture: a declaration of nothing but separators"
 fresh_copy
-retrigger 'Trigger words: `challenge this` or `tenth man`.'
-expect_fail "'## Shortcut' section declares no trigger word" \
-	"a Shortcut section yielding zero words is a failure, not a silent pass"
+declare_words compactor " , , "
+expect_fail "declares no trigger word in 'metadata.shortcut'" \
+	"a declaration that splits into no words is caught"
 
-echo "==> Fixture: a second trigger sentence in the same Shortcut section"
+echo "==> Fixture: shortcut declared outside the metadata block"
 fresh_copy
-retrigger 'This skill is triggered when the user'"'"'s prompt contains `tenth man`.
+mutate '/^  shortcut: /d' plugins/compactor/skills/compactor/SKILL.md
+mutate 's/^license: MIT$/license: MIT\nshortcut: "compact it"/' plugins/compactor/skills/compactor/SKILL.md
+expect_fail "declares no trigger word in 'metadata.shortcut'" \
+	"a top-level shortcut key does not quietly stand in for the metadata one"
 
-It is also triggered when the prompt contains `compact it`.'
-expect_fail 'claimed by both compactor and tenth-man' \
-	"a second \`prompt contains\` sentence is not invisible"
-
-echo "==> Fixture: trigger sentence wrapped across a blank line"
+echo "==> Fixture: a declared word the Shortcut section never spells out"
 fresh_copy
-retrigger 'This skill is triggered when the user'"'"'s prompt contains `tenth man`,
+declare_words compactor "compact it, squash it"
+expect_fail "does not spell out \`squash it\`" \
+	"a word only frontmatter knows about is caught, since no reader would see it"
 
-`compact it`, or `devil advocate`.'
-expect_fail 'claimed by both compactor and tenth-man' \
-	"words after a mid-sentence blank line are still collected"
-
-echo "==> Fixture: trigger word on the line before the marker"
+echo "==> Fixture: a declaring skill with no '## Shortcut' section at all"
 fresh_copy
-retrigger 'This skill is triggered by `compact it` when the
-user'"'"'s prompt contains `tenth man`.'
-expect_fail 'claimed by both compactor and tenth-man' \
-	"a word before the marker on the previous line is still collected"
+mutate 's/^## Shortcut$/## Triggers/' plugins/compactor/skills/compactor/SKILL.md
+expect_fail "has no '## Shortcut' section spelling them out" \
+	"renaming the heading is caught, not silently ignored"
 
-echo "==> Fixture: fenced block with a '#' comment before the trigger sentence"
+echo "==> Fixture: the spelled-out word hidden in a fenced block"
 fresh_copy
-retrigger '```sh
-# not a heading
-```
-
-'"$TRIGGER_SENTENCE"
-expect_pass_with "$CENSUS" \
-	"a fenced '#' comment does not truncate the Shortcut section"
-
-echo "==> Fixture: backtick span in a fence, with the marker left outside it"
-fresh_copy
-retrigger 'This skill is triggered when the user'"'"'s prompt contains `challenge this`, `tenth man`, and:
+replace plugins/compactor/skills/compactor/SKILL.md \
+	'This skill is triggered when the user'"$Q"'s prompt contains `compact it`.' \
+	'This skill is triggered as follows:
 
 ```text
-- `compact it`
+`compact it`
 ```'
-expect_fail "hides a trigger declaration inside a code fence" \
-	"a fenced backtick span is not silently dropped, even with no marker beside it"
+expect_fail "does not spell out \`compact it\`" \
+	"a fence still hides text from a reader skimming the section"
 
-echo "==> Fixture: trigger declared under a '###' subheading of '## Shortcut'"
+echo "==> Fixture: the spelled-out word under a '###' subheading"
 fresh_copy
-retrigger "$TRIGGER_SENTENCE"'
+replace plugins/compactor/skills/compactor/SKILL.md \
+	'This skill is triggered when the user'"$Q"'s prompt contains `compact it`.' \
+	'### Triggers
 
-### Additional Triggers
-
-Also triggered when the prompt contains `qa review`.'
-expect_fail 'claimed by both agent-ellis and tenth-man' \
+This skill is triggered when the user'"$Q"'s prompt contains `compact it`.'
+expect_pass_with "$CENSUS" \
 	"a '###' subsection does not end its '## Shortcut' parent"
 
-echo "==> Fixture: a same-level heading still ends the Shortcut section"
+echo "==> Fixture: the spelled-out word after a same-level heading"
 fresh_copy
-retrigger "$TRIGGER_SENTENCE"'
+replace plugins/compactor/skills/compactor/SKILL.md \
+	'This skill is triggered when the user'"$Q"'s prompt contains `compact it`.' \
+	'## Elsewhere
 
-## Not Shortcut
+This skill is triggered when the user'"$Q"'s prompt contains `compact it`.'
+expect_fail "does not spell out \`compact it\`" \
+	"a same-level heading still ends the Shortcut section"
 
-Nothing here declares `compact it`.'
-expect_pass_with "$CENSUS" \
-	"a following '##' heading ends the section, so its backticks are not triggers"
-
-echo "==> Fixture: trigger declaration buried in a fenced code block"
+echo "==> Fixture: a backtick span split across a line break"
 fresh_copy
-retrigger 'This skill is triggered when the user'"'"'s prompt contains `tenth man`.
-
-```text
-It is also triggered when the prompt contains `challenge this`.
-```'
-expect_fail "hides a trigger declaration inside a code fence" \
-	"a declaration only a human can see in a fence fails loudly"
-
-echo "==> Fixture: a plugin skill with no '## Shortcut' section"
-fresh_copy
-mutate 's/^## Shortcut$/## Shortcuts/' plugins/tenth-man/skills/tenth-man/SKILL.md
-expect_fail "no '## Shortcut' section to declare its trigger words" \
-	"renaming the '## Shortcut' heading is caught, not silently ignored"
-
-echo "==> Fixture: a repeated '## Shortcut' section"
-fresh_copy
-retrigger "$TRIGGER_SENTENCE"'
-
-## Shortcut
-
-This skill is triggered when the user'"'"'s prompt contains `compact it`.'
-expect_fail 'claimed by both compactor and tenth-man' \
-	"a trigger under a repeated '## Shortcut' heading is still collected"
-
-echo "==> Fixture: unterminated code fence inside the Shortcut section"
-fresh_copy
-retrigger "$TRIGGER_SENTENCE"'
-
-```sh
-echo hi
-
-It is also triggered when the prompt contains `compact it`.'
-expect_fail "unterminated code fence hides everything after it" \
-	"an unterminated fence is an error, not a quiet truncation"
-
-echo "==> Fixture: tilde fence hiding a later trigger declaration"
-fresh_copy
-retrigger "$TRIGGER_SENTENCE"'
-
-~~~sh
-# looks like a heading
-~~~
-
-It is also triggered when the prompt contains `compact it`.'
-expect_fail 'claimed by both compactor and tenth-man' \
-	"a ~~~ fence is stripped like a \`\`\` one"
-
-echo "==> Fixture: paragraph starting with '#' inside the Shortcut section"
-fresh_copy
-retrigger "$TRIGGER_SENTENCE"'
-
-#1 rule of the devil'"'"'s advocate: it is also triggered by `compact it`.'
-expect_fail 'claimed by both compactor and tenth-man' \
-	"a '#1' paragraph is not a heading and does not truncate the section"
-
-echo "==> Fixture: shebang-like line inside the Shortcut section"
-fresh_copy
-retrigger "$TRIGGER_SENTENCE"'
-
-#!/usr/bin/env note
-
-It is also triggered when the prompt contains `compact it`.'
-expect_fail 'claimed by both compactor and tenth-man' \
-	"a '#!' shebang line is not a heading and does not truncate the section"
-
-echo "==> Fixture: seven-'#' line inside the Shortcut section"
-fresh_copy
-retrigger "$TRIGGER_SENTENCE"'
-
-####### deep note
-
-It is also triggered when the prompt contains `compact it`.'
-expect_fail 'claimed by both compactor and tenth-man' \
-	"seven '#' is too many for a heading and does not truncate the section"
-
-echo "==> Fixture: four-space-indented fence around a trigger declaration"
-fresh_copy
-retrigger "$TRIGGER_SENTENCE"'
-
-    ~~~
-    It is also triggered when the prompt contains `compact it`.
-    ~~~'
-expect_fail 'claimed by both compactor and tenth-man' \
-	"an indented code block does not toggle the fence state and hide a declaration"
-
-echo "==> Fixture: trigger word wrapped inside its backticks"
-fresh_copy
-retrigger 'This skill is triggered when the user'"'"'s prompt contains `challenge this`, `tenth man`, or `compact
+replace plugins/compactor/skills/compactor/SKILL.md \
+	'prompt contains `compact it`.' \
+	'prompt contains `compact
 it`.'
-expect_fail 'claimed by both compactor and tenth-man' \
+expect_pass_with "$CENSUS" \
 	"a backtick span split across a line break is rejoined"
+
+echo "==> Fixture: an extra backtick span beside the declared word"
+fresh_copy
+replace plugins/compactor/skills/compactor/SKILL.md \
+	'This skill is triggered when the user'"$Q"'s prompt contains `compact it`.' \
+	'This skill is triggered when the user'"$Q"'s prompt contains `compact it`.
+
+Reads nothing but the previous result; see `scripts/validate` and `compactor:compactor`.'
+expect_pass_with "$CENSUS" \
+	"a backtick span that is not a trigger word is ordinary prose now"
 
 echo "==> Fixture: README missing Installation section"
 fresh_copy
@@ -415,29 +348,22 @@ expect_fail 'documents `lingua off`, which the skill does not declare' \
 
 echo "==> Fixture: SKILL.md trigger word missing from the README"
 fresh_copy
+# Declared and spelled out, so the only thing left wrong is the README.
+declare_words compactor "compact it, squash it"
 mutate 's/`compact it`./`compact it` or `squash it`./' plugins/compactor/skills/compactor/SKILL.md
 expect_fail 'magic word `squash it` is declared in SKILL.md but undocumented here' \
 	"a declared trigger word absent from the README is caught"
 
-echo "==> Fixture: README cross-check is not disarmed by a failing Shortcut section"
+echo "==> Fixture: README cross-check is not disarmed by an unreadable declaration"
 fresh_copy
-# The fence error below stops the collision check from reading compactor's
-# trigger words. The README cross-check must say so rather than read "no words
+# Deleting metadata.shortcut stops the check above from learning compactor's
+# words. The README cross-check must say so rather than read "no words
 # collected" as "this plugin declares none" and print a green tick over the
 # bogus row added here.
-replace plugins/compactor/skills/compactor/SKILL.md \
-	'This skill is triggered when the user'"'"'s prompt contains `compact it`.' \
-	'This skill is triggered when the user'"'"'s prompt contains `compact it`.
-
-```text
-- `compact it`
-```'
-replace plugins/compactor/README.md \
-	'- `compact it` → Compact the previous result' \
-	'- `compact it` → Compact the previous result
+mutate '/^  shortcut: /d' plugins/compactor/skills/compactor/SKILL.md
+replace plugins/compactor/README.md '- `compact it` → Compact the previous result' '- `compact it` → Compact the previous result
 - `totally-bogus-word` → nothing at all'
-expect_fail "could not be read (see the failure above)" \
-	"a plugin whose trigger declaration failed is not silently skipped by the README check"
+expect_fail "could not be read (see the failure above)" "a plugin whose trigger declaration failed is not silently skipped by the README check"
 
 echo "==> Fixture: README spelling a trigger word with a placeholder"
 fresh_copy
