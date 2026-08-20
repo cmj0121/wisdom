@@ -86,6 +86,30 @@ expect_fail() {
 	fi
 }
 
+# The same two expectations against scripts/check-skill-spec. It reads only
+# plugins/*/skills/*/SKILL.md, so it reuses the copy the fixtures above mutate.
+
+# expect_spec_fail <expected-message-substring> <label>
+expect_spec_fail() {
+	if bash "$REPO_ROOT/scripts/check-skill-spec" "$TMP_DIR/repo" >"$TMP_DIR/out" 2>&1; then
+		fail "$2: spec check passed but should have failed"
+	elif grep -qF "$1" "$TMP_DIR/out"; then
+		pass "$2"
+	else
+		fail "$2: spec check failed, but not with \"$1\""
+		sed 's/^/      /' "$TMP_DIR/out"
+	fi
+}
+
+expect_spec_pass() {
+	if bash "$REPO_ROOT/scripts/check-skill-spec" "$TMP_DIR/repo" >"$TMP_DIR/out" 2>&1; then
+		pass "$1"
+	else
+		fail "$1: spec check failed on a copy it should accept"
+		sed 's/^/      /' "$TMP_DIR/out"
+	fi
+}
+
 # In-place sed that works with both BSD and GNU sed.
 mutate() {
 	local expr="$1" file="$2"
@@ -470,6 +494,148 @@ mutate 's/compactor//g' README.md
 printf '\n```text\ncompactor\n```\n' >>"$TMP_DIR/repo/README.md"
 expect_fail "plugin 'compactor' is registered in marketplace.json but not listed here" \
 	"a plugin named only inside a code fence does not count as listed"
+
+# ---------------------------------------------------------------------------
+# scripts/check-skill-spec — one fixture per rule. A rule that cannot be made
+# to fail is a rule that proves nothing, which is the whole point of this file.
+# compactor is the target throughout: it is the smallest skill, so a mutation
+# there is the cheapest one that still exercises the reader.
+# ---------------------------------------------------------------------------
+SPEC_SKILL=plugins/compactor/skills/compactor/SKILL.md
+
+echo "==> Baseline: unmutated copy against the standard"
+fresh_copy
+expect_spec_pass "clean copy follows the standard"
+
+echo "==> Fixture: a frontmatter key outside both allowed sets"
+fresh_copy
+mutate 's/^license: MIT$/license: MIT\nargument-hint: "[x]"/' "$SPEC_SKILL"
+expect_spec_fail "unknown frontmatter key 'argument-hint'" \
+	"a Claude Code field this repo has not adopted is rejected"
+
+echo "==> Fixture: a name outside the standard's grammar"
+fresh_copy
+mutate 's/^name: compactor$/name: Compactor/' "$SPEC_SKILL"
+expect_spec_fail "must be lowercase letters, numbers and single" \
+	"an uppercase name is rejected"
+
+echo "==> Fixture: a reserved word in the name"
+fresh_copy
+mutate 's/^name: compactor$/name: claude-compactor/' "$SPEC_SKILL"
+expect_spec_fail "contains the reserved word 'claude'" \
+	"a reserved word in the name is rejected"
+
+echo "==> Fixture: a name that does not match its directory"
+fresh_copy
+mutate 's/^name: compactor$/name: compact-or/' "$SPEC_SKILL"
+expect_spec_fail "does not match its directory 'compactor'" \
+	"a name drifting from its directory is rejected"
+
+echo "==> Fixture: a description written in the first person"
+fresh_copy
+mutate 's/^description: .*/description: I can help you compact things./' "$SPEC_SKILL"
+expect_spec_fail "description must be third person" \
+	"a first-person description is rejected"
+
+echo "==> Fixture: an XML tag in the description"
+fresh_copy
+mutate 's|^description: .*|description: <b>Compacts</b> results.|' "$SPEC_SKILL"
+expect_spec_fail "description contains an XML tag" \
+	"a tag in the description is rejected"
+
+echo "==> Fixture: a description past this repo's length limit"
+fresh_copy
+dirty "$SPEC_SKILL"
+python3 - "$TMP_DIR/repo/$SPEC_SKILL" <<'INNER'
+import re
+import sys
+
+path = sys.argv[1]
+with open(path) as handle:
+    text = handle.read()
+with open(path, "w") as handle:
+    handle.write(re.sub(r"(?m)^description: .*$", "description: " + "Compacts results. " * 30, text))
+INNER
+expect_spec_fail "over this repo's 400 limit" \
+	"a description written only for triggering, unreadable as catalogue copy, is rejected"
+
+echo "==> Fixture: allowed-tools written as a list"
+fresh_copy
+mutate 's/^allowed-tools: .*/allowed-tools:\n  - Read\n  - Glob/' "$SPEC_SKILL"
+expect_spec_fail "allowed-tools must be a string, not a list" \
+	"the pre-v2.0.0 list form is rejected"
+
+echo "==> Fixture: a metadata key with no value"
+fresh_copy
+mutate 's/^  version: .*/  version:/' "$SPEC_SKILL"
+expect_spec_fail "metadata.version must hold a string value" \
+	"a valueless metadata key is rejected"
+
+echo "==> Fixture: compatibility past its limit"
+fresh_copy
+dirty "$SPEC_SKILL"
+python3 - "$TMP_DIR/repo/$SPEC_SKILL" <<'INNER'
+import sys
+
+path = sys.argv[1]
+with open(path) as handle:
+    text = handle.read()
+with open(path, "w") as handle:
+    handle.write(text.replace("license: MIT", "license: MIT\ncompatibility: " + "x" * 501, 1))
+INNER
+expect_spec_fail "over the 500 limit" "an over-long compatibility string is rejected"
+
+echo "==> Fixture: a body past the progressive-disclosure budget"
+fresh_copy
+dirty "$SPEC_SKILL"
+for _ in $(seq 1 520); do echo "filler" >>"$TMP_DIR/repo/$SPEC_SKILL"; done
+expect_spec_fail "over the 500 budget" "a body that should have been split is rejected"
+
+echo "==> Fixture: a reference to a file that is not bundled"
+fresh_copy
+dirty "$SPEC_SKILL"
+printf '\nSee [the guide](references/gone.md).\n' >>"$TMP_DIR/repo/$SPEC_SKILL"
+expect_spec_fail "does not resolve to a bundled file" "a dangling reference is rejected"
+
+echo "==> Fixture: a Windows-style path"
+fresh_copy
+dirty "$SPEC_SKILL"
+printf '\nSee [the script](scripts\\helper.py).\n' >>"$TMP_DIR/repo/$SPEC_SKILL"
+expect_spec_fail "use forward slashes everywhere" "a backslash path is rejected"
+
+echo "==> Fixture: a reference chain two levels deep"
+fresh_copy
+dirty "$SPEC_SKILL" plugins/compactor/skills/compactor/references
+mkdir -p "$TMP_DIR/repo/plugins/compactor/skills/compactor/references"
+printf '# A\n\nSee [b](b.md).\n' >"$TMP_DIR/repo/plugins/compactor/skills/compactor/references/a.md"
+printf '# B\n' >"$TMP_DIR/repo/plugins/compactor/skills/compactor/references/b.md"
+printf '\nSee [a](references/a.md).\n' >>"$TMP_DIR/repo/$SPEC_SKILL"
+expect_spec_fail "Keep every reference" "a second level of indirection is rejected"
+
+echo "==> Fixture: a long reference file with no contents list"
+fresh_copy
+dirty "$SPEC_SKILL" plugins/compactor/skills/compactor/references
+mkdir -p "$TMP_DIR/repo/plugins/compactor/skills/compactor/references"
+{
+	echo "# Long"
+	for _ in $(seq 1 120); do echo "line"; done
+} >"$TMP_DIR/repo/plugins/compactor/skills/compactor/references/long.md"
+printf '\nSee [long](references/long.md).\n' >>"$TMP_DIR/repo/$SPEC_SKILL"
+expect_spec_fail "needs a" "a long reference file with no contents list is rejected"
+
+echo "==> Fixture: frontmatter with no closing marker"
+fresh_copy
+dirty "$SPEC_SKILL"
+python3 - "$TMP_DIR/repo/$SPEC_SKILL" <<'INNER'
+import sys
+
+path = sys.argv[1]
+with open(path) as handle:
+    text = handle.read()
+with open(path, "w") as handle:
+    handle.write(text.replace("---", "", 1))
+INNER
+expect_spec_fail "closing '---' is absent" "unterminated frontmatter is rejected"
 
 # fresh_copy restores only what a fixture declared, so an undeclared mutation
 # would silently poison every fixture after it. Restore, then prove the work

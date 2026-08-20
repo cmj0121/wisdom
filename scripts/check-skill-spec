@@ -1,0 +1,326 @@
+#!/usr/bin/env bash
+# Checks every SKILL.md against the Agent Skills standard (agentskills.io).
+#
+# The standard defines six frontmatter fields. Claude Code accepts those plus a
+# set of its own. This repo ships Claude Code plugins, so it may use the
+# extensions -- but only ones it has decided to adopt, and each adoption is
+# recorded in CLAUDE_CODE_EXTENSIONS below with the reason. Anything outside
+# both sets is a typo or a field the author assumed existed, and fails.
+#
+#   1. Frontmatter carries no key outside the two allowed sets.
+#   2. 'name' obeys the standard's grammar and matches its directory.
+#   3. 'description' is present, within limits, third-person, tag-free.
+#   4. 'compatibility', 'metadata' and 'allowed-tools' hold the shapes the
+#      standard gives them.
+#   5. The SKILL.md body stays inside the recommended budget.
+#   6. Bundled-file references resolve, stay one level deep, and use forward
+#      slashes; long reference files carry a table of contents.
+#
+# An optional first argument overrides the repo root, so the fixture harness
+# can point this at a mutated copy of the repo.
+set -euo pipefail
+
+if [ $# -ge 1 ]; then
+	REPO_ROOT="$(cd "$1" && pwd)"
+else
+	REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+fi
+
+python3 - "$REPO_ROOT" <<'PY'
+import glob
+import os
+import re
+import sys
+
+root = sys.argv[1]
+
+GREEN, RED, RESET = "\033[32m", "\033[31m", "\033[0m"
+# Quiet by default; WISDOM_VERBOSE=1 restores the per-item PASS lines. Same
+# reasoning as scripts/test and scripts/validate.
+WISDOM_VERBOSE = os.environ.get("WISDOM_VERBOSE", "") not in ("", "0")
+errors = 0
+
+
+def ok(msg):
+    if WISDOM_VERBOSE:
+        print(f"  {GREEN}PASS{RESET} {msg}")
+
+
+def bad(msg):
+    global errors
+    print(f"  {RED}FAIL{RESET} {msg}")
+    errors += 1
+
+
+# ---------------------------------------------------------------- the policy
+
+# https://agentskills.io/specification -- the whole of it.
+STANDARD_FIELDS = {
+    "name",
+    "description",
+    "license",
+    "compatibility",
+    "metadata",
+    "allowed-tools",
+}
+
+# Claude Code extensions this marketplace has decided to use. Each entry states
+# why, because the cost of an extension is that the skill stops being portable:
+# claude.ai uploads and the Skills API reject unknown keys outright rather than
+# ignoring them. Add to this set only with the same kind of reason.
+CLAUDE_CODE_EXTENSIONS = {
+    # Runs mechanical, high-frequency skills on a cheaper tier.
+    "model": "pins the tier for cost, on skills whose work is mechanical",
+    # Without it, 'model' moves the session for the rest of the turn rather
+    # than just the skill -- so any skill an agent invokes mid-turn needs it.
+    "context": "redirects a 'model' pin at a forked subagent, not the session",
+    # A forked skill is backgrounded by default; agent callers need the result
+    # in the same turn they asked for it.
+    "background": "keeps a forked skill's result inline for its caller",
+}
+
+ALLOWED_FIELDS = STANDARD_FIELDS | set(CLAUDE_CODE_EXTENSIONS)
+
+NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+NAME_MAX = 64
+# The standard's hard ceiling.
+DESCRIPTION_MAX = 1024
+# This repo's own ceiling. A description is also catalogue copy -- it shows in
+# `/plugin` listings and in both READMEs -- so one written purely for trigger
+# accuracy becomes unreadable long before it reaches the standard's limit.
+DESCRIPTION_PREFERRED_MAX = 400
+COMPATIBILITY_MAX = 500
+# https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
+BODY_MAX_LINES = 500
+# A reference file past this length gets previewed rather than read whole, so
+# it needs a contents list for the preview to still show its full scope.
+TOC_REQUIRED_OVER = 100
+
+RESERVED_WORDS = ("anthropic", "claude")
+XML_TAG_RE = re.compile(r"<[a-zA-Z/][^>]*>")
+# "I can help you...", "You can use this to..." -- the description is injected
+# into the system prompt, where a shifting point of view hurts discovery.
+FIRST_SECOND_PERSON_RE = re.compile(r"^\s*(I\b|I'|You\b|Your\b|We\b|Our\b|This skill\b)")
+MD_LINK_RE = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
+
+
+# ------------------------------------------------------------ the YAML subset
+#
+# Not a YAML parser: just enough of one to read the frontmatter shapes this
+# repo uses, so the check has no dependency the repo does not already have.
+# Anything it cannot read is reported rather than skipped.
+
+
+def split_frontmatter(path):
+    """Return (frontmatter_lines, body_lines), or (None, None) if unterminated."""
+    lines = open(path, encoding="utf-8").read().splitlines()
+    if not lines or lines[0].strip() != "---":
+        return None, None
+    for i in range(1, len(lines)):
+        if lines[i].strip() == "---":
+            return lines[1:i], lines[i + 1 :]
+    return None, None
+
+
+def parse_frontmatter(lines):
+    """Map top-level keys to a str, a dict, or a list.
+
+    Handles the three shapes present here: a scalar, a folded block ('>-',
+    whose lines rejoin with a single space), and an indented block that is
+    either a mapping or a sequence.
+    """
+    fields, i = {}, 0
+    while i < len(lines):
+        line = lines[i]
+        if not line.strip() or line.lstrip().startswith("#"):
+            i += 1
+            continue
+        m = re.match(r"^([A-Za-z0-9_-]+):(.*)$", line)
+        if not m:
+            i += 1
+            continue
+        key, rest = m.group(1), m.group(2).strip()
+        block, i = [], i + 1
+        while i < len(lines) and (not lines[i].strip() or lines[i].startswith(" ")):
+            block.append(lines[i])
+            i += 1
+        while block and not block[-1].strip():
+            block.pop()
+
+        if rest in (">-", ">", "|", "|-"):
+            joiner = "\n" if rest.startswith("|") else " "
+            fields[key] = joiner.join(b.strip() for b in block)
+        elif rest:
+            fields[key] = rest.strip("'\"")
+        elif block and block[0].lstrip().startswith("- "):
+            fields[key] = [b.strip()[2:].strip() for b in block]
+        elif block:
+            sub = {}
+            for b in block:
+                sm = re.match(r"^\s+([A-Za-z0-9_-]+):(.*)$", b)
+                if sm:
+                    sub[sm.group(1)] = sm.group(2).strip().strip("'\"")
+                else:
+                    sub[b.strip()] = None  # unreadable -> reported by the check
+            fields[key] = sub
+        else:
+            fields[key] = ""
+    return fields
+
+
+# --------------------------------------------------------------- the checks
+
+
+def rel(path):
+    return os.path.relpath(path, root)
+
+
+def check_fields(label, fields):
+    for key in fields:
+        if key in STANDARD_FIELDS:
+            continue
+        if key in CLAUDE_CODE_EXTENSIONS:
+            continue
+        bad(
+            f"{label}: unknown frontmatter key '{key}'"
+            " (allowed: the six standard fields, plus the Claude Code"
+            " extensions this repo has adopted -- see CLAUDE_CODE_EXTENSIONS"
+            " in scripts/check-skill-spec)"
+        )
+    for key in ("name", "description"):
+        if not fields.get(key):
+            bad(f"{label}: required field '{key}' is missing or empty")
+
+
+def check_name(label, fields, skill_dir):
+    name = fields.get("name")
+    if not isinstance(name, str) or not name:
+        return
+    if len(name) > NAME_MAX:
+        bad(f"{label}: name is {len(name)} characters, over the {NAME_MAX} limit")
+    if not NAME_RE.match(name):
+        bad(
+            f"{label}: name '{name}' must be lowercase letters, numbers and single"
+            " hyphens, and may not start or end with one"
+        )
+    for word in RESERVED_WORDS:
+        if word in name.lower():
+            bad(f"{label}: name '{name}' contains the reserved word '{word}'")
+    expected = os.path.basename(skill_dir)
+    if name != expected:
+        bad(f"{label}: name '{name}' does not match its directory '{expected}'")
+
+
+def check_description(label, fields):
+    desc = fields.get("description")
+    if not isinstance(desc, str) or not desc:
+        return
+    if len(desc) > DESCRIPTION_MAX:
+        bad(f"{label}: description is {len(desc)} characters, over the {DESCRIPTION_MAX} limit")
+    elif len(desc) > DESCRIPTION_PREFERRED_MAX:
+        bad(
+            f"{label}: description is {len(desc)} characters, over this repo's"
+            f" {DESCRIPTION_PREFERRED_MAX} limit -- it is catalogue copy as well as"
+            " a trigger, and stops being readable well before the standard's 1024"
+        )
+    if XML_TAG_RE.search(desc):
+        bad(f"{label}: description contains an XML tag, which the standard forbids")
+    if FIRST_SECOND_PERSON_RE.match(desc):
+        bad(
+            f"{label}: description must be third person ('Reviews code...'),"
+            " not first or second ('I can help you...', 'This skill...')"
+        )
+
+
+def check_shapes(label, fields):
+    compat = fields.get("compatibility")
+    if compat is not None:
+        if not isinstance(compat, str):
+            bad(f"{label}: compatibility must be a string")
+        elif len(compat) > COMPATIBILITY_MAX:
+            bad(f"{label}: compatibility is {len(compat)} characters, over the {COMPATIBILITY_MAX} limit")
+
+    meta = fields.get("metadata")
+    if meta is not None:
+        if not isinstance(meta, dict):
+            bad(f"{label}: metadata must be a mapping")
+        else:
+            for k, v in meta.items():
+                if v is None or v == "":
+                    bad(f"{label}: metadata.{k} must hold a string value")
+
+    tools = fields.get("allowed-tools")
+    if tools is not None and not isinstance(tools, str):
+        bad(
+            f"{label}: allowed-tools must be a string, not a list"
+            " -- the standard types it as one, and Claude Code reads a"
+            " comma-separated string as well as a list"
+        )
+
+
+def check_body(label, path, body):
+    if len(body) > BODY_MAX_LINES:
+        bad(
+            f"{label}: body is {len(body)} lines, over the {BODY_MAX_LINES} budget"
+            " -- move detail into references/ and link to it"
+        )
+
+    skill_dir = os.path.dirname(path)
+    first_level = []
+    for target in MD_LINK_RE.findall("\n".join(body)):
+        if target.startswith(("http://", "https://", "#", "mailto:")):
+            continue
+        if "\\" in target:
+            bad(f"{label}: reference '{target}' uses backslashes; use forward slashes everywhere")
+            continue
+        resolved = os.path.normpath(os.path.join(skill_dir, target.split("#")[0]))
+        if not os.path.exists(resolved):
+            bad(f"{label}: reference '{target}' does not resolve to a bundled file")
+        elif resolved.endswith(".md"):
+            first_level.append((target, resolved))
+
+    for target, resolved in first_level:
+        ref_lines = open(resolved, encoding="utf-8").read().splitlines()
+        if len(ref_lines) > TOC_REQUIRED_OVER and not any(
+            re.match(r"^#{1,3}\s+(Contents|Table of contents)\s*$", l, re.I) for l in ref_lines
+        ):
+            bad(
+                f"{label}: '{target}' is {len(ref_lines)} lines and needs a"
+                " '## Contents' list, so a partial read still shows its scope"
+            )
+        for nested in MD_LINK_RE.findall("\n".join(ref_lines)):
+            if nested.startswith(("http://", "https://", "#", "mailto:")):
+                continue
+            if os.path.normpath(os.path.join(os.path.dirname(resolved), nested.split("#")[0])).endswith(".md"):
+                bad(
+                    f"{label}: '{target}' links on to '{nested}'. Keep every reference"
+                    " one level deep from SKILL.md, or a partial read loses the trail"
+                )
+
+
+# ------------------------------------------------------------------- the run
+
+print("==> Checking SKILL.md against the Agent Skills standard")
+paths = sorted(glob.glob(os.path.join(root, "plugins", "*", "skills", "*", "SKILL.md")))
+if not paths:
+    bad("no SKILL.md found under plugins/*/skills/*/")
+
+for path in paths:
+    label = rel(path)
+    front, body = split_frontmatter(path)
+    if front is None:
+        bad(f"{label}: frontmatter is missing or its closing '---' is absent")
+        continue
+    fields = parse_frontmatter(front)
+    check_fields(label, fields)
+    check_name(label, fields, os.path.dirname(path))
+    check_description(label, fields)
+    check_shapes(label, fields)
+    check_body(label, path, body)
+    ok(label)
+
+if errors:
+    print(f"==> {errors} standard violation(s)")
+    sys.exit(1)
+print("==> All skills follow the Agent Skills standard")
+PY

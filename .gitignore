@@ -1,1 +1,5 @@
 *.sw[po]
+
+# agent-smith writes PLAN.md at the repo root as a living plan for the current
+# piece of work, and removes it after the merge. It is never committed.
+PLAN.md
