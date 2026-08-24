@@ -56,6 +56,7 @@ Standalone plugins, not part of the scrum chain. Each works on its own.
 | `compactor` | Re-renders the previous result as a dense, scannable table                |
 | `lingua`    | Replies in the language you choose, remembered per project                |
 | `briefing`  | Compact output and one-topic-at-a-time discussion for smith and tenth-man |
+| `pr-flow`   | Gates a PR on its issue, aligns the diff, works reviews test-first        |
 
 ### Workflow
 
@@ -183,8 +184,8 @@ what you touched.
 ### Trigger evals
 
 A skill only helps if it activates, and the `description` is the only thing Claude has at the
-moment it decides. The seven utility skills — `test-runner`, `dep-auditor`, `sec-review`,
-`changelog-gen`, `ascii-grapher`, `spec-writer`, `compactor` — each carry
+moment it decides. The eight utility skills — `test-runner`, `dep-auditor`, `sec-review`,
+`changelog-gen`, `ascii-grapher`, `spec-writer`, `compactor`, `pr-flow` — each carry
 `evals/trigger-queries.json`: 20 labelled prompts, ten that should activate the skill and ten
 near-misses that share its vocabulary but need something else. Split 60/40 into train and
 validation, so a reworded description is tuned on one half and judged on the other rather than
