@@ -1,6 +1,6 @@
 SUBDIR :=
 
-.PHONY: all clean test run build upgrade install help $(SUBDIR)
+.PHONY: all clean test doctor run build upgrade install help $(SUBDIR)
 
 all: $(SUBDIR) 		# default action
 	@[ -f .git/hooks/pre-commit ] || pre-commit install --install-hooks
@@ -37,6 +37,12 @@ test:				# run the four repo checks (not the validator self-test)
 	fi; \
 	printf '==> %d of %d checks FAILED -- re-run with WISDOM_VERBOSE=1 for per-item detail\n' "$$failed" "$$total"; \
 	exit 1
+
+# Deliberately NOT part of `test`: this one asserts on the machine, not on the
+# repo. There is no $$HOME/.claude in CI, where it would pass for the wrong
+# reason, and a contributor's own skills are not this repo's business.
+doctor:				# check the local machine for skills shadowing this marketplace
+	@bash scripts/check-install-drift
 
 run:				# run in the local environment
 

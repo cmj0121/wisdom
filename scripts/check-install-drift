@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+# Reports a skill this marketplace ships that the local machine ALSO serves
+# from a higher-precedence tier.
+#
+# Claude Code resolves a skill name across three tiers, nearest first:
+#
+#   1. user     ~/.claude/skills/<name>/SKILL.md
+#   2. project  <cwd>/.claude/skills/<name>/SKILL.md
+#   3. plugin   the installed marketplace
+#
+# A leftover copy in tier 1 does not replace the plugin -- both are offered, as
+# `<name>` and `<plugin>:<name>` -- so the model picks between two routers whose
+# descriptions have since diverged. Every trigger eval in this repo then measures
+# a description the session may never have loaded.
+#
+# This is the one check that asserts on the MACHINE rather than on the repo, so
+# it is deliberately not part of `make test`, pre-commit or CI: there is no
+# $HOME/.claude in CI, where it would pass for the wrong reason, and a
+# contributor's own unrelated skills are not this repo's business. It runs from
+# `make doctor`, on purpose, by hand.
+#
+# An optional first argument overrides the repo root; a second overrides the
+# home directory, so the fixture harness can point both at a temp copy.
+set -euo pipefail
+
+if [ $# -ge 1 ]; then
+	REPO_ROOT="$(cd "$1" && pwd)"
+else
+	REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+fi
+HOME_DIR="${2:-$HOME}"
+
+python3 - "$REPO_ROOT" "$HOME_DIR" <<'PY'
+import glob
+import json
+import os
+import re
+import sys
+
+root, home = sys.argv[1], sys.argv[2]
+
+GREEN, RED, YELLOW, RESET = "\033[32m", "\033[31m", "\033[33m", "\033[0m"
+WISDOM_VERBOSE = os.environ.get("WISDOM_VERBOSE", "") not in ("", "0")
+errors = 0
+
+
+def ok(msg):
+    if WISDOM_VERBOSE:
+        print(f"  {GREEN}PASS{RESET} {msg}")
+
+
+def bad(msg):
+    global errors
+    print(f"  {RED}FAIL{RESET} {msg}")
+    errors += 1
+
+
+def warn(msg):
+    print(f"  {YELLOW}WARN{RESET} {msg}")
+
+
+VERSION_RE = re.compile(r'^\s*version:\s*["\']?([^"\'\s]+)', re.M)
+
+
+def version_of(path):
+    """The skill's metadata.version, or '?' when it cannot be read."""
+    try:
+        text = open(path, encoding="utf-8").read()
+    except OSError:
+        return "?"
+    head = text.split("\n---", 1)[0]
+    m = VERSION_RE.search(head)
+    return m.group(1) if m else "?"
+
+
+mk = json.load(open(os.path.join(root, ".claude-plugin", "marketplace.json")))
+shipped = {p["name"] for p in mk["plugins"]}
+
+# The tiers that outrank an installed plugin, nearest first. Both may be absent
+# -- on a machine that never installed the marketplace, or in CI -- and an
+# absent tier is not drift.
+TIERS = [
+    ("user", os.path.join(home, ".claude", "skills")),
+    ("project", os.path.join(root, ".claude", "skills")),
+]
+
+print("==> Checking for skills served by more than one tier")
+found = False
+for tier, base in TIERS:
+    if not os.path.isdir(base):
+        ok(f"{tier} tier: {base} absent, nothing can shadow from here")
+        continue
+    for path in sorted(glob.glob(os.path.join(base, "*", "SKILL.md"))):
+        name = os.path.basename(os.path.dirname(path))
+        if name not in shipped:
+            continue  # somebody else's skill; not this marketplace's business
+        found = True
+        ours = os.path.join(root, "plugins", name, "skills", name, "SKILL.md")
+        bad(
+            f"{name}: also served from the {tier} tier at {path}"
+            f" (that copy says version {version_of(path)},"
+            f" this repo ships {version_of(ours)})"
+        )
+
+if not found:
+    print(f"==> No drift: none of the {len(shipped)} shipped skills is shadowed")
+    sys.exit(0)
+
+print(f"==> {errors} shadowed skill(s) found")
+warn(
+    "the plugin is still installed; the copy above merely outranks it."
+    " Move the listed directories aside (they are not tracked here) and"
+    " start a new session -- skills are read at session start."
+)
+sys.exit(1)
+PY
