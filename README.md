@@ -161,6 +161,15 @@ throwaway copy of the repo to break each check in turn and asserts the check cat
 stays out of `make test` — a suite of checks and the proof those checks can still fail are
 different jobs.
 
+A sixth, `scripts/check-install-drift`, is the only one that asserts on the machine rather
+than on the repo: it reports a skill shipped here that the local `~/.claude/skills` also
+serves. A leftover copy there does not replace the installed plugin — both are offered, as
+`<name>` and `<plugin>:<name>` — so the model chooses between two routers whose descriptions
+have since diverged, and every trigger eval in this repo measures a description the session
+may never have loaded. It runs from `make doctor`, by hand, and from nowhere else: there is no
+`$HOME/.claude` in CI, where it would pass for the wrong reason, and a contributor's own
+skills are not this repo's business.
+
 ```text
                              ┌─ scripts/test                structural
    make test ──────────┐     │
@@ -172,6 +181,9 @@ different jobs.
                 │
                 └──────────────> scripts/validate-fixtures  self-test
                                  (pre-commit: only when scripts/ changes; CI: always)
+
+   make doctor ────────────────> scripts/check-install-drift  local install drift
+                                 (by hand only: it reads $HOME, not the repo)
 ```
 
 `make test` runs the first four and reports all four; it does not stop at the first failure.
@@ -212,7 +224,9 @@ its case format is not yet public.
 Only `scripts/validate-fixtures` stays gated, on `^scripts/`: it costs a few seconds and says
 nothing new unless a check changes. That gate has the same blind spot — deleting
 `scripts/validate` presents no `scripts/` file either — which is why `scripts/test` asserts
-that all five check scripts exist and are executable, and why CI runs the fixtures every time.
+that all six check scripts exist and are executable, and why CI runs the fixtures every time.
+`scripts/check-install-drift` needs that entry most of all: nothing but `make doctor` ever
+runs it, so nothing else would notice it had gone.
 
 ### What the semantic validator enforces
 
@@ -236,6 +250,13 @@ When you add or edit a plugin, this is the check to know about. It enforces:
   `.claude-plugin/marketplace.json`, its `plugin.json` and its `SKILL.md` frontmatter. It is
   the one piece of prose a plugin repeats verbatim, so the one that can be compared at all.
 - **Balanced code fences** — an unterminated fence hides everything after it from the checks.
+- **Trigger evals** — every plugin carries `evals/trigger-queries.json`, naming its own skill,
+  labelled both ways, split both ways, and not so nearly all positives that it could never
+  catch an over-eager description.
+- **Verdict contracts** — a skill showing a `__MARKER__` block declares it in
+  `metadata.verdict`; a declared marker appears as a block with `Field: value` lines in it;
+  and a marker one skill routes on is one another skill emits. A marker inside a fence is read
+  as emitted, the same token in prose backticks as routed on.
 
 ### Backticks are reserved
 
