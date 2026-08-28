@@ -590,6 +590,53 @@ with open(path, "w") as handle:
 INNER
 expect_spec_fail "closing '---' is absent" "unterminated frontmatter is rejected"
 
+echo "==> Fixture: a plugin with no trigger evals"
+fresh_copy
+dirty "plugins/compactor/evals"
+rm -rf "$TMP_DIR/repo/plugins/compactor/evals"
+expect_fail "no evals/trigger-queries.json" "a plugin without trigger evals is rejected"
+
+echo "==> Fixture: trigger evals with every query labelled the same way"
+fresh_copy
+dirty "plugins/compactor/evals"
+python3 - "$TMP_DIR/repo/plugins/compactor/evals/trigger-queries.json" <<'INNER'
+import json
+import sys
+
+path = sys.argv[1]
+with open(path) as handle:
+    doc = json.load(handle)
+for query in doc["queries"]:
+    query["should_trigger"] = True
+with open(path, "w") as handle:
+    json.dump(doc, handle, indent=2)
+INNER
+expect_fail "labels every query the same way" "a positives-only eval set is rejected"
+
+echo "==> Fixture: trigger evals that never split off a validation set"
+fresh_copy
+dirty "plugins/compactor/evals"
+python3 - "$TMP_DIR/repo/plugins/compactor/evals/trigger-queries.json" <<'INNER'
+import json
+import sys
+
+path = sys.argv[1]
+with open(path) as handle:
+    doc = json.load(handle)
+for query in doc["queries"]:
+    query["split"] = "train"
+with open(path, "w") as handle:
+    json.dump(doc, handle, indent=2)
+INNER
+expect_fail "does not split train/validation" "an eval set with no validation half is rejected"
+
+echo "==> Fixture: trigger evals naming a skill that is not their own"
+fresh_copy
+dirty "plugins/compactor/evals"
+mutate 's/"skill": "compactor"/"skill": "spec-writer"/' \
+	"plugins/compactor/evals/trigger-queries.json"
+expect_fail "but sits under plugins/compactor" "an eval file naming the wrong skill is rejected"
+
 # fresh_copy restores only what a fixture declared, so an undeclared mutation
 # would silently poison every fixture after it. Restore, then prove the work
 # copy is the pristine one again.

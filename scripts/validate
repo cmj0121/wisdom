@@ -12,6 +12,8 @@
 #   5. The top-level README lists every plugin the marketplace registers.
 #   6. Each plugin's description reads the same in marketplace.json, its
 #      plugin.json and its SKILL.md frontmatter.
+#   7. Every plugin carries evals/trigger-queries.json, labelled on both sides
+#      and split both ways.
 #
 # An optional first argument overrides the repo root, so the fixture
 # harness can point the validator at a mutated copy of the repo.
@@ -481,6 +483,63 @@ else:
         bad(f"README.md: plugin '{name}' is registered in marketplace.json but not listed here")
     if not missing:
         ok(f"README.md lists all {len(plugin_names)} registered plugin(s)")
+
+print("==> Checking trigger-eval coverage")
+for directory in plugin_dirs:
+    name = os.path.basename(directory)
+    path = os.path.join(directory, "evals", "trigger-queries.json")
+    shown = os.path.relpath(path, root)
+    if not os.path.isfile(path):
+        bad(
+            f"{name}: no evals/trigger-queries.json."
+            " A description is the only part of a skill always in context, so it"
+            " is the part that decides whether the skill is ever reached;"
+            " an untested one is an untested router"
+        )
+        continue
+    try:
+        doc = json.loads(open(path).read())
+    except ValueError as exc:
+        bad(f"{shown}: not valid JSON ({exc})")
+        continue
+    problems = []
+    if doc.get("skill") != name:
+        problems.append(f"names skill {doc.get('skill')!r}, but sits under plugins/{name}")
+    queries = doc.get("queries")
+    if not isinstance(queries, list) or not queries:
+        problems.append("has no 'queries' list")
+        queries = []
+    texts = [q.get("query") for q in queries if isinstance(q, dict)]
+    if len(texts) != len(queries):
+        problems.append("has a query that is not an object")
+    elif len(set(texts)) != len(texts):
+        problems.append("repeats a query, which scores the same prompt twice")
+    labels = {q.get("should_trigger") for q in queries if isinstance(q, dict)}
+    if labels - {True, False}:
+        problems.append("has a query whose 'should_trigger' is not a boolean")
+    elif labels != {True, False}:
+        problems.append("labels every query the same way, so it cannot separate a hit from a miss")
+    splits = {q.get("split") for q in queries if isinstance(q, dict)}
+    if not {"train", "validation"} <= splits:
+        problems.append(
+            "does not split train/validation, so a description tuned on these"
+            " queries has nothing left to be judged against"
+        )
+    # Not pinned to exactly half. The negatives are what the set is for -- a
+    # description that fires on everything passes a positives-only set -- but
+    # requiring a precise ratio would make this a formatting rule rather than a
+    # coverage one.
+    negatives = sum(1 for q in queries if isinstance(q, dict) and q.get("should_trigger") is False)
+    if queries and negatives * 3 < len(queries):
+        problems.append(
+            f"has {negatives} near-miss negative(s) among {len(queries)} queries;"
+            " a set that is nearly all positives cannot catch an over-eager description"
+        )
+    for problem in problems:
+        bad(f"{shown}: {problem}")
+    if not problems:
+        ok(f"{name}: {len(queries)} labelled trigger queries")
+
 
 if errors:
     print(f"==> {errors} error(s) found")

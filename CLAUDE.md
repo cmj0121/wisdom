@@ -116,10 +116,12 @@ What that means for edits here:
   writing `inherit` do the same thing.
 - Frontmatter may carry only the standard's six fields plus the Claude Code extensions listed
   in `CLAUDE_CODE_EXTENSIONS` (`scripts/check-skill-spec`). A new one needs a recorded reason.
-- The eight utility skills carry `evals/trigger-queries.json`: 20 labelled prompts, half of
+- Every plugin carries `evals/trigger-queries.json`: 20 labelled prompts, half of
   them near-misses, split train/validation. Rewriting a `description` means re-running them,
-  tuning on train and judging on validation. No runner is committed — `claude plugin eval` is
-  the intended one and is still in early access.
+  tuning on train and judging on validation. `scripts/validate` fails a plugin with no such
+  file, one that labels every query the same way, or one that never splits off a validation
+  half. No runner is committed — `claude plugin eval` is the intended one and is still in
+  early access, so the file states the intent that a runner will check, not a passing test.
 
 Passing checks only prove nothing mechanically checkable is broken. Prose accuracy — a stale
 table row, a wrong command name — is not covered and still needs review.

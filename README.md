@@ -184,15 +184,19 @@ what you touched.
 ### Trigger evals
 
 A skill only helps if it activates, and the `description` is the only thing Claude has at the
-moment it decides. The eight utility skills — `test-runner`, `dep-auditor`, `sec-review`,
-`changelog-gen`, `ascii-grapher`, `spec-writer`, `compactor`, `pr-flow` — each carry
-`evals/trigger-queries.json`: 20 labelled prompts, ten that should activate the skill and ten
-near-misses that share its vocabulary but need something else. Split 60/40 into train and
-validation, so a reworded description is tuned on one half and judged on the other rather than
-fitted to the phrasings used to tune it.
+moment it decides. Every plugin carries `evals/trigger-queries.json`: 20 labelled prompts, ten
+that should activate the skill and ten near-misses that share its vocabulary but need something
+else. Split 60/40 into train and validation, so a reworded description is tuned on one half and
+judged on the other rather than fitted to the phrasings used to tune it. `scripts/validate`
+fails a plugin that carries no such file.
 
-The scrum agents have no such file. They are dispatched by `agent-smith` rather than triggered
-by a prompt, and by design each is the next one's nearest near-miss.
+The scrum agents carry one too. They used to be exempt on the grounds that `agent-smith`
+dispatches them rather than a prompt triggering them, and that each is the next one's nearest
+near-miss. The first half holds for only part of their traffic — every one of them declares
+magic words a user can type. The second half was the argument turned around: being each other's
+nearest near-miss is what makes the discrimination worth testing, so their negatives are drawn
+from their siblings. `agent-ellis` must not answer "write tests for this"; `agent-ross` must
+not answer "generate the changelog".
 
 No runner is committed: `claude plugin eval` is the intended one and is in early access, so
 its case format is not yet public.

@@ -1,0 +1,109 @@
+{
+  "skill": "agent-twain",
+  "about": "Trigger eval queries for this skill's description. A query is labelled with whether the skill should activate for it; the negatives are near-misses that share vocabulary with the skill but need something else. Split fixed so successive description edits are compared on the same ground: tune against train, judge against validation.",
+  "how_to_run": "No runner is committed. `claude plugin eval` is the intended one and is in early access; until it is available, run each query with `claude -p --output-format json` and count the runs whose transcript contains a Skill tool_use naming this skill.",
+  "runs_per_query": 3,
+  "trigger_rate_threshold": 0.5,
+  "queries": [
+    {
+      "query": "document this change for its users",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "write the migration guide for v2",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "the readme is out of date, fix it",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "twain, write an api reference for these endpoints",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "we need a tutorial for the new workflow",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "explain this feature to the people who use it",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "write release notes readers can act on",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "the docs describe the old behaviour",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "add a getting-started page",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "document the config options",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "write the spec for this design",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "generate the changelog from git",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "explain this code to me",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "add comments to this function",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "write a commit message",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "draw a diagram of this flow",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "review the docs for accuracy",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "summarise this document",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "write the pr description",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "what does this error message mean",
+      "should_trigger": false,
+      "split": "validation"
+    }
+  ]
+}

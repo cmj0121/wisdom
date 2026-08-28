@@ -1,0 +1,109 @@
+{
+  "skill": "shortcut",
+  "about": "Trigger eval queries for this skill's description. A query is labelled with whether the skill should activate for it; the negatives are near-misses that share vocabulary with the skill but need something else. Split fixed so successive description edits are compared on the same ground: tune against train, judge against validation.",
+  "how_to_run": "No runner is committed. `claude plugin eval` is the intended one and is in early access; until it is available, run each query with `claude -p --output-format json` and count the runs whose transcript contains a Skill tool_use naming this skill.",
+  "runs_per_query": 3,
+  "trigger_rate_threshold": 0.5,
+  "queries": [
+    {
+      "query": "what shortcuts do i have",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "list every magic word available",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "shortcut",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "which skills trigger on what phrases",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "did i just type a registered trigger word",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "show me the magic words across my plugins",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "what magic words are registered",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "is there a shortcut for this",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "which command does this phrase run",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "list the trigger phrases from all my plugins",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "what skills do i have installed",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "create a new slash command",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "add a keyboard shortcut for submit",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "what does the /loop command do",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "install this plugin",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "rebind ctrl+s",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "write a new skill",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "remove this plugin from the marketplace",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "what does this skill's description say",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "how do i make a plugin",
+      "should_trigger": false,
+      "split": "validation"
+    }
+  ]
+}

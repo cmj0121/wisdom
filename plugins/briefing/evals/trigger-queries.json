@@ -1,0 +1,109 @@
+{
+  "skill": "briefing",
+  "about": "Trigger eval queries for this skill's description. A query is labelled with whether the skill should activate for it; the negatives are near-misses that share vocabulary with the skill but need something else. Split fixed so successive description edits are compared on the same ground: tune against train, judge against validation.",
+  "how_to_run": "No runner is committed. `claude plugin eval` is the intended one and is in early access; until it is available, run each query with `claude -p --output-format json` and count the runs whose transcript contains a Skill tool_use naming this skill.",
+  "runs_per_query": 3,
+  "trigger_rate_threshold": 0.5,
+  "queries": [
+    {
+      "query": "brief me on this",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "keep your answers shorter from now on",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "briefing style please",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "give me one decision at a time, not all of them",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "lead with the answer, skip the working",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "too long -- just the result and the options",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "brief me",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "stop narrating what you read, give me the outcome",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "put the options in a table with a recommendation",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "ask me one thing at a time",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "summarise the previous answer",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "explain this in more detail",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "write a project brief for the client",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "write the design brief document",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "translate this to chinese",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "what did you find",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "condense this table",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "give me the full analysis",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "brief the team on the incident in a doc",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "shorten this readme",
+      "should_trigger": false,
+      "split": "validation"
+    }
+  ]
+}

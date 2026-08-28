@@ -1,0 +1,109 @@
+{
+  "skill": "agent-smith",
+  "about": "Trigger eval queries for this skill's description. A query is labelled with whether the skill should activate for it; the negatives are near-misses that share vocabulary with the skill but need something else. Split fixed so successive description edits are compared on the same ground: tune against train, judge against validation.",
+  "how_to_run": "No runner is committed. `claude plugin eval` is the intended one and is in early access; until it is available, run each query with `claude -p --output-format json` and count the runs whose transcript contains a Skill tool_use naming this skill.",
+  "runs_per_query": 3,
+  "trigger_rate_threshold": 0.5,
+  "queries": [
+    {
+      "query": "let's build the export feature end to end, plan it first",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "implement it -- the whole ticket, not just the parser",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "smith, take this from design through to merge",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "this refactor spans four packages, coordinate it",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "fix it properly, and I want the plan before any code",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "i need someone to own this piece of work and run the team",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "break this epic into units and drive it to done",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "we agreed the design, now run the implementation",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "plan the migration and dispatch the work",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "take charge of shipping the notification rewrite",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "just rename this variable",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "who should own this ticket in jira",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "explain how the dispatcher works",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "what's the status of the current sprint",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "write the code for this one function",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "review this pr before it lands",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "design the api for this service",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "run the tests and tell me what's red",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "commit this and cut a release",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "what could go wrong with this plan",
+      "should_trigger": false,
+      "split": "validation"
+    }
+  ]
+}
