@@ -102,7 +102,16 @@ BODY_MAX_LINES = 500
 # over: a body that must be read in full every run saves nothing by moving to a
 # second file, so the useful moment to split is while there is still a choice
 # about which sections to move. This warns; it does not fail.
-BODY_WARN_LINES = 350
+#
+# 350 never fired. The longest body in the marketplace, agent-smith, sat at 346
+# -- four lines under the line meant to draw attention to it, and read in full
+# on every dispatch. The threshold was measuring nothing.
+#
+# What the warning asks for is a judgement, not a split: move the sections a run
+# consults (rosters, schemas, worked examples) and shorten the ones it executes.
+# A procedure moved into references/ is read anyway, one fetch later, so it
+# costs a round trip and risks not being read at all.
+BODY_WARN_LINES = 250
 # A reference file past this length gets previewed rather than read whole, so
 # it needs a contents list for the preview to still show its full scope.
 TOC_REQUIRED_OVER = 100
@@ -289,9 +298,11 @@ def check_body(label, path, body):
         )
     elif len(body) > BODY_WARN_LINES:
         warn(
-            f"{label}: body is {len(body)} lines, approaching the {BODY_MAX_LINES}"
-            " budget -- consider moving the conditional sections into references/"
-            " while there is still a choice about which"
+            f"{label}: body is {len(body)} lines, over the {BODY_WARN_LINES} line"
+            f" where a body is worth re-reading (the {BODY_MAX_LINES} budget is"
+            " the ceiling, not the target) -- move what a run merely consults"
+            " into references/, and shorten what it executes rather than"
+            " moving that too"
         )
 
     skill_dir = os.path.dirname(path)

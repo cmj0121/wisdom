@@ -68,8 +68,11 @@ Adding a third extension means adding it to `CLAUDE_CODE_EXTENSIONS` with the sa
 reason. Anything outside both layers fails the check.
 
 The body contains phase-by-phase instructions that guide the AI agent through a workflow, and
-must stay under 500 lines — the check warns at 350, which is the point where there is still a
-choice about which sections move into `references/`.
+must stay under 500 lines — the check warns at 250. 350 never fired: the longest body here,
+`agent-smith`, sat at 346, four lines under the line meant to flag it. The warning asks for a
+judgement rather than a split — move what a run merely consults (rosters, schemas, worked
+examples) into `references/`, and shorten what it executes instead of moving that too, because
+a procedure in `references/` is read anyway, one fetch later.
 
 ### Skill Discovery (Three Tiers)
 
