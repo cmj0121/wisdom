@@ -252,7 +252,9 @@ When you add or edit a plugin, this is the check to know about. It enforces:
 - **Balanced code fences** — an unterminated fence hides everything after it from the checks.
 - **Trigger evals** — every plugin carries `evals/trigger-queries.json`, naming its own skill,
   labelled both ways, split both ways, and not so nearly all positives that it could never
-  catch an over-eager description.
+  catch an over-eager description. A positive query may not carry another plugin's magic word:
+  a negative that does is the near-miss the set exists for, but a positive that does means both
+  skills are meant to fire, so whichever wins decides nothing.
 - **Verdict contracts** — a skill showing a `__MARKER__` block declares it in
   `metadata.verdict`; a declared marker appears as a block with `Field: value` lines in it;
   and a marker one skill routes on is one another skill emits. A marker inside a fence is read

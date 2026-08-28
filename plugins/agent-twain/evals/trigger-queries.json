@@ -16,7 +16,7 @@
       "split": "train"
     },
     {
-      "query": "the readme is out of date, fix it",
+      "query": "our readme still documents the old flags",
       "should_trigger": true,
       "split": "train"
     },

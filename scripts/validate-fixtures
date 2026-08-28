@@ -714,6 +714,14 @@ with open(path, "w") as handle:
 INNER
 expect_fail "does not split train/validation" "an eval set with no validation half is rejected"
 
+echo "==> Fixture: a positive query carrying another plugin's magic word"
+fresh_copy
+dirty "plugins/agent-twain/evals"
+mutate 's/"our readme still documents the old flags"/"the readme is out of date, fix it"/' \
+	"plugins/agent-twain/evals/trigger-queries.json"
+expect_fail "a magic word of agent-smith" \
+	"an ambiguous positive query is rejected"
+
 echo "==> Fixture: trigger evals naming a skill that is not their own"
 fresh_copy
 dirty "plugins/compactor/evals"

@@ -136,9 +136,11 @@ What that means for edits here:
 - Every plugin carries `evals/trigger-queries.json`: 20 labelled prompts, half of
   them near-misses, split train/validation. Rewriting a `description` means re-running them,
   tuning on train and judging on validation. `scripts/validate` fails a plugin with no such
-  file, one that labels every query the same way, or one that never splits off a validation
-  half. No runner is committed — `claude plugin eval` is the intended one and is still in
-  early access, so the file states the intent that a runner will check, not a passing test.
+  file, one that labels every query the same way, one that never splits off a validation half,
+  and one whose positive queries carry another plugin's magic word — a negative that does is
+  the near-miss, a positive that does is two skills racing. No runner is committed — `claude
+plugin eval` is the intended one and is still in early access, so the file states the intent
+  that a runner will check, not a passing test.
 
 Passing checks only prove nothing mechanically checkable is broken. Prose accuracy — a stale
 table row, a wrong command name — is not covered and still needs review.

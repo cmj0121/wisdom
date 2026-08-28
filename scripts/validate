@@ -591,6 +591,9 @@ for path in skill_files:
             ok(f"{shown}: routes on {marker}, emitted by {declared_verdicts[marker]}")
 
 
+# Built by the magic-word census above: plugin -> the words it claims.
+magic_words = {plugin: sorted(w) for plugin, w in triggers.items()}
+
 print("==> Checking trigger-eval coverage")
 for directory in plugin_dirs:
     name = os.path.basename(directory)
@@ -642,6 +645,24 @@ for directory in plugin_dirs:
             f"has {negatives} near-miss negative(s) among {len(queries)} queries;"
             " a set that is nearly all positives cannot catch an over-eager description"
         )
+    # A negative that carries another plugin's magic word is the point of the
+    # set -- that is the near-miss. A POSITIVE that carries one is not a test
+    # at all: both skills are supposed to fire, so whichever wins, the run
+    # proves nothing about this description.
+    for query in queries:
+        if not isinstance(query, dict) or query.get("should_trigger") is not True:
+            continue
+        text = (query.get("query") or "").lower()
+        for owner, owned in sorted(magic_words.items()):
+            if owner == name:
+                continue
+            for word in owned:
+                if re.search(r"\b" + re.escape(word) + r"\b", text):
+                    problems.append(
+                        f"the positive {query['query']!r} contains {word!r},"
+                        f" a magic word of {owner}, so both skills are meant to"
+                        " fire and the run decides nothing"
+                    )
     for problem in problems:
         bad(f"{shown}: {problem}")
     if not problems:
