@@ -90,8 +90,15 @@ candidate list excludes deletions, so a path-gated hook sees nothing on a deleti
 and is skipped. After editing `scripts/validate` or `scripts/check-skill-spec`, also run
 `scripts/validate-fixtures` — the negative-fixture self-test for both, and the one hook still
 gated (on `^scripts/`), which the commit path runs but `make test` does not. CI
-(`.github/workflows/checks.yml`) runs all five plus the full pre-commit suite on every push
+(`.github/workflows/checks.yml`) runs those five plus the full pre-commit suite on every push
 and pull request.
+
+`scripts/check-install-drift` is the sixth and is in none of those paths. It reports a skill
+this repo ships that the local `~/.claude/skills` also serves — a stale copy there outranks
+the installed plugin and gives the model two routers to choose between, so every trigger eval
+here measures a description the session may never have loaded. It asserts on the machine, not
+the repo, so it runs from `make doctor` by hand: in CI there is no `$HOME/.claude` and it
+would pass for the wrong reason. Run it when a skill behaves like an older version of itself.
 
 What that means for edits here:
 

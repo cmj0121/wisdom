@@ -26,8 +26,12 @@ jobs:
         run: make test
 
       # Not part of `make test`: this is the validator's own self-test rather
-      # than a check on the repo's contents, and it is the slowest of the five.
-      # CI is the one place that can afford to always run it.
+      # than a check on the repo's contents, and it is the slowest script that
+      # runs here. CI is the one place that can afford to always run it.
+      #
+      # scripts/check-install-drift is absent on purpose: it reads
+      # ~/.claude/skills, which does not exist on a runner, so it would pass
+      # here for the wrong reason. `make doctor` runs it locally.
       - name: Negative fixtures
         run: bash scripts/validate-fixtures
 
