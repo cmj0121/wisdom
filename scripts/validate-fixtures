@@ -590,6 +590,67 @@ with open(path, "w") as handle:
 INNER
 expect_spec_fail "closing '---' is absent" "unterminated frontmatter is rejected"
 
+echo "==> Fixture: an emitted verdict block that nothing declares"
+fresh_copy
+mutate '/^  verdict: /d' "plugins/agent-ellis/skills/agent-ellis/SKILL.md"
+expect_fail "but metadata.verdict is absent" \
+	"a verdict block with no declaration is rejected"
+
+echo "==> Fixture: a declared verdict the body never shows"
+fresh_copy
+dirty "plugins/agent-ellis/skills/agent-ellis/SKILL.md"
+python3 - "$TMP_DIR/repo/plugins/agent-ellis/skills/agent-ellis/SKILL.md" <<'INNER'
+import re
+import sys
+
+path = sys.argv[1]
+with open(path) as handle:
+    text = handle.read()
+# Drop the fenced block whole -- fence markers included, so the fence check
+# downstream still sees a balanced file.
+text = re.sub(
+	r"```txt\n__REVIEW_VERDICT__\n.*?```\n",
+	"",
+	text,
+	count=1,
+	flags=re.S,
+)
+with open(path, "w") as handle:
+    handle.write(text)
+INNER
+expect_fail "its body never shows the block" \
+	"a declaration with no block is rejected"
+
+echo "==> Fixture: a verdict block with no fields in it"
+fresh_copy
+python3 - "$TMP_DIR/repo/plugins/agent-ellis/skills/agent-ellis/SKILL.md" <<'INNER'
+import re
+import sys
+
+path = sys.argv[1]
+with open(path) as handle:
+    text = handle.read()
+# Keep the fence and both markers, drop the 'Field: value' lines between them.
+text = re.sub(
+	r"(__REVIEW_VERDICT__\n).*?(__REVIEW_VERDICT__\n)",
+	r"\1\2",
+	text,
+	count=1,
+	flags=re.S,
+)
+with open(path, "w") as handle:
+    handle.write(text)
+INNER
+dirty "plugins/agent-ellis/skills/agent-ellis/SKILL.md"
+expect_fail "carries no 'Field: value' line" "an empty verdict block is rejected"
+
+echo "==> Fixture: routing on a verdict no skill emits"
+fresh_copy
+mutate 's/`__OPS_VERDICT__`/`__OPERATIONS_VERDICT__`/' \
+	"plugins/agent-smith/skills/agent-smith/SKILL.md"
+expect_fail "which no skill in this marketplace declares" \
+	"a caller routing on an unknown verdict is rejected"
+
 echo "==> Fixture: a plugin with no trigger evals"
 fresh_copy
 dirty "plugins/compactor/evals"

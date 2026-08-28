@@ -106,6 +106,14 @@ agents that smith cannot see.
 Page reports the same way with `__OPS_VERDICT__` (READY · CONCERN · BLOCK), and smith
 dispatches hale for fixes when it blocks.
 
+Each marker is declared in its emitter's `metadata.verdict`, and `scripts/validate` closes the
+loop from both ends: a skill that shows a verdict block must declare it, a declared verdict
+must appear as a block with fields in it, and a marker one skill routes on must be one another
+skill emits. The five are `__REVIEW_VERDICT__` (ellis), `__OPS_VERDICT__` (page),
+`__TEST_RESULT__` (test-runner), `__AUDIT_RESULT__` (dep-auditor) and `__SEC_REVIEW_RESULT__`
+(sec-review). Renaming one used to be a silent failure: the caller reads no verdict and
+proceeds as though the findings were empty, which is the worst default available.
+
 ## Model Tiers
 
 A skill declares a `model` in its `SKILL.md` frontmatter only to run mechanical work on a

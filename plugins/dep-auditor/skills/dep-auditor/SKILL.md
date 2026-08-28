@@ -23,6 +23,7 @@ metadata:
   author: cmj@cmj.tw
   version: "2.0.0"
   shortcut: "audit deps, dep-auditor"
+  verdict: "__AUDIT_RESULT__"
 ---
 
 # Dependency Auditor

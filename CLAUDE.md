@@ -98,6 +98,13 @@ What that means for edits here:
   must not lag the latest `v*` git tag. That is a fourth location and a separate check.
 - A plugin's `description` must read identically in `.claude-plugin/marketplace.json`, its
   `plugin.json` and its `SKILL.md` frontmatter.
+- A skill that hands another skill a machine-readable block declares that block's marker in
+  `metadata.verdict`. The check runs both ways — a shown block must be declared, a declared
+  marker must be shown as a block carrying at least one `Field: value` line, and a marker a
+  skill routes on must be one some skill in the marketplace emits. Five exist:
+  `__REVIEW_VERDICT__`, `__OPS_VERDICT__`, `__TEST_RESULT__`, `__AUDIT_RESULT__` and
+  `__SEC_REVIEW_RESULT__`. A marker inside a fenced block is read as emitted; the same token in
+  prose backticks is read as routed on.
 - Every skill declares its magic words in `metadata.shortcut`, a comma-separated string;
   `shortcut` itself is the sole exception. Magic words must be unique across all plugins. Its
   `## Shortcut` section must spell each declared word out in backticks for human readers, but

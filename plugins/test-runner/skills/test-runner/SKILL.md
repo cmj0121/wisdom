@@ -25,6 +25,7 @@ metadata:
   author: cmj@cmj.tw
   version: "2.0.0"
   shortcut: "run tests, test-runner"
+  verdict: "__TEST_RESULT__"
 ---
 
 # Test Runner

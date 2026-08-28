@@ -12,6 +12,7 @@ metadata:
   author: cmj@cmj.tw
   version: "2.0.0"
   shortcut: "review code, qa review, ellis"
+  verdict: "__REVIEW_VERDICT__"
 ---
 
 # Agent Ellis — QA
