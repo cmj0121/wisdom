@@ -644,6 +644,29 @@ INNER
 dirty "plugins/agent-ellis/skills/agent-ellis/SKILL.md"
 expect_fail "carries no 'Field: value' line" "an empty verdict block is rejected"
 
+echo "==> Fixture: a verdict block renamed on one side only"
+fresh_copy
+dirty "plugins/agent-ellis/skills/agent-ellis/SKILL.md"
+printf '\n```txt\n__EXTRA_VERDICT__\nStatus: OK\n__EXTRA_VERDICT__\n```\n' \
+	>>"$TMP_DIR/repo/plugins/agent-ellis/skills/agent-ellis/SKILL.md"
+expect_fail "but metadata.verdict is __REVIEW_VERDICT__" \
+	"a block whose marker is not the declared one is rejected"
+
+echo "==> Fixture: a blank line inside a verdict block is formatting, not a rename"
+fresh_copy
+dirty "plugins/agent-ellis/skills/agent-ellis/SKILL.md"
+python3 - "$TMP_DIR/repo/plugins/agent-ellis/skills/agent-ellis/SKILL.md" <<'INNER'
+import sys
+
+path = sys.argv[1]
+with open(path) as handle:
+    text = handle.read()
+with open(path, "w") as handle:
+    handle.write(text.replace("```txt\n__REVIEW_VERDICT__\n", "```txt\n\n__REVIEW_VERDICT__\n", 1))
+INNER
+expect_pass_with "emits and declares __REVIEW_VERDICT__" \
+	"a blank first line does not read as a missing block"
+
 echo "==> Fixture: routing on a verdict no skill emits"
 fresh_copy
 mutate 's/`__OPS_VERDICT__`/`__OPERATIONS_VERDICT__`/' \

@@ -521,8 +521,16 @@ for path in skill_files:
                 fence, block = marker, []
             continue
         if marker == fence:
-            if block and VERDICT_MARKER_RE.match(block[0].strip()):
-                emitted.append((block[0].strip(), block))
+            # Blank edges are formatting, not content: a blank first line must
+            # not turn a shown block into a missing one, or a whitespace edit
+            # reads as a renamed contract.
+            trimmed = block[:]
+            while trimmed and not trimmed[0].strip():
+                trimmed.pop(0)
+            while trimmed and not trimmed[-1].strip():
+                trimmed.pop()
+            if trimmed and VERDICT_MARKER_RE.match(trimmed[0].strip()):
+                emitted.append((trimmed[0].strip(), trimmed))
             fence = None
             continue
         block.append(line)
@@ -551,7 +559,11 @@ for path in skill_files:
             f"declares metadata.verdict {declared} but its body never shows"
             f" the block, so nothing says what {declared} contains"
         )
-    if declared and not problems:
+    # Recorded from the declaration alone. The routing half asks whether some
+    # skill claims this marker, which stays true while that skill's own block
+    # is being fixed -- otherwise one malformed block fails every caller too,
+    # and the real error is buried among its consequences.
+    if declared:
         declared_verdicts[declared] = os.path.basename(os.path.dirname(path))
     for problem in problems:
         bad(f"{shown}: {problem}")
