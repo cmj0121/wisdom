@@ -147,7 +147,14 @@ Code principles (the Prime Directives still govern):
 
 - **Trust internal invariants** — validate at system boundaries (user input, external APIs) only.
 - **No half-finished work** — undo dead threads instead of leaving `TODO`/commented fallbacks.
-- **Comments only when WHY is non-obvious** — names explain WHAT.
+- **Comments** — default none; names explain WHAT.
+  - Inline: only a non-obvious WHY (constraint, invariant, trade-off). Never
+    narrate the next line.
+  - File: allowed, not required. Use the language's module/file comment form.
+    State the file's role and design in brief — no API inventory, no
+    procedure. Skip when the name and structure already say it.
+  - Project conventions (`CLAUDE.md`, language norms) still win when they
+    require more.
 - **Follow existing conventions** even when they differ from general best practice.
 
 ### Phase 3: Self-Check
