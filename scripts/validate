@@ -12,6 +12,10 @@
 #   5. The top-level README lists every plugin the marketplace registers.
 #   6. Each plugin's description reads the same in marketplace.json, its
 #      plugin.json and its SKILL.md frontmatter.
+#   7. Every plugin carries evals/trigger-queries.json, labelled on both sides
+#      and split both ways.
+#   8. A skill that emits a verdict block declares it in 'metadata.verdict',
+#      and every verdict another skill routes on is one some skill emits.
 #
 # An optional first argument overrides the repo root, so the fixture
 # harness can point the validator at a mutated copy of the repo.
@@ -481,6 +485,189 @@ else:
         bad(f"README.md: plugin '{name}' is registered in marketplace.json but not listed here")
     if not missing:
         ok(f"README.md lists all {len(plugin_names)} registered plugin(s)")
+
+# A verdict block is the one machine-facing thing these skills exchange: Ellis
+# hands Smith a PASS/WARN/FAIL, Page hands it a READY/CONCERN/BLOCK. Until now
+# the marker naming that block existed only in prose in both the skill that
+# emits it and the skill that routes on it, so a rename on one side was a
+# silent failure on the other -- the caller reads no verdict and proceeds as
+# though there were no findings, which is the worst of the possible defaults.
+#
+# 'metadata.verdict' makes the emitting side declarable, and this check closes
+# it from both ends: what is declared must be emitted, what is emitted must be
+# declared, and what is routed on must exist somewhere.
+VERDICT_KEY = "verdict"
+# A marker alone on its own line inside a fenced block: the skill is showing
+# the block's shape. The same token inside prose backticks is a mention -- the
+# caller naming a verdict it acts on -- and mentions are checked separately,
+# further down, against what the emitters declare.
+VERDICT_MARKER_RE = re.compile(r"^__[A-Z][A-Z0-9_]*__$")
+VERDICT_FIELD_RE = re.compile(r"^[A-Za-z][A-Za-z ]*:\s*\S")
+
+print("==> Checking verdict contracts")
+declared_verdicts = {}
+for path in skill_files:
+    shown = os.path.relpath(path, root)
+    lines = read_lines(path)
+    front = frontmatter(lines) or []
+    declared = frontmatter_metadata(front, VERDICT_KEY)
+
+    # Walk the body's fenced blocks, collecting markers that open one.
+    emitted, fence, block = [], None, []
+    for line in lines:
+        marker = fence_marker(line)
+        if fence is None:
+            if marker:
+                fence, block = marker, []
+            continue
+        if marker == fence:
+            # Blank edges are formatting, not content: a blank first line must
+            # not turn a shown block into a missing one, or a whitespace edit
+            # reads as a renamed contract.
+            trimmed = block[:]
+            while trimmed and not trimmed[0].strip():
+                trimmed.pop(0)
+            while trimmed and not trimmed[-1].strip():
+                trimmed.pop()
+            if trimmed and VERDICT_MARKER_RE.match(trimmed[0].strip()):
+                emitted.append((trimmed[0].strip(), trimmed))
+            fence = None
+            continue
+        block.append(line)
+
+    problems = []
+    if declared and not VERDICT_MARKER_RE.match(declared):
+        problems.append(
+            f"metadata.verdict is {declared!r}, which is not a __MARKER__ name"
+        )
+    for marker, block in emitted:
+        if marker != declared:
+            problems.append(
+                f"emits a {marker} block but metadata.verdict is"
+                f" {declared or 'absent'}; a caller routing on it has nothing to read"
+            )
+            continue
+        if block[-1].strip() != marker:
+            problems.append(f"the {marker} block does not close with {marker}")
+        if not any(VERDICT_FIELD_RE.match(l.strip()) for l in block[1:-1]):
+            problems.append(
+                f"the {marker} block carries no 'Field: value' line, so it"
+                " states a contract with no content"
+            )
+    if declared and not emitted:
+        problems.append(
+            f"declares metadata.verdict {declared} but its body never shows"
+            f" the block, so nothing says what {declared} contains"
+        )
+    # Recorded from the declaration alone. The routing half asks whether some
+    # skill claims this marker, which stays true while that skill's own block
+    # is being fixed -- otherwise one malformed block fails every caller too,
+    # and the real error is buried among its consequences.
+    if declared:
+        declared_verdicts[declared] = os.path.basename(os.path.dirname(path))
+    for problem in problems:
+        bad(f"{shown}: {problem}")
+    if not problems and declared:
+        ok(f"{shown}: emits and declares {declared}")
+
+# The routing half. A skill that acts on someone else's verdict names it in
+# prose; that name must belong to a skill that actually emits one.
+for path in skill_files:
+    shown = os.path.relpath(path, root)
+    lines = read_lines(path)
+    own = frontmatter_metadata(frontmatter(lines) or [], VERDICT_KEY)
+    mentioned = set()
+    for line in prose_lines(lines):
+        for span in backtick_spans([line]):
+            if VERDICT_MARKER_RE.match(span):
+                mentioned.add(span)
+    for marker in sorted(mentioned - {own}):
+        if marker not in declared_verdicts:
+            bad(
+                f"{shown}: routes on {marker}, which no skill in this"
+                " marketplace declares in metadata.verdict"
+            )
+        else:
+            ok(f"{shown}: routes on {marker}, emitted by {declared_verdicts[marker]}")
+
+
+# Built by the magic-word census above: plugin -> the words it claims.
+magic_words = {plugin: sorted(w) for plugin, w in triggers.items()}
+
+print("==> Checking trigger-eval coverage")
+for directory in plugin_dirs:
+    name = os.path.basename(directory)
+    path = os.path.join(directory, "evals", "trigger-queries.json")
+    shown = os.path.relpath(path, root)
+    if not os.path.isfile(path):
+        bad(
+            f"{name}: no evals/trigger-queries.json."
+            " A description is the only part of a skill always in context, so it"
+            " is the part that decides whether the skill is ever reached;"
+            " an untested one is an untested router"
+        )
+        continue
+    try:
+        doc = json.loads(open(path).read())
+    except ValueError as exc:
+        bad(f"{shown}: not valid JSON ({exc})")
+        continue
+    problems = []
+    if doc.get("skill") != name:
+        problems.append(f"names skill {doc.get('skill')!r}, but sits under plugins/{name}")
+    queries = doc.get("queries")
+    if not isinstance(queries, list) or not queries:
+        problems.append("has no 'queries' list")
+        queries = []
+    texts = [q.get("query") for q in queries if isinstance(q, dict)]
+    if len(texts) != len(queries):
+        problems.append("has a query that is not an object")
+    elif len(set(texts)) != len(texts):
+        problems.append("repeats a query, which scores the same prompt twice")
+    labels = {q.get("should_trigger") for q in queries if isinstance(q, dict)}
+    if labels - {True, False}:
+        problems.append("has a query whose 'should_trigger' is not a boolean")
+    elif labels != {True, False}:
+        problems.append("labels every query the same way, so it cannot separate a hit from a miss")
+    splits = {q.get("split") for q in queries if isinstance(q, dict)}
+    if not {"train", "validation"} <= splits:
+        problems.append(
+            "does not split train/validation, so a description tuned on these"
+            " queries has nothing left to be judged against"
+        )
+    # Not pinned to exactly half. The negatives are what the set is for -- a
+    # description that fires on everything passes a positives-only set -- but
+    # requiring a precise ratio would make this a formatting rule rather than a
+    # coverage one.
+    negatives = sum(1 for q in queries if isinstance(q, dict) and q.get("should_trigger") is False)
+    if queries and negatives * 3 < len(queries):
+        problems.append(
+            f"has {negatives} near-miss negative(s) among {len(queries)} queries;"
+            " a set that is nearly all positives cannot catch an over-eager description"
+        )
+    # A negative that carries another plugin's magic word is the point of the
+    # set -- that is the near-miss. A POSITIVE that carries one is not a test
+    # at all: both skills are supposed to fire, so whichever wins, the run
+    # proves nothing about this description.
+    for query in queries:
+        if not isinstance(query, dict) or query.get("should_trigger") is not True:
+            continue
+        text = (query.get("query") or "").lower()
+        for owner, owned in sorted(magic_words.items()):
+            if owner == name:
+                continue
+            for word in owned:
+                if re.search(r"\b" + re.escape(word) + r"\b", text):
+                    problems.append(
+                        f"the positive {query['query']!r} contains {word!r},"
+                        f" a magic word of {owner}, so both skills are meant to"
+                        " fire and the run decides nothing"
+                    )
+    for problem in problems:
+        bad(f"{shown}: {problem}")
+    if not problems:
+        ok(f"{name}: {len(queries)} labelled trigger queries")
+
 
 if errors:
     print(f"==> {errors} error(s) found")

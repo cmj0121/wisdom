@@ -106,6 +106,14 @@ agents that smith cannot see.
 Page reports the same way with `__OPS_VERDICT__` (READY · CONCERN · BLOCK), and smith
 dispatches hale for fixes when it blocks.
 
+Each marker is declared in its emitter's `metadata.verdict`, and `scripts/validate` closes the
+loop from both ends: a skill that shows a verdict block must declare it, a declared verdict
+must appear as a block with fields in it, and a marker one skill routes on must be one another
+skill emits. The five are `__REVIEW_VERDICT__` (ellis), `__OPS_VERDICT__` (page),
+`__TEST_RESULT__` (test-runner), `__AUDIT_RESULT__` (dep-auditor) and `__SEC_REVIEW_RESULT__`
+(sec-review). Renaming one used to be a silent failure: the caller reads no verdict and
+proceeds as though the findings were empty, which is the worst default available.
+
 ## Model Tiers
 
 A skill declares a `model` in its `SKILL.md` frontmatter only to run mechanical work on a
@@ -153,6 +161,15 @@ throwaway copy of the repo to break each check in turn and asserts the check cat
 stays out of `make test` — a suite of checks and the proof those checks can still fail are
 different jobs.
 
+A sixth, `scripts/check-install-drift`, is the only one that asserts on the machine rather
+than on the repo: it reports a skill shipped here that the local `~/.claude/skills` also
+serves. A leftover copy there does not replace the installed plugin — both are offered, as
+`<name>` and `<plugin>:<name>` — so the model chooses between two routers whose descriptions
+have since diverged, and every trigger eval in this repo measures a description the session
+may never have loaded. It runs from `make doctor`, by hand, and from nowhere else: there is no
+`$HOME/.claude` in CI, where it would pass for the wrong reason, and a contributor's own
+skills are not this repo's business.
+
 ```text
                              ┌─ scripts/test                structural
    make test ──────────┐     │
@@ -164,6 +181,9 @@ different jobs.
                 │
                 └──────────────> scripts/validate-fixtures  self-test
                                  (pre-commit: only when scripts/ changes; CI: always)
+
+   make doctor ────────────────> scripts/check-install-drift  local install drift
+                                 (by hand only: it reads $HOME, not the repo)
 ```
 
 `make test` runs the first four and reports all four; it does not stop at the first failure.
@@ -184,15 +204,19 @@ what you touched.
 ### Trigger evals
 
 A skill only helps if it activates, and the `description` is the only thing Claude has at the
-moment it decides. The eight utility skills — `test-runner`, `dep-auditor`, `sec-review`,
-`changelog-gen`, `ascii-grapher`, `spec-writer`, `compactor`, `pr-flow` — each carry
-`evals/trigger-queries.json`: 20 labelled prompts, ten that should activate the skill and ten
-near-misses that share its vocabulary but need something else. Split 60/40 into train and
-validation, so a reworded description is tuned on one half and judged on the other rather than
-fitted to the phrasings used to tune it.
+moment it decides. Every plugin carries `evals/trigger-queries.json`: 20 labelled prompts, ten
+that should activate the skill and ten near-misses that share its vocabulary but need something
+else. Split 60/40 into train and validation, so a reworded description is tuned on one half and
+judged on the other rather than fitted to the phrasings used to tune it. `scripts/validate`
+fails a plugin that carries no such file.
 
-The scrum agents have no such file. They are dispatched by `agent-smith` rather than triggered
-by a prompt, and by design each is the next one's nearest near-miss.
+The scrum agents carry one too. They used to be exempt on the grounds that `agent-smith`
+dispatches them rather than a prompt triggering them, and that each is the next one's nearest
+near-miss. The first half holds for only part of their traffic — every one of them declares
+magic words a user can type. The second half was the argument turned around: being each other's
+nearest near-miss is what makes the discrimination worth testing, so their negatives are drawn
+from their siblings. `agent-ellis` must not answer "write tests for this"; `agent-ross` must
+not answer "generate the changelog".
 
 No runner is committed: `claude plugin eval` is the intended one and is in early access, so
 its case format is not yet public.
@@ -200,7 +224,9 @@ its case format is not yet public.
 Only `scripts/validate-fixtures` stays gated, on `^scripts/`: it costs a few seconds and says
 nothing new unless a check changes. That gate has the same blind spot — deleting
 `scripts/validate` presents no `scripts/` file either — which is why `scripts/test` asserts
-that all five check scripts exist and are executable, and why CI runs the fixtures every time.
+that all six check scripts exist and are executable, and why CI runs the fixtures every time.
+`scripts/check-install-drift` needs that entry most of all: nothing but `make doctor` ever
+runs it, so nothing else would notice it had gone.
 
 ### What the semantic validator enforces
 
@@ -224,6 +250,15 @@ When you add or edit a plugin, this is the check to know about. It enforces:
   `.claude-plugin/marketplace.json`, its `plugin.json` and its `SKILL.md` frontmatter. It is
   the one piece of prose a plugin repeats verbatim, so the one that can be compared at all.
 - **Balanced code fences** — an unterminated fence hides everything after it from the checks.
+- **Trigger evals** — every plugin carries `evals/trigger-queries.json`, naming its own skill,
+  labelled both ways, split both ways, and not so nearly all positives that it could never
+  catch an over-eager description. A positive query may not carry another plugin's magic word:
+  a negative that does is the near-miss the set exists for, but a positive that does means both
+  skills are meant to fire, so whichever wins decides nothing.
+- **Verdict contracts** — a skill showing a `__MARKER__` block declares it in
+  `metadata.verdict`; a declared marker appears as a block with `Field: value` lines in it;
+  and a marker one skill routes on is one another skill emits. A marker inside a fence is read
+  as emitted, the same token in prose backticks as routed on.
 
 ### Backticks are reserved
 

@@ -12,6 +12,7 @@ metadata:
   author: cmj@cmj.tw
   version: "2.0.0"
   shortcut: "sec-review, security review"
+  verdict: "__SEC_REVIEW_RESULT__"
 ---
 
 # Security Reviewer

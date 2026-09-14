@@ -4,7 +4,7 @@
 #   2. Every registered plugin declares its four entry fields, its source
 #      directory exists, its plugin.json parses and names the same plugin,
 #      and it ships a LICENSE.
-#   3. All four check scripts are present and executable.
+#   3. Every script in scripts/ is present and executable.
 #
 # Deliberately NOT checked here — each is covered by a sibling script, and
 # duplicating it would only make one more place to keep in step:
@@ -132,14 +132,22 @@ for entry in plugins:
 # gated hook — pre-commit builds its candidate list with
 # `--diff-filter=ACMRTUXB`, which drops deletions — and a hook whose own entry
 # vanishes only fails when it runs unconditionally. Three of the four now do;
-# scripts/validate-fixtures stays gated on `^scripts/` for its runtime, so this
-# unconditional check is what stands between it and a silent removal.
+# scripts/validate-fixtures stays gated on `^scripts/` for its runtime and
+# scripts/check-install-drift runs from `make doctor` alone, so this
+# unconditional check is what stands between those two and a silent removal.
 #
 # The list is hardcoded on purpose. Globbing scripts/* would make the check
 # vacuously true — a deleted script simply would not be looked for — which is
 # the exact blind spot it exists to close.
 print("==> Checking the check scripts")
-for script in ("test", "check-version-sync", "validate", "check-skill-spec", "validate-fixtures"):
+for script in (
+    "test",
+    "check-version-sync",
+    "validate",
+    "check-skill-spec",
+    "validate-fixtures",
+    "check-install-drift",
+):
     path = os.path.join(root, "scripts", script)
     if os.access(path, os.X_OK) and os.path.isfile(path):
         ok(f"scripts/{script} is present and executable")

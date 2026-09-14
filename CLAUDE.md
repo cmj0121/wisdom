@@ -68,8 +68,11 @@ Adding a third extension means adding it to `CLAUDE_CODE_EXTENSIONS` with the sa
 reason. Anything outside both layers fails the check.
 
 The body contains phase-by-phase instructions that guide the AI agent through a workflow, and
-must stay under 500 lines — the check warns at 350, which is the point where there is still a
-choice about which sections move into `references/`.
+must stay under 500 lines — the check warns at 250. 350 never fired: the longest body here,
+`agent-smith`, sat at 346, four lines under the line meant to flag it. The warning asks for a
+judgement rather than a split — move what a run merely consults (rosters, schemas, worked
+examples) into `references/`, and shorten what it executes instead of moving that too, because
+a procedure in `references/` is read anyway, one fetch later.
 
 ### Skill Discovery (Three Tiers)
 
@@ -87,8 +90,15 @@ candidate list excludes deletions, so a path-gated hook sees nothing on a deleti
 and is skipped. After editing `scripts/validate` or `scripts/check-skill-spec`, also run
 `scripts/validate-fixtures` — the negative-fixture self-test for both, and the one hook still
 gated (on `^scripts/`), which the commit path runs but `make test` does not. CI
-(`.github/workflows/checks.yml`) runs all five plus the full pre-commit suite on every push
+(`.github/workflows/checks.yml`) runs those five plus the full pre-commit suite on every push
 and pull request.
+
+`scripts/check-install-drift` is the sixth and is in none of those paths. It reports a skill
+this repo ships that the local `~/.claude/skills` also serves — a stale copy there outranks
+the installed plugin and gives the model two routers to choose between, so every trigger eval
+here measures a description the session may never have loaded. It asserts on the machine, not
+the repo, so it runs from `make doctor` by hand: in CI there is no `$HOME/.claude` and it
+would pass for the wrong reason. Run it when a skill behaves like an older version of itself.
 
 What that means for edits here:
 
@@ -98,6 +108,13 @@ What that means for edits here:
   must not lag the latest `v*` git tag. That is a fourth location and a separate check.
 - A plugin's `description` must read identically in `.claude-plugin/marketplace.json`, its
   `plugin.json` and its `SKILL.md` frontmatter.
+- A skill that hands another skill a machine-readable block declares that block's marker in
+  `metadata.verdict`. The check runs both ways — a shown block must be declared, a declared
+  marker must be shown as a block carrying at least one `Field: value` line, and a marker a
+  skill routes on must be one some skill in the marketplace emits. Five exist:
+  `__REVIEW_VERDICT__`, `__OPS_VERDICT__`, `__TEST_RESULT__`, `__AUDIT_RESULT__` and
+  `__SEC_REVIEW_RESULT__`. A marker inside a fenced block is read as emitted; the same token in
+  prose backticks is read as routed on.
 - Every skill declares its magic words in `metadata.shortcut`, a comma-separated string;
   `shortcut` itself is the sole exception. Magic words must be unique across all plugins. Its
   `## Shortcut` section must spell each declared word out in backticks for human readers, but
@@ -116,10 +133,14 @@ What that means for edits here:
   writing `inherit` do the same thing.
 - Frontmatter may carry only the standard's six fields plus the Claude Code extensions listed
   in `CLAUDE_CODE_EXTENSIONS` (`scripts/check-skill-spec`). A new one needs a recorded reason.
-- The eight utility skills carry `evals/trigger-queries.json`: 20 labelled prompts, half of
+- Every plugin carries `evals/trigger-queries.json`: 20 labelled prompts, half of
   them near-misses, split train/validation. Rewriting a `description` means re-running them,
-  tuning on train and judging on validation. No runner is committed — `claude plugin eval` is
-  the intended one and is still in early access.
+  tuning on train and judging on validation. `scripts/validate` fails a plugin with no such
+  file, one that labels every query the same way, one that never splits off a validation half,
+  and one whose positive queries carry another plugin's magic word — a negative that does is
+  the near-miss, a positive that does is two skills racing. No runner is committed — `claude
+plugin eval` is the intended one and is still in early access, so the file states the intent
+  that a runner will check, not a passing test.
 
 Passing checks only prove nothing mechanically checkable is broken. Prose accuracy — a stale
 table row, a wrong command name — is not covered and still needs review.

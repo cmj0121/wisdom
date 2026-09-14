@@ -541,7 +541,7 @@ echo "==> Fixture: a body approaching, but not over, the budget"
 fresh_copy
 dirty "$SPEC_SKILL"
 for _ in $(seq 1 380); do echo "filler" >>"$TMP_DIR/repo/$SPEC_SKILL"; done
-expect_spec_warn "approaching the 500 budget" \
+expect_spec_warn "over the 250 line where a body is worth re-reading" \
 	"a body nearing the ceiling warns without failing"
 
 echo "==> Fixture: a reference to a file that is not bundled"
@@ -589,6 +589,145 @@ with open(path, "w") as handle:
     handle.write(text.replace("---", "", 1))
 INNER
 expect_spec_fail "closing '---' is absent" "unterminated frontmatter is rejected"
+
+echo "==> Fixture: an emitted verdict block that nothing declares"
+fresh_copy
+mutate '/^  verdict: /d' "plugins/agent-ellis/skills/agent-ellis/SKILL.md"
+expect_fail "but metadata.verdict is absent" \
+	"a verdict block with no declaration is rejected"
+
+echo "==> Fixture: a declared verdict the body never shows"
+fresh_copy
+dirty "plugins/agent-ellis/skills/agent-ellis/SKILL.md"
+python3 - "$TMP_DIR/repo/plugins/agent-ellis/skills/agent-ellis/SKILL.md" <<'INNER'
+import re
+import sys
+
+path = sys.argv[1]
+with open(path) as handle:
+    text = handle.read()
+# Drop the fenced block whole -- fence markers included, so the fence check
+# downstream still sees a balanced file.
+text = re.sub(
+	r"```txt\n__REVIEW_VERDICT__\n.*?```\n",
+	"",
+	text,
+	count=1,
+	flags=re.S,
+)
+with open(path, "w") as handle:
+    handle.write(text)
+INNER
+expect_fail "its body never shows the block" \
+	"a declaration with no block is rejected"
+
+echo "==> Fixture: a verdict block with no fields in it"
+fresh_copy
+python3 - "$TMP_DIR/repo/plugins/agent-ellis/skills/agent-ellis/SKILL.md" <<'INNER'
+import re
+import sys
+
+path = sys.argv[1]
+with open(path) as handle:
+    text = handle.read()
+# Keep the fence and both markers, drop the 'Field: value' lines between them.
+text = re.sub(
+	r"(__REVIEW_VERDICT__\n).*?(__REVIEW_VERDICT__\n)",
+	r"\1\2",
+	text,
+	count=1,
+	flags=re.S,
+)
+with open(path, "w") as handle:
+    handle.write(text)
+INNER
+dirty "plugins/agent-ellis/skills/agent-ellis/SKILL.md"
+expect_fail "carries no 'Field: value' line" "an empty verdict block is rejected"
+
+echo "==> Fixture: a verdict block renamed on one side only"
+fresh_copy
+dirty "plugins/agent-ellis/skills/agent-ellis/SKILL.md"
+printf '\n```txt\n__EXTRA_VERDICT__\nStatus: OK\n__EXTRA_VERDICT__\n```\n' \
+	>>"$TMP_DIR/repo/plugins/agent-ellis/skills/agent-ellis/SKILL.md"
+expect_fail "but metadata.verdict is __REVIEW_VERDICT__" \
+	"a block whose marker is not the declared one is rejected"
+
+echo "==> Fixture: a blank line inside a verdict block is formatting, not a rename"
+fresh_copy
+dirty "plugins/agent-ellis/skills/agent-ellis/SKILL.md"
+python3 - "$TMP_DIR/repo/plugins/agent-ellis/skills/agent-ellis/SKILL.md" <<'INNER'
+import sys
+
+path = sys.argv[1]
+with open(path) as handle:
+    text = handle.read()
+with open(path, "w") as handle:
+    handle.write(text.replace("```txt\n__REVIEW_VERDICT__\n", "```txt\n\n__REVIEW_VERDICT__\n", 1))
+INNER
+expect_pass_with "emits and declares __REVIEW_VERDICT__" \
+	"a blank first line does not read as a missing block"
+
+echo "==> Fixture: routing on a verdict no skill emits"
+fresh_copy
+mutate 's/`__OPS_VERDICT__`/`__OPERATIONS_VERDICT__`/' \
+	"plugins/agent-smith/skills/agent-smith/SKILL.md"
+expect_fail "which no skill in this marketplace declares" \
+	"a caller routing on an unknown verdict is rejected"
+
+echo "==> Fixture: a plugin with no trigger evals"
+fresh_copy
+dirty "plugins/compactor/evals"
+rm -rf "$TMP_DIR/repo/plugins/compactor/evals"
+expect_fail "no evals/trigger-queries.json" "a plugin without trigger evals is rejected"
+
+echo "==> Fixture: trigger evals with every query labelled the same way"
+fresh_copy
+dirty "plugins/compactor/evals"
+python3 - "$TMP_DIR/repo/plugins/compactor/evals/trigger-queries.json" <<'INNER'
+import json
+import sys
+
+path = sys.argv[1]
+with open(path) as handle:
+    doc = json.load(handle)
+for query in doc["queries"]:
+    query["should_trigger"] = True
+with open(path, "w") as handle:
+    json.dump(doc, handle, indent=2)
+INNER
+expect_fail "labels every query the same way" "a positives-only eval set is rejected"
+
+echo "==> Fixture: trigger evals that never split off a validation set"
+fresh_copy
+dirty "plugins/compactor/evals"
+python3 - "$TMP_DIR/repo/plugins/compactor/evals/trigger-queries.json" <<'INNER'
+import json
+import sys
+
+path = sys.argv[1]
+with open(path) as handle:
+    doc = json.load(handle)
+for query in doc["queries"]:
+    query["split"] = "train"
+with open(path, "w") as handle:
+    json.dump(doc, handle, indent=2)
+INNER
+expect_fail "does not split train/validation" "an eval set with no validation half is rejected"
+
+echo "==> Fixture: a positive query carrying another plugin's magic word"
+fresh_copy
+dirty "plugins/agent-twain/evals"
+mutate 's/"our readme still documents the old flags"/"the readme is out of date, fix it"/' \
+	"plugins/agent-twain/evals/trigger-queries.json"
+expect_fail "a magic word of agent-smith" \
+	"an ambiguous positive query is rejected"
+
+echo "==> Fixture: trigger evals naming a skill that is not their own"
+fresh_copy
+dirty "plugins/compactor/evals"
+mutate 's/"skill": "compactor"/"skill": "spec-writer"/' \
+	"plugins/compactor/evals/trigger-queries.json"
+expect_fail "but sits under plugins/compactor" "an eval file naming the wrong skill is rejected"
 
 # fresh_copy restores only what a fixture declared, so an undeclared mutation
 # would silently poison every fixture after it. Restore, then prove the work

@@ -1,0 +1,109 @@
+{
+  "skill": "agent-page",
+  "about": "Trigger eval queries for this skill's description. A query is labelled with whether the skill should activate for it; the negatives are near-misses that share vocabulary with the skill but need something else. Split fixed so successive description edits are compared on the same ground: tune against train, judge against validation.",
+  "how_to_run": "No runner is committed. `claude plugin eval` is the intended one and is in early access; until it is available, run each query with `claude -p --output-format json` and count the runs whose transcript contains a Skill tool_use naming this skill.",
+  "runs_per_query": 3,
+  "trigger_rate_threshold": 0.5,
+  "queries": [
+    {
+      "query": "is this safe to run in production",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "page, review this for operational readiness",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "do we have enough logging and metrics here",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "what happens to this under load",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "check the reliability of this deployment change",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "this touches monitoring -- review it before release",
+      "should_trigger": true,
+      "split": "train"
+    },
+    {
+      "query": "will this scale",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "review the ops posture of this service",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "are the alerts on this any good",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "why is this endpoint slow in production",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "deploy this to production",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "review the code quality",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "audit the dependencies for known cves",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "do a security review of the source",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "design a more reliable architecture",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "run the tests",
+      "should_trigger": false,
+      "split": "train"
+    },
+    {
+      "query": "fix the slow query",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "write the runbook",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "tag the release",
+      "should_trigger": false,
+      "split": "validation"
+    },
+    {
+      "query": "plan the reliability work",
+      "should_trigger": false,
+      "split": "validation"
+    }
+  ]
+}

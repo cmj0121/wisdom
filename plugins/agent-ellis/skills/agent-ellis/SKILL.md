@@ -12,6 +12,7 @@ metadata:
   author: cmj@cmj.tw
   version: "2.0.0"
   shortcut: "review code, qa review, ellis"
+  verdict: "__REVIEW_VERDICT__"
 ---
 
 # Agent Ellis — QA
@@ -39,7 +40,11 @@ Grep changed files. Flag matches as **Warning**.
 - **Code style**: inconsistent indentation, trailing whitespace
 - **Code smells**: long methods, large classes, duplicated code
 - **Complexity**: deeply nested code, long parameter lists
-- **Documentation gaps**: public methods/classes without docstrings
+- **Comments**: WARN comment noise — comments that restate WHAT the next
+  line does; file/module comments that dump APIs or steps. Do not warn on
+  missing docstrings or missing file comments unless the project's
+  `CLAUDE.md` or existing convention requires them. Unsure whether it is
+  noise → do not WARN.
 
 ### Phase 3: Security Review
 
