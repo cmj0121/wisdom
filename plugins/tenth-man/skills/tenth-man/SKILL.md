@@ -28,6 +28,11 @@ the work should happen at all.
 
 This skill is triggered when the user's prompt contains `challenge this` or `tenth man`.
 
+Each phase below assumes a subject to challenge. When it is missing or too thin to read — no
+plan, no diff, a proposal stated in a single line — say so and stop rather than inventing
+assumptions in order to have something to stress-test. Manufactured dissent is this role's
+own failure mode, and it spends exactly the credibility the real findings will need.
+
 ## Phase 1: Understand the Subject
 
 Read the plan, proposal, or code. Gather context from the user's prompt, referenced files,

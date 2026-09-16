@@ -26,6 +26,11 @@ or `ascii diagram`.
 
 ## How It Works
 
+Each phase assumes the one before it produced something: a subject to draw, a layout to
+render. When it did not, say what is missing and ask rather than inventing structure to fill
+the frame. A diagram is read as a statement of fact about the system, so a guessed box is a
+claim nobody made and nobody can trace.
+
 ### Phase 1: Understand the Subject
 
 Determine what to visualize: code architecture, concept/data flow, sequence diagram, or custom.

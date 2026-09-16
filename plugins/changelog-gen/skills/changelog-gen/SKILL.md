@@ -30,6 +30,10 @@ This skill is triggered when the user's prompt contains `generate changelog` or 
 
 ## How It Works
 
+Each phase assumes the previous one produced something: a commit range, parsed entries. When
+it did not — no tags and no history, or no commits in the range — report that and stop. An
+empty changelog and a changelog nobody could compute read identically once written down.
+
 ### Phase 1: Determine Scope
 
 1. Find latest git tag: `git tag --sort=-v:refname | head -1`

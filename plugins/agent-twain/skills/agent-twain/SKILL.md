@@ -27,6 +27,11 @@ This skill is triggered when the user's prompt contains `write docs`, `document 
 
 ## How It Works
 
+Each phase below assumes an input: a plan, a diff, the code the docs will describe. When one
+is missing, say so and stop rather than writing around it. Documentation of behaviour Twain
+never read is worse than no documentation at all — a reader has no way to tell the two apart,
+and trusts the one that is wrong.
+
 ### Phase 1: Understand the Changes
 
 1. Read `PLAN.md` (if present) for what was built and why — its **Context** section carries

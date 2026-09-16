@@ -26,6 +26,11 @@ This skill is triggered when the user's prompt contains `design it`, `architect 
 
 ## How It Works
 
+Each phase below assumes an input: a plan to design against, a codebase to read, a verdict
+from the challenge. When one is missing, say what was missing and stop rather than designing
+around the gap. A requirement Ward assumed rather than read is the expensive kind of wrong —
+it survives review, because it looks like a decision, and is found only once Hale has built it.
+
 ### Phase 1: Understand the Context
 
 1. Read `PLAN.md` (if present) for goal and units of work. Its **Context** section already

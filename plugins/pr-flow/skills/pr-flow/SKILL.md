@@ -35,6 +35,11 @@ the skill never runs `gh pr merge`.
 
 This skill is triggered when the user's prompt contains `open pr`, `resolve pr`, or `pr-flow`.
 
+Each phase below assumes an input: a verified ref, a diff, a list of reviewer items. When one
+is missing, say which and stop — with the single exception Phase 1 already names, where a
+declined issue becomes `Issue: —` and the run continues. That exception is the shape to copy:
+a gap the user has seen and ruled on can be carried forward, a gap nobody has seen cannot.
+
 ## Phase 1: Issue Gate
 
 Establish which issue this PR serves before reading a line of the diff.

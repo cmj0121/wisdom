@@ -27,6 +27,11 @@ This skill is triggered when the user's prompt contains `sec-review` or `securit
 
 ## How It Works
 
+Each phase below assumes an input: a scope to enumerate, files to read. When one is missing —
+the caller named a scope that resolves to nothing, or enumeration returns no source at all —
+report that and stop. `Status: CLEAN` is a claim about source that was examined, so source
+that was never enumerated earns no status, least of all the reassuring one.
+
 ### Phase 1: Scope
 
 Enumerate source files with `git ls-files` (fall back to Glob). Skip vendored/generated

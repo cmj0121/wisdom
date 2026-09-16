@@ -38,6 +38,10 @@ This skill is triggered when the user's prompt contains `run tests` or `test-run
 
 ## How It Works
 
+Each phase assumes the previous one produced something: a detected framework, a command that
+ran. When it did not, report that and stop — Phase 1 already states the rule, and it is the
+pattern for all of them. A suite that could not run is not a suite that passed.
+
 ### Phase 1: Detect Test Framework
 
 Auto-detect by checking config files. If multiple detected, run all. If none, report and stop.

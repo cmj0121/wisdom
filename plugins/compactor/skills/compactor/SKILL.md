@@ -23,6 +23,10 @@ This skill is triggered when the user's prompt contains `compact it`.
 
 ## How It Works
 
+Each phase assumes a source to work from. When Phase 1 finds none — no prior result, or a
+reference that resolves to nothing — say so and stop. Compacting nothing produces an empty
+table, and an empty table reads as a finding rather than as the absence of one.
+
 ### Phase 1: Identify the Source
 
 Default to the most recent substantive assistant message/result. If the user
