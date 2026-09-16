@@ -39,7 +39,7 @@
     {
       "name": "agent-twain",
       "description": "Technical Writer agent — writes user documentation, API references, migration guides and tutorials. Use when a change needs documenting or its docs have gone stale.",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "source": "./plugins/agent-twain"
     },
     {
@@ -51,13 +51,13 @@
     {
       "name": "agent-ross",
       "description": "Release Manager agent — writes commit messages, runs CI/CD and Docker builds, deploys and tags releases. Use when finished work needs to ship.",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "source": "./plugins/agent-ross"
     },
     {
       "name": "spec-writer",
       "description": "Writes technical specifications — requirements, interfaces, data models and architecture diagrams. Use when a design needs recording before it is built.",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "source": "./plugins/spec-writer"
     },
     {
@@ -69,31 +69,31 @@
     {
       "name": "ascii-grapher",
       "description": "Draws ASCII diagrams for architecture, data flows, state machines and concepts. Use when a structure is easier to see than to read, or must survive in a terminal.",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "source": "./plugins/ascii-grapher"
     },
     {
       "name": "test-runner",
       "description": "Detects the project's test framework, runs its suite, and reports what passed, what failed and why. Runs tests only — it does not review the code (agent-ellis).",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "source": "./plugins/test-runner"
     },
     {
       "name": "changelog-gen",
       "description": "Generates changelog entries from git history, grouping conventional commits by type. Use when a release needs notes or a CHANGELOG has fallen behind.",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "source": "./plugins/changelog-gen"
     },
     {
       "name": "dep-auditor",
       "description": "Audits dependencies for known vulnerabilities and outdated versions across npm, pip, go, cargo and bundler. Use before a release or when a lockfile changes.",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "source": "./plugins/dep-auditor"
     },
     {
       "name": "compactor",
       "description": "Re-renders the previous result as a dense, scannable table, dropping prose framing but keeping every data point. Use when an answer was longer than it needed to be.",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "source": "./plugins/compactor"
     },
     {
@@ -117,7 +117,7 @@
     {
       "name": "lingua",
       "description": "Answers in the user's chosen language whatever language they write in, restating the question in correct terminology first. Use to set or load that preference.",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "source": "./plugins/lingua"
     }
   ]

@@ -1,7 +1,7 @@
 {
   "name": "dep-auditor",
   "description": "Audits dependencies for known vulnerabilities and outdated versions across npm, pip, go, cargo and bundler. Use before a release or when a lockfile changes.",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "license": "MIT",
   "author": {
     "name": "cmj",

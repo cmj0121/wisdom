@@ -1,7 +1,7 @@
 {
   "name": "agent-twain",
   "description": "Technical Writer agent — writes user documentation, API references, migration guides and tutorials. Use when a change needs documenting or its docs have gone stale.",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "license": "MIT",
   "author": {
     "name": "cmj",

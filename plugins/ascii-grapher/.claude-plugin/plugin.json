@@ -1,7 +1,7 @@
 {
   "name": "ascii-grapher",
   "description": "Draws ASCII diagrams for architecture, data flows, state machines and concepts. Use when a structure is easier to see than to read, or must survive in a terminal.",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "license": "MIT",
   "author": {
     "name": "cmj",

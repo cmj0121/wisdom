@@ -1,7 +1,7 @@
 {
   "name": "test-runner",
   "description": "Detects the project's test framework, runs its suite, and reports what passed, what failed and why. Runs tests only — it does not review the code (agent-ellis).",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "license": "MIT",
   "author": {
     "name": "cmj",
