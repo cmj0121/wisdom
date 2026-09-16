@@ -181,6 +181,35 @@ What that means for edits here:
   `ascii-grapher` and `spec-writer` itself, so asserting either stayed quiet fails the runs that
   routed correctly. Rule out the second skill only where it is not downstream of the first;
   where it is, say so in the surviving grader's prose, which the report prints.
+- A skill should fire when the request needs something the assistant cannot do unaided —
+  persist state to a file, run a tool, coordinate other agents, emit a machine-readable
+  verdict. Where the assistant can simply comply in the current turn, nothing fires, and that
+  is the right outcome rather than a defect: a trigger-eval positive that expects one is
+  mislabelled, and no description edit will fix it. The evidence sits inside one plugin's own
+  results, which is what makes it more than plausible. `lingua`'s
+  `restate my question before you answer it` passes 3/3 — complying means writing
+  `refine_question` into a config file, which the assistant cannot do by itself. Its
+  `stop refining my questions` fires nothing, 0/3, because complying means not doing something,
+  in this turn. Same skill, same vocabulary, opposite results, so the discriminator is not how
+  near the wording sits to the description but whether anything has to happen that the
+  assistant cannot do alone. That reading covers three of the other four failures too:
+  `briefing`'s two and `agent-hale`'s _the plan is agreed — write it_ all ask for something the
+  assistant just does.
+- The two runners answer different questions, so a disagreement between them is not a tie. The
+  blind router shows a model only the 19 `name` + `description` pairs and makes it pick exactly
+  one skill or `none` — free, offline, all 380 queries, but a **forced choice**: given nineteen
+  candidates it returns the nearest description even where a real session would invoke nobody,
+  so its "skill A steals from skill B" verdicts overstate. `make eval` instead observes whether
+  the `Skill` tool was invoked at all, at $0.142 a run over 13 of the 380. The measurement that
+  separates them: in all five failing cases the `fires` grader reported `Skill called 0x`, and
+  in every case carrying an exclusion grader the rival reported `0x` as well and the exclusion
+  passed — the blind router had `compactor` taking both of `briefing`'s queries 3/3 and
+  `spec-writer` taking `the plan is agreed -- write it` 3/3, and in a real session neither
+  fires at all. So **a blind-router miss is a hypothesis; a `make eval` miss is an
+  observation**: do not edit a description on the former alone when a case can be written for
+  the latter. The blind router's noise floor is about two queries per plugin at three samples —
+  plugins nobody touched moved that much between runs — so a swing smaller than that is not a
+  finding either.
 
 Passing checks only prove nothing mechanically checkable is broken. Prose accuracy — a stale
 table row, a wrong command name — is not covered and still needs review.
