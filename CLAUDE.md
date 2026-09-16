@@ -41,9 +41,13 @@ which reject an unknown key outright rather than ignoring it. Three carry rules 
 - `allowed-tools`: a **YAML list**, the one place this repo knowingly departs from the
   standard's space-separated string. 70 grants contain a space (`Bash(git status:*)`), and the
   space-free spelling `Bash(git:*)` widens the grant from one subcommand to all of git. Of the
-  two remaining spellings, a list is rejected loudly on its type by a strict reader, while a
-  comma-separated string is split on spaces into patterns that match nothing — a permission
-  dropped in silence. The standard marks this field Experimental, so it is the one to leave.
+  two remaining spellings, a comma-separated string is split on spaces into patterns that
+  match nothing — a permission dropped in silence — while a list at worst reaches a consumer
+  that cannot use it as given. The field is still typed as a space-separated string and still
+  marked Experimental, so it is the one to leave. Note the claim this rests on has narrowed:
+  as of September 2026 tools are normalising a list into a string rather than rejecting it
+  loudly, which is the quiet handling the list was chosen to avoid. `CLAUDE_CODE_EXTENSIONS`
+  in `scripts/check-skill-spec` records what would make this decision worth revisiting.
 - `metadata`: string keys to string values only — hence `version: "2.0.0"`, quoted.
 
 **Claude Code extensions adopted here** — each costs portability, so each records its reason
