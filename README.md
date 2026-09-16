@@ -225,23 +225,25 @@ runs need is what `references/` is for. Put it there, and name the file at the p
 condition is stated: loading is just-in-time, so nothing in `references/` is read unless the
 body says to read it.
 
-`agent-smith`'s Phase 2.5 is the example. It now runs only when the plan changes a
-user-visible surface, so on every dispatch that does not, its detail is context paid for with
-no reader. That is the shape `references/` exists for, and the reason this repo's own
-machinery for it — resolved links, a required `## Contents` past 100 lines, no nesting — has
-so far gone unused.
+`agent-smith`'s Phase 5 is the example. It runs in Autonomous mode only, so its scoring table
+and iteration log sit in `references/iteration.md`, and a Partner-mode dispatch never pays for
+them. That is the shape `references/` exists for, and this repo's own machinery for it —
+resolved links, a required `## Contents` past 100 lines, no nesting — has exactly that one
+user so far. Phase 2.5 is conditional too and still does not qualify: at eight lines, most of
+them the condition itself, the fetch would cost more than the lines it saves.
 
 ### Trigger evals
 
 A skill only helps if it activates, and the `description` is the only thing Claude has at the
 moment it decides. It is also the only part of a skill loaded on every session, whether or
-not the skill ever fires, so a description here is kept near 160 characters: long enough to
-say what the skill does and when to use it, short enough that all 19 together cost a session
-under 800 tokens. Every plugin carries `evals/trigger-queries.json`: 20 labelled prompts, ten
-that should activate the skill and ten near-misses that share its vocabulary but need something
-else. Split 60/40 into train and validation, so a reworded description is tuned on one half and
-judged on the other rather than fitted to the phrasings used to tune it. `scripts/validate`
-fails a plugin that carries no such file.
+not the skill ever fires, so a description here stays well under the 320-character ceiling:
+they average 204 — long enough to say what the skill does, when to use it and what it is
+_not_ for, short enough that all 19 together cost a session about 1,000 tokens. Every plugin
+carries `evals/trigger-queries.json`: 20 labelled prompts, ten that should activate the skill
+and ten near-misses that share its vocabulary but need something else. Split 60/40 into train
+and validation, so a reworded description is tuned on one half and judged on the other rather
+than fitted to the phrasings used to tune it. `scripts/validate` fails a plugin that carries
+no such file.
 
 The scrum agents carry one too. They used to be exempt on the grounds that `agent-smith`
 dispatches them rather than a prompt triggering them, and that each is the next one's nearest

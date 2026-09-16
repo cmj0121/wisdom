@@ -34,20 +34,23 @@ layers, and `scripts/check-skill-spec` enforces the split. Anything outside both
 which reject an unknown key outright rather than ignoring it. Three carry rules worth stating:
 
 - `description`: what the skill does **and when to use it**, third person. The repo ceiling is
-  320 characters and its skills average 173, because the same string is catalogue copy in four
-  places: `/plugin`, `marketplace.json`, the plugin `README.md` blockquote and the skill's own
-  frontmatter. All four are compared; the blockquote is line-wrapped, so an edit by exact
-  string match reaches three of them and leaves the fourth stale.
+  320 characters and its skills average 204 — up from 173 once every one of them gained a
+  negative boundary clause, which is the trade that bought fewer misfires. The same string is
+  catalogue copy in four places: `/plugin`, `marketplace.json`, the plugin `README.md`
+  blockquote and the skill's own frontmatter. All four are compared; the blockquote is
+  line-wrapped, so an edit by exact string match reaches three of them and leaves the fourth
+  stale.
 - `allowed-tools`: a **YAML list**, the one place this repo knowingly departs from the
-  standard's space-separated string. 70 grants contain a space (`Bash(git status:*)`), and the
-  space-free spelling `Bash(git:*)` widens the grant from one subcommand to all of git. Of the
-  two remaining spellings, a comma-separated string is split on spaces into patterns that
-  match nothing — a permission dropped in silence — while a list at worst reaches a consumer
-  that cannot use it as given. The field is still typed as a space-separated string and still
-  marked Experimental, so it is the one to leave. Note the claim this rests on has narrowed:
-  as of September 2026 tools are normalising a list into a string rather than rejecting it
-  loudly, which is the quiet handling the list was chosen to avoid. `CLAUDE_CODE_EXTENSIONS`
-  in `scripts/check-skill-spec` records what would make this decision worth revisiting.
+  standard's space-separated string. 79 of the 173 grants contain a space
+  (`Bash(git status:*)`), and the space-free spelling `Bash(git:*)` widens the grant from one
+  subcommand to all of git. Of the two remaining spellings, a comma-separated string is split
+  on spaces into patterns that match nothing — a permission dropped in silence — while a list
+  at worst reaches a consumer that cannot use it as given. The field is still typed as a
+  space-separated string and still marked Experimental, so it is the one to leave. Note the
+  claim this rests on has narrowed: as of September 2026 tools are normalising a list into a
+  string rather than rejecting it loudly, which is the quiet handling the list was chosen to
+  avoid. `CLAUDE_CODE_EXTENSIONS` in `scripts/check-skill-spec` records what would make this
+  decision worth revisiting.
 - `metadata`: string keys to string values only — hence `version: "2.0.0"`, quoted.
 
 **Claude Code extensions adopted here** — each costs portability, so each records its reason
@@ -76,8 +79,11 @@ Whether a procedure moves is a second, orthogonal question: unconditional or con
 procedure every run needs is read anyway, one fetch later, so moving it costs a round trip and
 buys nothing. A procedure only some runs need is what `references/` is for — put it there and
 name the file where the condition is stated, because nothing in `references/` is read unless
-the body says to read it. `agent-smith`'s Phase 2.5 is the example: it now runs only when the
-plan touches a user-visible surface, so on most dispatches its detail is cost with no reader.
+the body says to read it. `agent-smith`'s Phase 5 is the example, and so far the only one: it
+runs in Autonomous mode alone, so its scoring table and iteration log sit in
+`references/iteration.md` and a Partner-mode dispatch never pays for them. Phase 2.5 is
+conditional too and still does not qualify — at eight lines, most of them the condition
+itself, the fetch would cost more than the lines it saves.
 
 ### Skill Discovery (Three Tiers)
 
