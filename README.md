@@ -240,8 +240,17 @@ nearest near-miss is what makes the discrimination worth testing, so their negat
 from their siblings. `agent-ellis` must not answer "write tests for this"; `agent-ross` must
 not answer "generate the changelog".
 
-No runner is committed: `claude plugin eval` is the intended one and is in early access, so
-its case format is not yet public.
+No runner is committed here, which is not the same as a rewrite being unjudgeable — that was
+true for a while and has stopped being true. `claude plugin eval` is the intended runner and is
+still in early access, but `skillgrade` runs a labelled set like this one today and exits
+non-zero when the pass rate falls below a threshold, `skillsbench` measures whether a skill
+helps an agent at all rather than whether it fires, and the cheapest check needs no tool: hand
+the frontmatter to a model, ask it for three prompts that should fire and three that should
+not, and compare those against the labels already in the file.
+
+So a reworded description has a validation path before it lands. Until one of these has run,
+`evals/trigger-queries.json` states an intent rather than a passing test — and saying so is a
+statement about this repo, not about the tooling.
 
 Only `scripts/validate-fixtures` stays gated, on `^scripts/`: it costs a few seconds and says
 nothing new unless a check changes. That gate has the same blind spot — deleting
