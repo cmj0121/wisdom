@@ -147,12 +147,40 @@ What that means for edits here:
   on train, judge on validation. `scripts/validate` fails a plugin with no such file, one that
   labels every query the same way, one that never splits off a validation half, and one whose
   positive queries carry another plugin's magic word: a negative that does is the near-miss, a
-  positive that does is two skills racing. No runner is committed here, but a rewrite can still
-  be judged: `skillgrade` runs a labelled set like this one and exits non-zero below a pass-rate
-  threshold, and the no-tool pass is to hand the frontmatter to a model, ask it for prompts that
-  should and should not fire, and compare those against the labels already in the file.
-  `claude plugin eval` remains the intended runner and is still in early access. Until one of
-  them has run, the file states an intent, not a passing test.
+  positive that does is two skills racing. All 380 of these stay the cheap record — they cost
+  nothing, run offline, and a rewrite can be judged against them with no runner at all: hand
+  the frontmatter to a model, ask it for prompts that should and should not fire, and compare
+  those against the labels already in the file. What they are not is executable, so on their
+  own they state an intent rather than a passing test.
+- `make eval` is the executable half, and it deliberately covers 13 of those 380. The runner
+  is `claude plugin eval`, which is generally available — no opt-in flag, whatever an older
+  paragraph here may have said — but each case is a full Claude child session on the
+  operator's own credential, so it wants a network and real money where the four checks want
+  neither. That is why it sits outside `make test` for `check-install-drift`'s reason, and why
+  CI cannot run it: `.github/workflows/checks.yml` carries `permissions: contents: read` and
+  no secrets, and putting a credential in a public repo to automate a check a human can run by
+  hand is a bad trade. The 13 are the misses from a 3-sample blind-router baseline over the
+  whole corpus, which scored 367/380 — the boundaries that actually move, rather than a
+  sample. Converting the other 367 would buy repetition at a measured $0.142 a run: the 13 at
+  `runs: 3` come to about $5.50, where all 380 would be roughly $54 at one run each and $324
+  at the two-arm default with three.
+- A case is `evals/<name>/prompt.md` plus a `graders/` directory, where a grader of
+  `type: tool_used`, `tool: Skill`, `input_match: '"skill"\s*:\s*"<name>'` and `min: 1` asserts
+  the skill fired and `min: 0` with `max: 0` asserts it did not. Leave the closing quote off
+  that pattern — it is the spelling measured to match, it still covers a namespaced
+  `plugin:skill` value, and no skill name here is a prefix of another, so it cannot over-match.
+  Pass `--ablation none`, because under the default the CLI stops scoring a `tool_used: Skill`
+  grader and demotes it to a with-only indicator. Two things decide whether a case measures
+  anything. **A bare query does not fire a skill**: `what are we not seeing here` is a labelled
+  `tenth-man` positive and it produced `Skill called 0x` with the plugin loaded, while the same
+  words wrapped in a turn with something to act on — a team that agreed a monorepo move inside
+  ten minutes, and what are we not seeing — fired first try. So a case is the labelled query
+  rewritten as a real turn, keeping its intent and vocabulary but never its skill's own
+  description wording, and a 1:1 migration of the bare queries would measure something else and
+  mostly fail. **And a skill its owner invokes cannot be graded silent**: `agent-ward` calls
+  `ascii-grapher` and `spec-writer` itself, so asserting either stayed quiet fails the runs that
+  routed correctly. Rule out the second skill only where it is not downstream of the first;
+  where it is, say so in the surviving grader's prose, which the report prints.
 
 Passing checks only prove nothing mechanically checkable is broken. Prose accuracy — a stale
 table row, a wrong command name — is not covered and still needs review.

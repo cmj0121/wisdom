@@ -9,6 +9,12 @@ repos:
     rev: v0.47.0
     hooks:
       - id: markdownlint-fix
+        # A `make eval` case is fixture input, not documentation. The body of a
+        # prompt.md is sent to the model verbatim, so the H1 that MD041 wants
+        # would become part of the prompt and change what the case measures; a
+        # grader's body is prose the report prints back. Excluding the case
+        # directories keeps MD041 on for every document that is one.
+        exclude: "^plugins/[^/]+/evals/[^/]+/"
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v3.1.0
     hooks:
