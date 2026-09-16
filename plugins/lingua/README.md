@@ -1,8 +1,7 @@
 # Lingua Plugin
 
-> Answers in the user's chosen language whatever language they write in, and can restate their
-> question in correct terminology first. Use when the user asks to reply in a particular language, or
-> when a project has a stored language preference to load or update.
+> Answers in the user's chosen language whatever language they write in, restating the question in
+> correct terminology first. Use to set or load that preference.
 
 The lingua plugin makes Claude Code reply in a language you choose, no matter what language
 you type in. Optionally it also restates your question in clear, correct terminology before

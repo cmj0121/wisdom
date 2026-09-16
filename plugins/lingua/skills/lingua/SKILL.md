@@ -1,6 +1,6 @@
 ---
 name: lingua
-description: Answers in the user's chosen language whatever language they write in, and can restate their question in correct terminology first. Use when the user asks to reply in a particular language, or when a project has a stored language preference to load or update.
+description: Answers in the user's chosen language whatever language they write in, restating the question in correct terminology first. Use to set or load that preference.
 license: MIT
 model: haiku
 allowed-tools:

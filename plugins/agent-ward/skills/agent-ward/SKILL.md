@@ -1,6 +1,6 @@
 ---
 name: agent-ward
-description: Architect agent — designs systems and APIs and decides the tech stack. Use before implementation starts on anything non-trivial, when the user asks how something should be structured, weighs one library or protocol against another, or needs a design reviewed for consistency.
+description: Architect agent — designs systems and APIs and decides the tech stack. Use before implementation starts, or to weigh one library or protocol against another.
 license: MIT
 allowed-tools:
   - Read

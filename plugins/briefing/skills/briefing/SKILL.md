@@ -1,6 +1,6 @@
 ---
 name: briefing
-description: Output style for planning and review agents — keeps results compact, summarises each question before answering it, and drives discussion one numbered topic at a time. Use when running agent-smith or tenth-man, or when the user asks for shorter output or to decide one thing at a time.
+description: Output style for planning and review agents — compact results, each question summarised before it is answered, discussion one numbered topic at a time.
 license: MIT
 allowed-tools:
   - Read

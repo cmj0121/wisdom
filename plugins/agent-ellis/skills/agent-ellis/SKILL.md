@@ -1,6 +1,6 @@
 ---
 name: agent-ellis
-description: QA agent — reviews code quality and security, runs the test suite, and verifies work against its acceptance criteria. Use when a change needs reviewing before it lands, when tests should be run and judged, or when the user asks whether something is actually done.
+description: QA agent — reviews code quality and security, runs the suite, and verifies work against its acceptance criteria. Use before a change lands. Not for whole-repo audits (sec-review) or for running tests alone (test-runner).
 license: MIT
 allowed-tools:
   - Bash(git status:*)

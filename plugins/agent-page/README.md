@@ -1,8 +1,7 @@
 # Agent Page Plugin
 
 > SRE agent — reviews code and infrastructure for operational readiness: observability, reliability,
-> performance and security posture. Use before a release, when a change touches deployment or
-> monitoring, or when the user asks whether something is safe to run in production.
+> performance, security posture. Use before a release.
 
 Named after Larry Page — co-founder of Google, where SRE originated.
 

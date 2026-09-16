@@ -1,8 +1,7 @@
 # Agent Ross Plugin
 
-> Release Manager agent — writes commit messages, runs CI/CD and Docker builds, deploys, and tags
-> releases. Use when finished work needs to ship, when a changelog or version bump is due, or when the
-> user asks to commit, deploy or cut a release.
+> Release Manager agent — writes commit messages, runs CI/CD and Docker builds, deploys and tags
+> releases. Use when finished work needs to ship.
 
 Named after Bob Ross — calm and methodical, "happy little deployments."
 
