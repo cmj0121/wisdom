@@ -409,6 +409,23 @@ mutate 's/"description": ".*"/"description": "Something else entirely."/' \
 expect_fail "compactor: description differs between its sources" \
 	"a plugin.json description that drifts from SKILL.md and marketplace.json is caught"
 
+echo "==> Fixture: README blockquote drifting from the manifests"
+fresh_copy
+# The fourth copy. It is line-wrapped, so an edit that rewrites the other three
+# by exact string match leaves this one behind -- which is exactly what happened
+# to nineteen of them while this check only read three sources.
+mutate '3s/.*/> Something else entirely./' plugins/compactor/README.md
+expect_fail "compactor: description differs between its sources" \
+	"a plugin README blockquote that drifts from the three manifests is caught"
+
+echo "==> Fixture: README description blockquote in the wrong place"
+fresh_copy
+# Position is the whole point: a loose search for the first blockquote would
+# compare whichever paragraph a README happens to quote.
+mutate '2s/.*/Some prose before the quote./' plugins/compactor/README.md
+expect_fail "plugins/compactor/README.md: must open with its H1, a blank line, then the" \
+	"a description blockquote not sitting directly under the H1 is caught"
+
 echo "==> Fixture: plugin missing from the top-level README"
 fresh_copy
 mutate 's/compactor//g' README.md

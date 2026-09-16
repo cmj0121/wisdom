@@ -124,6 +124,26 @@ FENCE_RE = re.compile(r"^ {0,3}(```|~~~)")
 HEADING_RE = re.compile(r"^(#{1,6})( |$)")
 
 
+def readme_lead_quote(lines):
+    """The description blockquote a plugin README opens with: H1, blank, quote.
+
+    Strict on position on purpose. This is the description's fourth copy, and it
+    is only comparable if it always sits in the same place -- a loose search for
+    the first blockquote finds whichever paragraph a README happens to quote.
+    Returns the unwrapped text, or None when that shape does not hold.
+    """
+    if len(lines) < 3 or not lines[0].startswith("# "):
+        return None
+    if lines[1].strip() or not lines[2].startswith("> "):
+        return None
+    quoted = []
+    for line in lines[2:]:
+        if not line.startswith("> "):
+            break
+        quoted.append(line[2:].strip())
+    return " ".join(quoted)
+
+
 def fence_marker(line):
     """The code-fence marker `line` opens or closes with, or None.
 
@@ -446,9 +466,14 @@ print("==> Checking plugin descriptions agree across their sources")
 for entry in mk["plugins"]:
     name = entry["name"]
     src = entry["source"][2:] if entry["source"].startswith("./") else entry["source"]
-    # The one sentence a plugin repeats verbatim in three places, so the one
+    # The one sentence a plugin repeats verbatim in four places, so the one
     # piece of prose that is mechanically comparable. Bodies are not: they say
     # the same thing at different lengths on purpose.
+    #
+    # The fourth is the README blockquote, and it was unchecked while this
+    # comment said three. It is line-wrapped, so an edit that rewrites the
+    # other three by exact string match leaves it behind and every check still
+    # passes -- which is how nineteen of them went stale in one commit.
     sources = {".claude-plugin/marketplace.json": entry.get("description")}
     pj_path = os.path.join(root, src, ".claude-plugin", "plugin.json")
     if os.path.isfile(pj_path):
@@ -457,6 +482,18 @@ for entry in mk["plugins"]:
     if os.path.isfile(sk_path):
         front = frontmatter(read_lines(sk_path)) or []
         sources[os.path.relpath(sk_path, root)] = frontmatter_field(front, "description")
+    rd_path = os.path.join(root, src, "README.md")
+    if os.path.isfile(rd_path):
+        rel_rd = os.path.relpath(rd_path, root)
+        quoted = readme_lead_quote(read_lines(rd_path))
+        if quoted is None:
+            bad(
+                f"{rel_rd}: must open with its H1, a blank line, then the"
+                " description as a `> ` blockquote -- that position is what makes"
+                " the fourth copy comparable"
+            )
+        else:
+            sources[rel_rd] = quoted
     if len(set(sources.values())) == 1:
         ok(f"{name}: description agrees across {len(sources)} source(s)")
     else:
