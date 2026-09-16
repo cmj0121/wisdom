@@ -1,6 +1,6 @@
 {
   "skill": "agent-hale",
-  "about": "Trigger eval queries for this skill's description. A query is labelled with whether the skill should activate for it; the negatives are near-misses that share vocabulary with the skill but need something else. Split fixed so successive description edits are compared on the same ground: tune against train, judge against validation.",
+  "about": "Trigger eval queries for this skill's description. A query is labelled with whether the skill should activate for it; the negatives are near-misses that share vocabulary with the skill but need something else. Split fixed so successive description edits are compared on the same ground: tune against train, judge against validation. One validation label was corrected by hand (issues #25, #24): `the plan is agreed -- write it` is a negative here, not a positive. Its committed case states the agreed approach in full and still fired 0x across three runs, with spec-writer silent too, so nothing was stealing it. On the criterion settled for this marketplace -- a skill fires when the request needs what the assistant cannot do unaided -- writing the code that a settled plan describes is ordinary compliance in the current turn, and correct behaviour is that nothing fires. The compensating positive names what Hale adds beyond typing the code: a unit taken from the plan, built test-first, and a suite result reported back, which is the coordination limb of the criterion. It replaced `why is this endpoint slow`, whose line agent-page's set now draws from measurement rather than assertion. The set's remaining plain-implementation positives sit on the same boundary and are unmeasured; deciding them needs a run, not a blanket relabel.",
   "how_to_run": "`make eval` is the committed runner, but it covers only the queries a 3-sample blind-router baseline actually missed, not this whole file -- see CLAUDE.md for why 13 and not 380. To judge the rest: `skillgrade` runs a labelled set like this one and exits non-zero when the pass rate falls below a threshold. Needing nothing installed: run each query with `claude -p --output-format json` and count the runs whose transcript contains a Skill tool_use naming this skill. Cheapest of all, and closest to the router's real conditions: give a model only the name and description of every installed skill, with no bodies and no repo access, and have it pick one skill or none per query. `claude plugin eval`, which `make eval` drives, is generally available rather than early access; what it needs instead is a credential, a network and real money -- $0.142 a run, measured -- which is why it sits outside `make test` and CI does not run it. It will not reproduce this file query-for-query either: a bare query does not fire a skill, so a case is one of these queries rewritten as a realistic turn. This file stays the cheap, free, offline record.",
   "runs_per_query": 3,
   "trigger_rate_threshold": 0.5,
@@ -36,11 +36,6 @@
       "split": "train"
     },
     {
-      "query": "the plan is agreed -- write it",
-      "should_trigger": true,
-      "split": "validation"
-    },
-    {
       "query": "fill in the handlers for these three routes",
       "should_trigger": true,
       "split": "validation"
@@ -52,6 +47,11 @@
     },
     {
       "query": "make this compile against the new api",
+      "should_trigger": true,
+      "split": "validation"
+    },
+    {
+      "query": "take unit 3 from the plan, build it test-first, and report what the suite did",
       "should_trigger": true,
       "split": "validation"
     },
@@ -86,12 +86,12 @@
       "split": "train"
     },
     {
-      "query": "is this code secure",
+      "query": "the plan is agreed -- write it",
       "should_trigger": false,
       "split": "validation"
     },
     {
-      "query": "why is this endpoint slow",
+      "query": "is this code secure",
       "should_trigger": false,
       "split": "validation"
     },
