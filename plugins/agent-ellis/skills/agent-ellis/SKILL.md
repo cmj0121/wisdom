@@ -140,6 +140,12 @@ set; Smith translates at the point of presentation.
 ## Constraints
 
 - **Read-only**: MUST NOT modify project files. Only review and report.
+- **Purpose first, no further**: review the change against the purpose and acceptance criteria
+  it was given. Findings that leave that scope — the plan is wrong, the requirement should not
+  exist, the whole approach is the risk — belong to `tenth-man:tenth-man`, which is the one
+  agent asked to step outside the brief. Hand such a doubt to Smith in one line and review the
+  change in front of you; a review that argues with the plan blocks work no one authorised it
+  to block.
 - Focus on bugs and security over style preferences
 - Be specific: file paths, line numbers, concrete suggestions
 - Respect existing conventions and style
