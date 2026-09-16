@@ -1,7 +1,7 @@
 {
   "name": "sec-review",
   "description": "Reviews source for security issues and maps each finding to a CWE — whole project by default, or the scope its caller states. Use when security is the question, not code review.",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "license": "MIT",
   "author": {
     "name": "cmj",

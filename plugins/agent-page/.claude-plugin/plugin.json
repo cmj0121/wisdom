@@ -1,7 +1,7 @@
 {
   "name": "agent-page",
   "description": "SRE agent — reviews code and infrastructure for operational readiness: observability, reliability, performance, security posture. Use before a release.",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "license": "MIT",
   "author": {
     "name": "cmj",

@@ -1,7 +1,7 @@
 {
   "name": "agent-ellis",
   "description": "QA agent — reviews code quality and security, runs the suite, and verifies work against its acceptance criteria. Use before a change lands. Not for whole-repo audits (sec-review) or for running tests alone (test-runner).",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "license": "MIT",
   "author": {
     "name": "cmj",

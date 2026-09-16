@@ -114,6 +114,14 @@ What that means for edits here:
   and the skill's `metadata.version`. Never one alone. A release also bumps the **top-level**
   `version` in `marketplace.json`, which must not lag the latest `v*` tag — a fourth location
   and a separate check.
+- A bump tracks what the plugin **does** — its `SKILL.md` body. A change confined to the
+  `description`, or to the README blockquote, `plugin.json` and marketplace entry that mirror
+  it, is catalogue copy: the router matches on it, but nothing the plugin does afterwards is
+  different, so it moves the **top-level** `version` alone. Frontmatter that declares a
+  contract the skill already honoured — `metadata.verdict` is the case at hand — is not a
+  behaviour change either. And a plugin moves at most once per release window: between one
+  `v*` tag and the next, a plugin already bumped is not bumped again, or the number stops
+  naming a released state and starts counting pull requests.
 - A plugin's `description` must read identically in `marketplace.json`, its `plugin.json` and
   its `SKILL.md` frontmatter.
 - A skill that hands another a machine-readable block declares that marker in
