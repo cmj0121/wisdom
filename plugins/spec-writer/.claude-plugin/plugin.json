@@ -1,6 +1,6 @@
 {
   "name": "spec-writer",
-  "description": "Writes technical specifications — requirements, interfaces, data models and architecture diagrams. Use when a design needs recording before it is built.",
+  "description": "Writes technical specifications — requirements, interfaces, data models and architecture diagrams. Use when a design needs recording before it is built. Not for writing the code it specifies (agent-hale), nor for reviewing a spec already written (agent-ward).",
   "version": "2.1.0",
   "license": "MIT",
   "author": {

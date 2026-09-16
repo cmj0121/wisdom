@@ -1,7 +1,8 @@
 # Compactor Plugin
 
 > Re-renders the previous result as a dense, scannable table, dropping prose framing but keeping
-> every data point. Use when an answer was longer than it needed to be.
+> every data point. Use when an answer was longer than it needed to be. Not for setting a standing
+> output style, and it adds no recommendation the original answer did not contain (briefing).
 
 A shared support tool that takes the previous result and re-renders it as a
 dense, scannable, table-like view — stripping prose and filler.

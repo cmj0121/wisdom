@@ -1,6 +1,6 @@
 {
   "name": "agent-ross",
-  "description": "Release Manager agent — writes commit messages, runs CI/CD and Docker builds, deploys and tags releases. Use when finished work needs to ship.",
+  "description": "Release Manager agent — writes commit messages, runs CI/CD and Docker builds, deploys and tags releases. Use when finished work needs to ship. It runs the pipeline; diagnosing or fixing a failing build or test is not its job.",
   "version": "2.1.0",
   "license": "MIT",
   "author": {

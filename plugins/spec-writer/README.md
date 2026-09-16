@@ -1,7 +1,8 @@
 # Spec Writer Plugin
 
-> Writes technical specifications — requirements, interfaces, data models and architecture diagrams.
-> Use when a design needs recording before it is built.
+> Writes technical specifications — requirements, interfaces, data models and architecture
+> diagrams. Use when a design needs recording before it is built. Not for writing the code it
+> specifies (agent-hale), nor for reviewing a spec already written (agent-ward).
 
 The spec-writer plugin produces detailed technical specifications for the development team.
 It is invoked by `agent-ward` (Architect) and `agent-twain` (Technical Writer), and uses
