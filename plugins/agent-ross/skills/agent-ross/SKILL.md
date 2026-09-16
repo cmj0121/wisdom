@@ -1,6 +1,6 @@
 ---
 name: agent-ross
-description: Release Manager agent — writes commit messages, runs CI/CD and Docker builds, deploys, and tags releases. Use when finished work needs to ship, when a changelog or version bump is due, or when the user asks to commit, deploy or cut a release.
+description: Release Manager agent — writes commit messages, runs CI/CD and Docker builds, deploys and tags releases. Use when finished work needs to ship.
 license: MIT
 allowed-tools:
   - Bash(git add:*)

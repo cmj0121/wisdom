@@ -1,6 +1,6 @@
 ---
 name: sec-review
-description: Reviews the whole project source for security issues and maps each finding to a CWE. Use when the user wants a security review of the codebase rather than of a diff, since diff-only reviewers inspect the current branch and nothing older.
+description: Reviews source for security issues and maps each finding to a CWE — whole project by default, or the scope its caller states. Use when security is the question, not code review.
 license: MIT
 allowed-tools:
   - Bash(git ls-files:*)
@@ -87,11 +87,16 @@ __SEC_REVIEW_RESULT__
 ## Constraints
 
 - **Read-only**: MUST NOT modify project files. Only review and report.
+- **Scope comes from the caller**: whole project is the default, not the mandate. `agent-ellis`
+  invokes this diff-scoped as part of a unit review; `agent-ross` invokes it at full scope once
+  per release. Scan what the caller asked for, and state which scope was used.
 - Be specific: file path, line number, and a concrete fix for each finding.
 - Findings are **potential** issues to verify, not proof of exploitability.
 - Prefer the most specific CWE that fits the weakness.
 
 ## Team Coordination
 
-**Available to:** agent-page, agent-ellis. Always emit the `__SEC_REVIEW_RESULT__` block
-when called by another agent; caller decides how to act.
+**Available to:** `agent-ellis` (diff scope, per unit) and `agent-ross` (whole project, once
+per release). `agent-page` does not invoke this scan — it reads Ellis's findings, because two
+agents scanning the same source produce the same findings at twice the cost. Always emit the
+`__SEC_REVIEW_RESULT__` block when called by another agent; the caller decides how to act.

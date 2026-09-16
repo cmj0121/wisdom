@@ -1,8 +1,7 @@
 # Agent Ward Plugin
 
 > Architect agent — designs systems and APIs and decides the tech stack. Use before implementation
-> starts on anything non-trivial, when the user asks how something should be structured, weighs one
-> library or protocol against another, or needs a design reviewed for consistency.
+> starts, or to weigh one library or protocol against another.
 
 Named after Ward Cunningham — inventor of the wiki, pioneer of design patterns and agile.
 

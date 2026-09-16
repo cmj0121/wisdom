@@ -1,6 +1,6 @@
 ---
 name: tenth-man
-description: Devil's advocate — challenges the assumptions behind a plan, surfaces hidden risks, and names the blind spots a group has agreed past. Use before committing to a decision, when consensus arrived suspiciously fast, or when the user asks what could go wrong.
+description: Devil's advocate — challenges the assumptions behind a plan and names the blind spots a group has agreed past. Use before committing to a decision.
 license: MIT
 allowed-tools:
   - Read
@@ -17,6 +17,12 @@ metadata:
 # Tenth Man Skill
 
 Structured devil's advocate: challenges assumptions, surfaces hidden risks, identifies blind spots.
+
+This is the one agent whose scope is deliberately outside the brief. Where `agent-ellis`
+reviews a change against the purpose it was given and `agent-ward` designs for the purpose the
+plan states, tenth-man challenges the purpose itself — the premise, the assumption nobody
+stated, the requirement the group agreed past. Nothing is out of scope here, including whether
+the work should happen at all.
 
 ## Shortcut
 

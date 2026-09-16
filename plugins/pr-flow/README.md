@@ -1,9 +1,7 @@
 # PR Flow Plugin
 
-> Walks a pull request from its issue to merge-ready — verifies the originating issue exists, checks
-> the diff against the issue body for missing and over-engineered parts, and works each reviewer
-> comment test-first within issue scope. Use when the user asks to open a PR, resolve review
-> comments, or check a PR against its issue; merging stays with the user.
+> Walks a pull request from its issue to merge-ready — checks the diff against the issue body, then
+> works each reviewer comment test-first. Merging stays with the user.
 
 A utility skill for the pull-request lifecycle. It gates a PR on the issue it serves, aligns
 the diff with what that issue asked for, and works reviewer comments one at a time —

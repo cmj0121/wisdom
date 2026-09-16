@@ -1,8 +1,7 @@
 # Dependency Auditor Plugin
 
-> Audits project dependencies for known vulnerabilities and outdated versions across npm, pip, go,
-> cargo and bundler. Use before a release, when a lockfile changes, or when the user asks whether the
-> dependencies are safe or current.
+> Audits dependencies for known vulnerabilities and outdated versions across npm, pip, go, cargo and
+> bundler. Use before a release or when a lockfile changes.
 
 A shared support tool that scans project dependencies for known vulnerabilities
 and flags outdated packages.

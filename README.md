@@ -201,10 +201,32 @@ top-level `README.md`, or a check script is precisely what the structural, versi
 semantic and standard checks exist to catch, so all four run on every commit regardless of
 what you touched.
 
+### What belongs in a skill body
+
+A body is read in full every time its skill fires, so it has a budget: under 500 lines, with a
+warning at 250 that asks for a judgement rather than a split.
+
+What moves into `references/` is decided by form, not by topic. A list or table carries items
+a run looks up one at a time — a roster, a field table, a rubric — and each row stands alone,
+so it survives the move intact. Prose carries what joins them: the condition, the tie-break,
+the reason. `If both trigger types appear, prefer Autonomous mode.` is a relation, not an
+item; written as two bullets it becomes two assertions with nothing between them, and the case
+neither covers gets improvised. So prose stays in the body and is shortened in place.
+
+That also bounds what a split can achieve. Of `agent-smith`'s 322 body lines, 94 are table,
+list and heading, so moving every movable line still leaves 228 — and a target under that is a
+rewrite of the phase text rather than a move, worth planning as one.
+
+A procedure does not belong in `references/` either way. It is read anyway, one fetch later,
+and risks not being read at all.
+
 ### Trigger evals
 
 A skill only helps if it activates, and the `description` is the only thing Claude has at the
-moment it decides. Every plugin carries `evals/trigger-queries.json`: 20 labelled prompts, ten
+moment it decides. It is also the only part of a skill loaded on every session, whether or
+not the skill ever fires, so a description here is kept near 160 characters: long enough to
+say what the skill does and when to use it, short enough that all 19 together cost a session
+under 800 tokens. Every plugin carries `evals/trigger-queries.json`: 20 labelled prompts, ten
 that should activate the skill and ten near-misses that share its vocabulary but need something
 else. Split 60/40 into train and validation, so a reworded description is tuned on one half and
 judged on the other rather than fitted to the phrasings used to tune it. `scripts/validate`
@@ -218,8 +240,17 @@ nearest near-miss is what makes the discrimination worth testing, so their negat
 from their siblings. `agent-ellis` must not answer "write tests for this"; `agent-ross` must
 not answer "generate the changelog".
 
-No runner is committed: `claude plugin eval` is the intended one and is in early access, so
-its case format is not yet public.
+No runner is committed here, which is not the same as a rewrite being unjudgeable — that was
+true for a while and has stopped being true. `claude plugin eval` is the intended runner and is
+still in early access, but `skillgrade` runs a labelled set like this one today and exits
+non-zero when the pass rate falls below a threshold, `skillsbench` measures whether a skill
+helps an agent at all rather than whether it fires, and the cheapest check needs no tool: hand
+the frontmatter to a model, ask it for three prompts that should fire and three that should
+not, and compare those against the labels already in the file.
+
+So a reworded description has a validation path before it lands. Until one of these has run,
+`evals/trigger-queries.json` states an intent rather than a passing test — and saying so is a
+statement about this repo, not about the tooling.
 
 Only `scripts/validate-fixtures` stays gated, on `^scripts/`: it costs a few seconds and says
 nothing new unless a check changes. That gate has the same blind spot — deleting

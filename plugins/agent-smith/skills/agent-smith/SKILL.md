@@ -1,6 +1,6 @@
 ---
 name: agent-smith
-description: Project Leader agent — plans a piece of work, dispatches it to the scrum team, and coordinates the iterations. Use when the user asks to build, implement, refactor or fix something substantial, or wants a plan agreed before code is written, even if they name no agent.
+description: Project Leader agent — plans a piece of work, dispatches it to the scrum team and coordinates the iterations. Use to build, implement, refactor or fix something substantial, with or without a named agent.
 license: MIT
 allowed-tools:
   - Bash(git status:*)
@@ -194,17 +194,21 @@ The **Map** row is the reusable hint: built once, it saves every downstream agen
 rediscovering the same layout. Extend it as units land; do not let it grow past the files
 the change actually concerns.
 
-### Phase 2: Design (if needed)
+### Phase 2: Design
 
-For non-trivial features, invoke `agent-ward:agent-ward` for architecture, API contracts,
-component designs. Ward may invoke `spec-writer` and `ascii-grapher`.
-Smith reviews design output before proceeding. Skip for simple fixes/small changes.
+Run this phase when the plan adds a public interface — an exported function, an HTTP route, a
+CLI flag, a schema, a file format — or adds a dependency; otherwise skip it, because a change
+made behind an existing interface leaves a designer nothing to settle. Invoke
+`agent-ward:agent-ward` for architecture, API contracts, component designs. Ward may invoke
+`spec-writer` and `ascii-grapher`. Smith reviews design output before proceeding.
 
-### Phase 2.5: UI Design (if needed)
+### Phase 2.5: UI Design
 
-For frontend/UI work, invoke `frontend-design:frontend-design`. If not installed,
-**inform the user** and suggest installing it. Smith reviews output before passing
-to `agent-hale` for integration.
+Run this phase when the plan changes a user-visible surface — a screen, a component, a page,
+or the styling of one; a terminal program's text output is not one. If Phase 2 applies too,
+run it first, so the surface is designed against contracts that are already settled. Invoke
+`frontend-design:frontend-design`. If not installed, **inform the user** and suggest
+installing it. Smith reviews output before passing to `agent-hale` for integration.
 
 ### Phase 3: Implement, Review, and Commit
 

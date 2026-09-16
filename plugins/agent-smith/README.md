@@ -1,8 +1,8 @@
 # Agent Smith Plugin
 
-> Project Leader agent — plans a piece of work, dispatches it to the scrum team, and coordinates the
-> iterations. Use when the user asks to build, implement, refactor or fix something substantial, or
-> wants a plan agreed before code is written, even if they name no agent.
+> Project Leader agent — plans a piece of work, dispatches it to the scrum team and coordinates the
+> iterations. Use to build, implement, refactor or fix something substantial, with or without a
+> named agent.
 
 Agent Smith is the leader of the scrum team. Smith owns the full lifecycle: analyzing
 project context, producing plans, dispatching to specialized agents, and coordinating
@@ -36,7 +36,7 @@ Install via the wisdom marketplace:
 ## How It Works
 
 1. **Plan** — Analyzes context, produces plan, challenges via tenth-man
-2. **Design** — Dispatches to agent-ward for architecture (if needed)
+2. **Design** — Dispatches to agent-ward when the plan adds a public interface or a dependency
 3. **Implement** — Dispatches to agent-hale, reviewed by agent-ellis
 4. **Docs & Ops** — Dispatches to agent-twain and agent-page in parallel
 5. **Assess** — Scores the result and re-plans; Autonomous mode reports progress as `1/3`, `2/3`, `3/3`

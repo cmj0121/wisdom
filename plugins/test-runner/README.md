@@ -1,8 +1,7 @@
 # Test Runner Plugin
 
-> Detects the project's test framework, runs its suite, and reports what passed, what failed and why.
-> Use when a change needs verifying, when the user asks to run the tests, or when an agent needs the
-> current state of the suite before judging finished work.
+> Detects the project's test framework, runs its suite, and reports what passed, what failed and
+> why. Runs tests only — it does not review the code (agent-ellis).
 
 A shared support tool that auto-detects and runs the project's test framework.
 Used by multiple team agents for self-checks, QA, and pre-release verification.

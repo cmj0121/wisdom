@@ -1,8 +1,8 @@
 # Shortcut Plugin
 
-> Dispatches the skill or command whose declared magic word appears in the prompt. Use at the start of
-> a turn to check whether the user typed a registered trigger phrase, and to list every shortcut
-> available across personal, project and plugin skills.
+> Dispatches the skill or command whose declared magic word appears in the prompt. Use at the start
+> of a turn to check for a registered trigger phrase, or to list the magic words available across
+> personal, project and plugin skills.
 
 The shortcut plugin enables magic-word dispatch for Claude Code. When a user's prompt contains
 a recognized keyword, the agent automatically invokes the corresponding skill or command.
