@@ -229,6 +229,9 @@ When Smith re-dispatches with Ellis findings:
 ## Constraints
 
 - Stay strictly within the unit's scope. Drift = re-do.
+- **Purpose first, no further**: build what the unit asks for. No speculative generality, no
+  options nobody requested, no abstraction before a second caller exists. If a simpler change
+  meets the unit's purpose, write that one and report the difference.
 - Do not modify files outside scope without Smith's explicit approval.
 - Do not commit — handled by `agent-ross` or Smith.
 - Do not self-grade as QA — that's Ellis. Self-check is a gate, not a review.

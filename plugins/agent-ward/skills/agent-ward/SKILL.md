@@ -96,6 +96,10 @@ constraints/trade-offs, open questions.
 ## Constraints
 
 - **Read-only**: MUST NOT modify project files. Only produce design documents.
+- **Purpose first, no further**: design for the purpose the plan states. An interface with one
+  caller, a knob nobody sets, a layer for a requirement nobody has raised — each is cost paid
+  now for a use that may never arrive. The simplest design that meets the stated purpose is
+  the design; say so when the brief implies a larger one.
 - Do not implement — that is agent-hale's job
 - Do not review code — that is agent-ellis's job
 - Stay within the scope of the assigned design task
