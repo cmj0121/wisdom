@@ -204,7 +204,7 @@ what you touched.
 ### What belongs in a skill body
 
 A body is read in full every time its skill fires, so it has a budget: under 500 lines, with a
-warning at 250 that asks for a judgement rather than a split.
+warning at 300 that asks for a judgement rather than a split.
 
 What moves into `references/` is decided by form, not by topic. A list or table carries items
 a run looks up one at a time — a roster, a field table, a rubric — and each row stands alone,
@@ -213,9 +213,10 @@ the reason. `If both trigger types appear, prefer Autonomous mode.` is a relatio
 item; written as two bullets it becomes two assertions with nothing between them, and the case
 neither covers gets improvised. So prose stays in the body and is shortened in place.
 
-That also bounds what a split can achieve. Of `agent-smith`'s 322 body lines, 94 are table,
-list and heading, so moving every movable line still leaves 228 — and a target under that is a
-rewrite of the phase text rather than a move, worth planning as one.
+That also bounds what a split can achieve. Of `agent-smith`'s 292 body lines, 84 are table,
+list and heading, so moving every movable line still leaves 208 — and most of those 84 are
+read on every dispatch, so moving them would buy a fetch rather than a saving. A target under
+that is a rewrite of the phase text rather than a move, worth planning as one.
 
 Whether a procedure moves is a second question, orthogonal to the first: is it unconditional
 or conditional? A procedure every run needs is read anyway, one fetch later, so moving it

@@ -113,11 +113,26 @@ BODY_MAX_LINES = 500
 # -- four lines under the line meant to draw attention to it, and read in full
 # on every dispatch. The threshold was measuring nothing.
 #
-# What the warning asks for is a judgement, not a split: move the sections a run
-# consults (rosters, schemas, worked examples) and shorten the ones it executes.
-# A procedure moved into references/ is read anyway, one fetch later, so it
-# costs a round trip and risks not being read at all.
-BODY_WARN_LINES = 250
+# What the warning asks for is a judgement, not a split. Two axes decide it.
+# Form: a list or table survives a move into references/ because each row is
+# looked up on its own, while prose carries the conditions and tie-breaks that
+# join them and is shortened in place instead. Condition: loading is
+# just-in-time, so an unconditional procedure is read anyway one fetch later,
+# and only a procedure some runs skip is genuinely saved by moving.
+#
+# 250 was raised to 300 once agent-smith had been through that judgement.
+# Everything there that qualified on both axes moved -- Phase 5, which Partner
+# mode skips outright -- and the body came out at 292. The remaining distance
+# to 250 was a rewrite of the phase text, and rewriting instructions a
+# coordinator executes, to satisfy a number that was itself picked to make the
+# warning fire rather than measured, trades a real risk for a false precision.
+# The observed ecosystem median body is ~2,000 tokens with a range to ~8,000;
+# agent-smith at ~3,600 is above median, not an outlier.
+#
+# This leaves eight lines of headroom, which is deliberate for a warning rather
+# than a failure: the next substantial addition to the largest body here should
+# prompt the judgement again.
+BODY_WARN_LINES = 300
 # A reference file past this length gets previewed rather than read whole, so
 # it needs a contents list for the preview to still show its full scope.
 TOC_REQUIRED_OVER = 100
