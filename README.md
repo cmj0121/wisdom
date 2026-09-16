@@ -251,17 +251,24 @@ nearest near-miss is what makes the discrimination worth testing, so their negat
 from their siblings. `agent-ellis` must not answer "write tests for this"; `agent-ross` must
 not answer "generate the changelog".
 
-No runner is committed here, which is not the same as a rewrite being unjudgeable — that was
-true for a while and has stopped being true. `claude plugin eval` is the intended runner and is
-still in early access, but `skillgrade` runs a labelled set like this one today and exits
-non-zero when the pass rate falls below a threshold, `skillsbench` measures whether a skill
-helps an agent at all rather than whether it fires, and the cheapest check needs no tool: hand
-the frontmatter to a model, ask it for three prompts that should fire and three that should
-not, and compare those against the labels already in the file.
+A runner is committed now. `make eval` drives `claude plugin eval` — generally available, not
+early access — over a suite of committed cases: one for each query that a 3-sample
+blind-router run over all 380 actually missed, thirteen of them. It stays outside `make test`
+for the reason `scripts/check-install-drift` already established here, only sharper: every
+case is a full Claude child session on your own credential, so it wants a network and about
+$5.50, and CI has no secret to give it. The other 367 queries are deliberately not converted,
+and not only for the money — a bare query does not fire a skill at all, so a case is the
+labelled query rewritten as a realistic turn, which is a different measurement from the one
+the JSON file makes.
 
-So a reworded description has a validation path before it lands. Until one of these has run,
-`evals/trigger-queries.json` states an intent rather than a passing test — and saying so is a
-statement about this repo, not about the tooling.
+That file stays the cheap half, and it has other readers: `skillgrade` runs a labelled set
+like this one and exits non-zero when the pass rate falls below a threshold, `skillsbench`
+measures whether a skill helps an agent at all rather than whether it fires, and the cheapest
+check needs no tool — hand the frontmatter to a model, ask it for three prompts that should
+fire and three that should not, and compare those against the labels already in the file.
+
+So a reworded description has a validation path before it lands: thirteen boundaries it can be
+run against, and 380 labels it can be read against.
 
 Only `scripts/validate-fixtures` stays gated, on `^scripts/`: it costs a few seconds and says
 nothing new unless a check changes. That gate has the same blind spot — deleting
