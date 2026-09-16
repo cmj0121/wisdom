@@ -36,7 +36,7 @@ Install via the wisdom marketplace:
 ## How It Works
 
 1. **Plan** — Analyzes context, produces plan, challenges via tenth-man
-2. **Design** — Dispatches to agent-ward for architecture (if needed)
+2. **Design** — Dispatches to agent-ward when the plan adds a public interface or a dependency
 3. **Implement** — Dispatches to agent-hale, reviewed by agent-ellis
 4. **Docs & Ops** — Dispatches to agent-twain and agent-page in parallel
 5. **Assess** — Scores the result and re-plans; Autonomous mode reports progress as `1/3`, `2/3`, `3/3`
