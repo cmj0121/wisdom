@@ -1,7 +1,8 @@
 # Lingua Plugin
 
 > Answers in the user's chosen language whatever language they write in, restating the question in
-> correct terminology first. Use to set or load that preference.
+> correct terminology first. Use to set or load that preference. Not a translation service: it
+> does not translate a file, a document or a passage on request.
 
 The lingua plugin makes Claude Code reply in a language you choose, no matter what language
 you type in. Optionally it also restates your question in clear, correct terminology before

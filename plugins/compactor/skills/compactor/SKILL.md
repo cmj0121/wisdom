@@ -1,6 +1,6 @@
 ---
 name: compactor
-description: Re-renders the previous result as a dense, scannable table, dropping prose framing but keeping every data point. Use when an answer was longer than it needed to be.
+description: Re-renders the previous result as a dense, scannable table, dropping prose framing but keeping every data point. Use when an answer was longer than it needed to be. Not for setting a standing output style, and it adds no recommendation the original answer did not contain (briefing).
 license: MIT
 model: haiku
 allowed-tools:

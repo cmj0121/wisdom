@@ -50,13 +50,13 @@
     },
     {
       "name": "agent-ross",
-      "description": "Release Manager agent — writes commit messages, runs CI/CD and Docker builds, deploys and tags releases. Use when finished work needs to ship.",
+      "description": "Release Manager agent — writes commit messages, runs CI/CD and Docker builds, deploys and tags releases. Use when finished work needs to ship. It runs the pipeline; diagnosing or fixing a failing build or test is not its job.",
       "version": "2.1.0",
       "source": "./plugins/agent-ross"
     },
     {
       "name": "spec-writer",
-      "description": "Writes technical specifications — requirements, interfaces, data models and architecture diagrams. Use when a design needs recording before it is built.",
+      "description": "Writes technical specifications — requirements, interfaces, data models and architecture diagrams. Use when a design needs recording before it is built. Not for writing the code it specifies (agent-hale), nor for reviewing a spec already written (agent-ward).",
       "version": "2.1.0",
       "source": "./plugins/spec-writer"
     },
@@ -68,7 +68,7 @@
     },
     {
       "name": "ascii-grapher",
-      "description": "Draws ASCII diagrams for architecture, data flows, state machines and concepts. Use when a structure is easier to see than to read, or must survive in a terminal.",
+      "description": "Draws ASCII diagrams for architecture, data flows, state machines and concepts. Use when a structure is easier to see than to read, or must survive in a terminal. It draws a structure that is already decided — deciding it is agent-ward's.",
       "version": "2.1.0",
       "source": "./plugins/ascii-grapher"
     },
@@ -80,7 +80,7 @@
     },
     {
       "name": "changelog-gen",
-      "description": "Generates changelog entries from git history, grouping conventional commits by type. Use when a release needs notes or a CHANGELOG has fallen behind.",
+      "description": "Generates changelog entries from git history, grouping conventional commits by type. Use when a release needs notes or a CHANGELOG has fallen behind. It writes the entries; restructuring or reformatting the CHANGELOG file itself is not its job.",
       "version": "2.1.0",
       "source": "./plugins/changelog-gen"
     },
@@ -92,7 +92,7 @@
     },
     {
       "name": "compactor",
-      "description": "Re-renders the previous result as a dense, scannable table, dropping prose framing but keeping every data point. Use when an answer was longer than it needed to be.",
+      "description": "Re-renders the previous result as a dense, scannable table, dropping prose framing but keeping every data point. Use when an answer was longer than it needed to be. Not for setting a standing output style, and it adds no recommendation the original answer did not contain (briefing).",
       "version": "2.1.0",
       "source": "./plugins/compactor"
     },
@@ -116,7 +116,7 @@
     },
     {
       "name": "lingua",
-      "description": "Answers in the user's chosen language whatever language they write in, restating the question in correct terminology first. Use to set or load that preference.",
+      "description": "Answers in the user's chosen language whatever language they write in, restating the question in correct terminology first. Use to set or load that preference. Not a translation service: it does not translate a file, a document or a passage on request.",
       "version": "2.1.0",
       "source": "./plugins/lingua"
     }

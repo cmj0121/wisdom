@@ -1,6 +1,6 @@
 ---
 name: changelog-gen
-description: Generates changelog entries from git history, grouping conventional commits by type. Use when a release needs notes or a CHANGELOG has fallen behind.
+description: Generates changelog entries from git history, grouping conventional commits by type. Use when a release needs notes or a CHANGELOG has fallen behind. It writes the entries; restructuring or reformatting the CHANGELOG file itself is not its job.
 license: MIT
 model: haiku
 context: fork

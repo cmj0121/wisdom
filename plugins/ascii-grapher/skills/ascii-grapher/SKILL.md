@@ -1,6 +1,6 @@
 ---
 name: ascii-grapher
-description: Draws ASCII diagrams for architecture, data flows, state machines and concepts. Use when a structure is easier to see than to read, or must survive in a terminal.
+description: Draws ASCII diagrams for architecture, data flows, state machines and concepts. Use when a structure is easier to see than to read, or must survive in a terminal. It draws a structure that is already decided — deciding it is agent-ward's.
 license: MIT
 model: haiku
 context: fork
