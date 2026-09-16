@@ -201,10 +201,32 @@ top-level `README.md`, or a check script is precisely what the structural, versi
 semantic and standard checks exist to catch, so all four run on every commit regardless of
 what you touched.
 
+### What belongs in a skill body
+
+A body is read in full every time its skill fires, so it has a budget: under 500 lines, with a
+warning at 250 that asks for a judgement rather than a split.
+
+What moves into `references/` is decided by form, not by topic. A list or table carries items
+a run looks up one at a time — a roster, a field table, a rubric — and each row stands alone,
+so it survives the move intact. Prose carries what joins them: the condition, the tie-break,
+the reason. `If both trigger types appear, prefer Autonomous mode.` is a relation, not an
+item; written as two bullets it becomes two assertions with nothing between them, and the case
+neither covers gets improvised. So prose stays in the body and is shortened in place.
+
+That also bounds what a split can achieve. Of `agent-smith`'s 322 body lines, 94 are table,
+list and heading, so moving every movable line still leaves 228 — and a target under that is a
+rewrite of the phase text rather than a move, worth planning as one.
+
+A procedure does not belong in `references/` either way. It is read anyway, one fetch later,
+and risks not being read at all.
+
 ### Trigger evals
 
 A skill only helps if it activates, and the `description` is the only thing Claude has at the
-moment it decides. Every plugin carries `evals/trigger-queries.json`: 20 labelled prompts, ten
+moment it decides. It is also the only part of a skill loaded on every session, whether or
+not the skill ever fires, so a description here is kept near 160 characters: long enough to
+say what the skill does and when to use it, short enough that all 19 together cost a session
+under 800 tokens. Every plugin carries `evals/trigger-queries.json`: 20 labelled prompts, ten
 that should activate the skill and ten near-misses that share its vocabulary but need something
 else. Split 60/40 into train and validation, so a reworded description is tuned on one half and
 judged on the other rather than fitted to the phrasings used to tune it. `scripts/validate`
