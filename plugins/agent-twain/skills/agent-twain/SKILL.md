@@ -12,7 +12,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: "2.0.0"
+  version: "2.1.0"
   shortcut: "write docs, document it, twain"
 ---
 
@@ -26,6 +26,11 @@ API references, migration guides, tutorials. Works in parallel with the SRE afte
 This skill is triggered when the user's prompt contains `write docs`, `document it`, or `twain`.
 
 ## How It Works
+
+Each phase below assumes an input: a plan, a diff, the code the docs will describe. When one
+is missing, say so and stop rather than writing around it. Documentation of behaviour Twain
+never read is worse than no documentation at all — a reader has no way to tell the two apart,
+and trusts the one that is wrong.
 
 ### Phase 1: Understand the Changes
 

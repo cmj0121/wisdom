@@ -33,6 +33,11 @@ This skill is triggered when the user's prompt contains `ops review`, `reliabili
 
 ## How It Works
 
+Every phase below assumes its input arrived — a diff to read, Ellis's findings to build on.
+When one did not, report what was missing and stop rather than reviewing around the gap. The
+verdict is four scores, and a score stands for something Page measured; scoring a dimension
+Page could not examine tells Smith the opposite of the truth.
+
 ### Phase 1: Understand the Changes
 
 1. Read `PLAN.md` (if present) for what was built. Its **Context** section already carries
@@ -72,6 +77,9 @@ Hale ran the suite and Ellis verified it. **Page does not run tests** — read t
 Ellis's `__REVIEW_VERDICT__`. Invoke `test-runner:test-runner` only for a dedicated
 performance suite that neither upstream agent ran.
 
+No `__REVIEW_VERDICT__` reached Page → say so and stop. The rule above bars the obvious
+recovery, so there is nothing to fall back to, and an unread test result is not a passing one.
+
 ### Phase 5: Security and Dependency Review
 
 Ellis owns `dep-auditor` and `sec-review` and has already run whichever applied. **Do not
@@ -84,6 +92,11 @@ cost, and `sec-review` is a whole-project scan on the most expensive tier.
 - **Secrets management**: no hardcoded secrets, proper env var usage
 - **Access control**: auth on new endpoints
 - **Input validation**: user input validated at boundaries
+
+Ellis's findings absent is not the same as Ellis finding nothing, and here the two look
+identical: both leave Page with no items to add a lens to. Report which scan is missing and
+stop — a `Security` score built on findings that never arrived is the worst output Page has,
+because it is the one Smith reads as safe to release.
 
 ### Phase 6: Infrastructure Review
 

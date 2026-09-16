@@ -10,7 +10,7 @@ allowed-tools:
   - Glob
 metadata:
   author: cmj@cmj.tw
-  version: "2.0.0"
+  version: "2.1.0"
   shortcut: "lingua, respond in, reply in"
 ---
 
@@ -50,6 +50,11 @@ Freeform per-project language notes.
 ```
 
 ## How It Works
+
+Phase 1's rule against guessing a language generalises to every phase here. Each assumes an
+input — a config file, an answer from the user, a rule to apply — and when one is missing, say
+what is missing and ask rather than filling it in. A preference Lingua inferred is
+indistinguishable from one the user chose, and it reaches the config file either way.
 
 ### Phase 1: Load
 

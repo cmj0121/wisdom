@@ -9,7 +9,7 @@ allowed-tools:
   - Grep
 metadata:
   author: cmj@cmj.tw
-  version: "2.0.0"
+  version: "2.1.0"
   shortcut: "compact it"
 ---
 
@@ -22,6 +22,10 @@ Re-renders the previous result as a compact, table-like view — dense and scann
 This skill is triggered when the user's prompt contains `compact it`.
 
 ## How It Works
+
+Each phase assumes a source to work from. When Phase 1 finds none — no prior result, or a
+reference that resolves to nothing — say so and stop. Compacting nothing produces an empty
+table, and an empty table reads as a finding rather than as the absence of one.
 
 ### Phase 1: Identify the Source
 

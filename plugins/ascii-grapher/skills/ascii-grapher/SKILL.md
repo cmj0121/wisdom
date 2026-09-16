@@ -13,7 +13,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: "2.0.0"
+  version: "2.1.0"
   shortcut: "draw a graph, draw a diagram, ascii diagram"
 ---
 
@@ -25,6 +25,11 @@ This skill is triggered when the user's prompt contains `draw a graph`, `draw a 
 or `ascii diagram`.
 
 ## How It Works
+
+Each phase assumes the one before it produced something: a subject to draw, a layout to
+render. When it did not, say what is missing and ask rather than inventing structure to fill
+the frame. A diagram is read as a statement of fact about the system, so a guessed box is a
+claim nobody made and nobody can trace.
 
 ### Phase 1: Understand the Subject
 

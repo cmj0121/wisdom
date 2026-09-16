@@ -10,7 +10,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: "2.0.0"
+  version: "2.1.0"
   shortcut: "write spec, draft spec, spec-writer"
 ---
 
@@ -24,6 +24,11 @@ agent-twain (structured technical documents), and ascii-grapher (architecture di
 This skill is triggered when the user's prompt contains `write spec`, `draft spec`, or `spec-writer`.
 
 ## How It Works
+
+Each phase assumes an input: a scope from the caller, context to draft from. When one is
+missing, say what was missing and stop rather than drafting around it. A spec records
+decisions that were already made; a requirement nobody stated is not one of them, and written
+down here it becomes one the moment someone builds from it.
 
 ### Phase 1: Understand
 

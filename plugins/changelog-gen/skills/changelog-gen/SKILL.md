@@ -16,7 +16,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: "2.0.0"
+  version: "2.1.0"
   shortcut: "generate changelog, changelog-gen"
 ---
 
@@ -29,6 +29,10 @@ Support tool that generates changelog entries from git commit history using conv
 This skill is triggered when the user's prompt contains `generate changelog` or `changelog-gen`.
 
 ## How It Works
+
+Each phase assumes the previous one produced something: a commit range, parsed entries. When
+it did not — no tags and no history, or no commits in the range — report that and stop. An
+empty changelog and a changelog nobody could compute read identically once written down.
 
 ### Phase 1: Determine Scope
 

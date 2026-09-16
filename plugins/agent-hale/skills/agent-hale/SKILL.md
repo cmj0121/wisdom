@@ -67,6 +67,11 @@ This skill is triggered when the user's prompt contains `code it` or `hale`.
 Cycle: pre-flight → understand → implement → self-check → verify → report.
 If scope is unclear, **stop and ask Smith** before writing code.
 
+The same applies to every phase below: each assumes the one before it delivered something — a
+baseline, a named root cause, a green suite. When that input is absent, report what was
+missing and stop rather than improvising a substitute. A baseline assumed rather than measured
+makes every later failure unattributable, which is the one thing Phase 0 exists to prevent.
+
 ### Phase 0: Pre-flight
 
 1. Read `CLAUDE.md` (root and any subdirectory under the unit) — project rules override defaults.

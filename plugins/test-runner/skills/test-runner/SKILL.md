@@ -23,7 +23,7 @@ allowed-tools:
   - Grep
 metadata:
   author: cmj@cmj.tw
-  version: "2.0.0"
+  version: "2.1.0"
   shortcut: "run tests, test-runner"
   verdict: "__TEST_RESULT__"
 ---
@@ -37,6 +37,10 @@ Used by agent-hale (self-check), agent-ellis (QA), agent-page (pre-release).
 This skill is triggered when the user's prompt contains `run tests` or `test-runner`.
 
 ## How It Works
+
+Each phase assumes the previous one produced something: a detected framework, a command that
+ran. When it did not, report that and stop — Phase 1 already states the rule, and it is the
+pattern for all of them. A suite that could not run is not a suite that passed.
 
 ### Phase 1: Detect Test Framework
 

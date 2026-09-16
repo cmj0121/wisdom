@@ -60,11 +60,10 @@ plugin has been configured for this project). If it exists and defines `respond_
 - Keep code, identifiers, commands, and file paths verbatim — never translate them.
 
 **Do not** append `Respond in <respond_in>.` to sub-agent dispatch prompts. Agent-to-agent
-traffic is machine-facing and stays in English: `__REVIEW_VERDICT__`, `__OPS_VERDICT__`,
-Hale's Phase 5 report fields, and Ward's design handoff are parsed by Smith, not read by the
-user. Those reports accumulate in Smith's context across every unit and every iteration, so
-translating them multiplies context cost for no reader. Smith translates once, at the point
-of presentation.
+traffic is machine-facing and stays in English — `__REVIEW_VERDICT__`, `__OPS_VERDICT__`,
+Hale's Phase 5 report fields and Ward's design handoff are parsed by Smith, not read by the
+user — and it accumulates across every unit and iteration, so translating it multiplies
+context cost for no reader. Smith translates once, at the point of presentation.
 
 If the file is absent, behave as before (match the user's language). Do not create or modify
 `lingua.md` — that is the `lingua` skill's job.
@@ -107,15 +106,19 @@ How to confirm:
 3. Ask the user to pick — or to say "you decide" to authorize Smith for this fork only.
 4. Record the chosen option (and rejected ones, briefly) in `PLAN.md` under **Decisions**.
 
-Do **not** silently pick when "either could work." A 30-second confirmation is cheaper
-than a re-do. Do **not** stack multiple unrelated questions into one prompt — one fork
-per checkpoint keeps choices clear.
+Do **not** silently pick when "either could work" — a 30-second confirmation is cheaper than
+a re-do. Do **not** stack unrelated questions into one prompt; one fork per checkpoint.
 
 **[Partner]** Default behavior — already checkpoint-driven.
 **[Autonomous]** Still triggers for hard-to-reverse and material-concern forks; ambiguous
 requirements should already be resolved in the initial plan checkpoint.
 
 ## How It Works
+
+Every phase below assumes its inputs arrived. When one did not — no plan to dispatch from, no
+report back from an agent, no verdict where the phase expects one — name what is missing and
+stop there. Do not reconstruct it: a report Smith fills in for a silent agent is
+indistinguishable from one that agent returned, and every decision downstream inherits it.
 
 ### Phase 1: Understand and Plan
 
@@ -207,8 +210,8 @@ made behind an existing interface leaves a designer nothing to settle. Invoke
 Run this phase when the plan changes a user-visible surface — a screen, a component, a page,
 or the styling of one; a terminal program's text output is not one. If Phase 2 applies too,
 run it first, so the surface is designed against contracts that are already settled. Invoke
-`frontend-design:frontend-design`. If not installed, **inform the user** and suggest
-installing it. Smith reviews output before passing to `agent-hale` for integration.
+`frontend-design:frontend-design`; if not installed, **inform the user** and suggest it.
+Smith reviews output before passing to `agent-hale` for integration.
 
 ### Phase 3: Implement, Review, and Commit
 
@@ -240,13 +243,15 @@ For each unit in the batch:
    - **PASS** → mark unit ready to merge
    - **WARN** → Smith decides fix or accept; if fix, re-dispatch Hale
    - **FAIL** → must fix; re-dispatch Hale with findings, then re-review
+   - **No block at all** → not a PASS. Ellis emits one at zero findings, so its absence means
+     the review did not run. Re-dispatch Ellis once; if the second attempt is also silent,
+     stop and tell the user the unit is unreviewed rather than merging it.
 
 #### Context Hygiene
 
 `PLAN.md` is Smith's memory — the transcript is not. Once a unit merges, condense it to one
-line in the Units of Work table (status plus anything a later batch must know) and stop
-carrying its full Hale report and Ellis findings forward. Sub-agent reports are inputs to a
-decision, not a record to be retained after the decision is made.
+line in the Units of Work table (status plus what a later batch must know) and stop carrying
+its Hale report and Ellis findings forward: they are inputs to a decision, not a record of it.
 
 #### Merge Worktrees
 
@@ -276,6 +281,8 @@ Act on Page's `__OPS_VERDICT__`:
 - **READY** → proceed to merge
 - **CONCERN** → note items, proceed unless critical
 - **BLOCK** → dispatch Hale for fixes, then re-review
+- **No block at all** → not a READY. Re-dispatch Page once; if it is silent again, stop and
+  tell the user the branch has no ops review rather than reading the silence as a clean one.
 
 ### Phase 5: Assess and Iterate [Autonomous mode only]
 

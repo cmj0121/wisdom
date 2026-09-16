@@ -26,6 +26,11 @@ This skill is triggered when the user's prompt contains `review code`, `qa revie
 
 ## How It Works
 
+Each phase below assumes an input: a diff, a report from Hale, a plan to verify against. When
+one is missing, say so in the findings and stop rather than substituting a guess. A phase that
+could not run is itself a finding, and the verdict must name it — a dimension Ellis was unable
+to measure is not a dimension that passed.
+
 ### Phase 1: Code Stage Review
 
 If `PLAN.md` has a **Context** section, read it first — stack, conventions, commands, and

@@ -21,7 +21,7 @@ allowed-tools:
   - Grep
 metadata:
   author: cmj@cmj.tw
-  version: "2.0.0"
+  version: "2.1.0"
   shortcut: "audit deps, dep-auditor"
   verdict: "__AUDIT_RESULT__"
 ---
@@ -36,9 +36,16 @@ This skill is triggered when the user's prompt contains `audit deps` or `dep-aud
 
 ## How It Works
 
+Each phase assumes the one before it produced something to work on. When it did not, report
+that and stop rather than reporting nothing found — the two are not the same, and only one of
+them is good news.
+
 ### Phase 1: Detect Package Manager
 
-Auto-detect by checking lock/config files. If multiple managers detected, audit all.
+Auto-detect by checking lock/config files. If multiple managers detected, audit all. If none
+is detected, report that and stop — do not fall through to Phase 4. The table below is a
+closed list, so a project outside it is the routine case, and an audit that ran no command
+would otherwise emit `Status: CLEAN` and be read as a project with no vulnerable dependencies.
 
 | Config File         | Package Manager | Audit Command       |
 | ------------------- | --------------- | ------------------- |

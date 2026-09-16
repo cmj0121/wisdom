@@ -29,7 +29,7 @@ allowed-tools:
   - Edit
 metadata:
   author: cmj@cmj.tw
-  version: "2.0.0"
+  version: "2.1.0"
   shortcut: "release it, deploy it, commit it, ross"
 ---
 
@@ -44,6 +44,12 @@ This skill is triggered when the user's prompt contains `release it`, `deploy it
 `commit it`, or `ross`.
 
 ## How It Works
+
+The rule against inventing a ref governs every phase here, not just the footer. Each assumes
+something upstream arrived — staged changes, a verdict, a clean branch, a base to rebuild
+from. When one has not, report what is missing and stop. A release is the one step that
+cannot be taken back once it is pushed, so a precondition Ross could not confirm is a
+precondition that failed.
 
 ### Phase 1: Commit Message Generation
 
