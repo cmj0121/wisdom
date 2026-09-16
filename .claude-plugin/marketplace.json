@@ -15,25 +15,25 @@
     {
       "name": "agent-smith",
       "description": "Project Leader agent — plans a piece of work, dispatches it to the scrum team and coordinates the iterations. Use to build, implement, refactor or fix something substantial, with or without a named agent.",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "source": "./plugins/agent-smith"
     },
     {
       "name": "agent-ward",
       "description": "Architect agent — designs systems and APIs and decides the tech stack. Use before implementation starts, or to weigh one library or protocol against another.",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "source": "./plugins/agent-ward"
     },
     {
       "name": "agent-hale",
       "description": "Developer agent — writes clean, maintainable code and its tests from an agreed plan. Use when implementation is the task and the approach is already settled.",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "source": "./plugins/agent-hale"
     },
     {
       "name": "agent-ellis",
       "description": "QA agent — reviews code quality and security, runs the suite, and verifies work against its acceptance criteria. Use before a change lands. Not for whole-repo audits (sec-review) or for running tests alone (test-runner).",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "source": "./plugins/agent-ellis"
     },
     {
@@ -45,7 +45,7 @@
     {
       "name": "agent-page",
       "description": "SRE agent — reviews code and infrastructure for operational readiness: observability, reliability, performance, security posture. Use before a release.",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "source": "./plugins/agent-page"
     },
     {
@@ -63,7 +63,7 @@
     {
       "name": "tenth-man",
       "description": "Devil's advocate — challenges the assumptions behind a plan and names the blind spots a group has agreed past. Use before committing to a decision.",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "source": "./plugins/tenth-man"
     },
     {
@@ -111,7 +111,7 @@
     {
       "name": "sec-review",
       "description": "Reviews source for security issues and maps each finding to a CWE — whole project by default, or the scope its caller states. Use when security is the question, not code review.",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "source": "./plugins/sec-review"
     },
     {
