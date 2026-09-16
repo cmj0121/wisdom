@@ -64,7 +64,9 @@ This skill is triggered when the user's prompt contains `ops review`, `reliabili
 - **Memory leaks**: resources cleaned up?
 - **Concurrency**: shared resources synchronized?
 - **Caching**: cacheable operations cached?
-- **Payload sizes**: API responses reasonable?
+- **Payload sizes**: largest API response — report its size, and whether pagination or a
+  limit bounds it; what counts as too big varies by project, so measure it rather than
+  rate it
 
 Hale ran the suite and Ellis verified it. **Page does not run tests** — read the result from
 Ellis's `__REVIEW_VERDICT__`. Invoke `test-runner:test-runner` only for a dedicated
