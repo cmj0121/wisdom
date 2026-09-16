@@ -217,8 +217,18 @@ That also bounds what a split can achieve. Of `agent-smith`'s 322 body lines, 94
 list and heading, so moving every movable line still leaves 228 — and a target under that is a
 rewrite of the phase text rather than a move, worth planning as one.
 
-A procedure does not belong in `references/` either way. It is read anyway, one fetch later,
-and risks not being read at all.
+Whether a procedure moves is a second question, orthogonal to the first: is it unconditional
+or conditional? A procedure every run needs is read anyway, one fetch later, so moving it
+costs a round trip and buys nothing — and risks not being read at all. A procedure only some
+runs need is what `references/` is for. Put it there, and name the file at the point the
+condition is stated: loading is just-in-time, so nothing in `references/` is read unless the
+body says to read it.
+
+`agent-smith`'s Phase 2.5 is the example. It now runs only when the plan changes a
+user-visible surface, so on every dispatch that does not, its detail is context paid for with
+no reader. That is the shape `references/` exists for, and the reason this repo's own
+machinery for it — resolved links, a required `## Contents` past 100 lines, no nesting — has
+so far gone unused.
 
 ### Trigger evals
 

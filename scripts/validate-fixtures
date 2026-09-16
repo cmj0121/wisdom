@@ -409,6 +409,23 @@ mutate 's/"description": ".*"/"description": "Something else entirely."/' \
 expect_fail "compactor: description differs between its sources" \
 	"a plugin.json description that drifts from SKILL.md and marketplace.json is caught"
 
+echo "==> Fixture: README blockquote drifting from the manifests"
+fresh_copy
+# The fourth copy. It is line-wrapped, so an edit that rewrites the other three
+# by exact string match leaves this one behind -- which is exactly what happened
+# to nineteen of them while this check only read three sources.
+mutate '3s/.*/> Something else entirely./' plugins/compactor/README.md
+expect_fail "compactor: description differs between its sources" \
+	"a plugin README blockquote that drifts from the three manifests is caught"
+
+echo "==> Fixture: README description blockquote in the wrong place"
+fresh_copy
+# Position is the whole point: a loose search for the first blockquote would
+# compare whichever paragraph a README happens to quote.
+mutate '2s/.*/Some prose before the quote./' plugins/compactor/README.md
+expect_fail "plugins/compactor/README.md: must open with its H1, a blank line, then the" \
+	"a description blockquote not sitting directly under the H1 is caught"
+
 echo "==> Fixture: plugin missing from the top-level README"
 fresh_copy
 mutate 's/compactor//g' README.md
@@ -499,7 +516,9 @@ with open(path) as handle:
 with open(path, "w") as handle:
     handle.write(re.sub(r"(?m)^description: .*$", "description: " + "Compacts results. " * 30, text))
 INNER
-expect_spec_fail "over this repo's 400 limit" \
+# Matched by shape, not by value: pinning the number made this fixture fail the
+# moment the threshold moved, for a reason that was never about the check.
+expect_spec_fail "characters, over this repo's" \
 	"a description written only for triggering, unreadable as catalogue copy, is rejected"
 
 echo "==> Fixture: allowed-tools written as a string"

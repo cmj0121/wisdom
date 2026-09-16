@@ -94,7 +94,13 @@ DESCRIPTION_MAX = 1024
 # This repo's own ceiling. A description is also catalogue copy -- it shows in
 # `/plugin` listings and in both READMEs -- so one written purely for trigger
 # accuracy becomes unreadable long before it reaches the standard's limit.
-DESCRIPTION_PREFERRED_MAX = 400
+#
+# 400 was never reachable: the longest here was 356 and is now 284. Lowered to
+# 320 rather than to 300, which would have left 16 characters of headroom above
+# a value that is not going anywhere -- briefing sits at 284 because a shorter
+# version measurably lost two trigger queries to compactor. A threshold that
+# fails the repo on the day it lands gets raised back rather than obeyed.
+DESCRIPTION_PREFERRED_MAX = 320
 COMPATIBILITY_MAX = 500
 # https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
 BODY_MAX_LINES = 500
@@ -257,13 +263,25 @@ def check_description(label, fields):
 # grant from one subcommand to all of git.
 #
 # That leaves a comma-separated string or a YAML list, and both are readable by
-# Claude Code. The list wins on how each fails elsewhere: a consumer that
-# follows the standard strictly rejects a list loudly on its type, but splits a
-# comma string on spaces into 'Bash(git' and 'status:*),' -- tool patterns that
-# match nothing, silently dropping a permission grant. A loud failure on a
-# permissions field beats a quiet one.
+# Claude Code. The list wins on how each fails elsewhere: a comma string gets
+# split on spaces into 'Bash(git' and 'status:*),' -- tool patterns that match
+# nothing, silently dropping a permission grant. A list at worst reaches a
+# consumer that cannot use it as given.
 #
-# The standard marks this field Experimental, so it is the one to depart from.
+# What that consumer does with it has moved. The reason recorded here used to
+# be that a strict reader rejects a list loudly on its type, and a loud failure
+# on a permissions field beats a quiet one. As of September 2026 the observed
+# direction is the opposite: tools are normalising a list into a string for
+# spec compliance and treating it as legacy input, which is the quiet handling
+# the list was chosen to avoid. The evidence is one implementation's change
+# rather than the standard itself -- the field is still typed as a
+# space-separated string and still marked Experimental -- so the choice stands,
+# but on a narrower claim: the list expresses grants the standard's type cannot,
+# and the alternative drops permissions in silence.
+#
+# Revisit when either of these happens, not before:
+#   - the standard moves allowed-tools out of Experimental, or retypes it
+#   - Claude Code itself stops accepting a list
 def check_shapes(label, fields):
     compat = fields.get("compatibility")
     if compat is not None:

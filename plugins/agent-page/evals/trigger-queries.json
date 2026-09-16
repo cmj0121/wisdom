@@ -1,7 +1,7 @@
 {
   "skill": "agent-page",
   "about": "Trigger eval queries for this skill's description. A query is labelled with whether the skill should activate for it; the negatives are near-misses that share vocabulary with the skill but need something else. Split fixed so successive description edits are compared on the same ground: tune against train, judge against validation.",
-  "how_to_run": "No runner is committed. `claude plugin eval` is the intended one and is in early access; until it is available, run each query with `claude -p --output-format json` and count the runs whose transcript contains a Skill tool_use naming this skill.",
+  "how_to_run": "No runner is committed here, which does not mean a rewrite cannot be judged. Preferred: `skillgrade`, which runs a labelled set like this one and exits non-zero when the pass rate falls below a threshold. Fallback, needing nothing installed: run each query with `claude -p --output-format json` and count the runs whose transcript contains a Skill tool_use naming this skill. Cheapest of all, and closest to the router's real conditions: give a model only the name and description of every installed skill, with no bodies and no repo access, and have it pick one skill or none per query. `claude plugin eval` is still the intended runner and is still in early access.",
   "runs_per_query": 3,
   "trigger_rate_threshold": 0.5,
   "queries": [
