@@ -67,9 +67,9 @@ stands alone, so it survives the move into `references/` intact. Prose carries w
 them: the condition, the tie-break, the reason. `If both trigger types appear, prefer
 Autonomous mode.` is a relation, not an item; as two bullets it becomes two assertions with
 nothing between them, and the case neither covers gets improvised. So prose stays in the body
-and is shortened in place — which bounds what a split can reach: of `agent-smith`'s 292 lines,
-84 are table, list and heading, so moving every movable line still leaves 208, and most of
-those 84 are unconditional and would only cost a fetch. A target under that is a rewrite of
+and is shortened in place — which bounds what a split can reach: of `agent-smith`'s 299 lines,
+86 are table, list and heading, so moving every movable line still leaves 213, and most of
+those 86 are unconditional and would only cost a fetch. A target under that is a rewrite of
 the phase text, and is worth planning as one.
 
 Whether a procedure moves is a second, orthogonal question: unconditional or conditional. A

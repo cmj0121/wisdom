@@ -213,8 +213,8 @@ the reason. `If both trigger types appear, prefer Autonomous mode.` is a relatio
 item; written as two bullets it becomes two assertions with nothing between them, and the case
 neither covers gets improvised. So prose stays in the body and is shortened in place.
 
-That also bounds what a split can achieve. Of `agent-smith`'s 292 body lines, 84 are table,
-list and heading, so moving every movable line still leaves 208 — and most of those 84 are
+That also bounds what a split can achieve. Of `agent-smith`'s 299 body lines, 86 are table,
+list and heading, so moving every movable line still leaves 213 — and most of those 86 are
 read on every dispatch, so moving them would buy a fetch rather than a saving. A target under
 that is a rewrite of the phase text rather than a move, worth planning as one.
 
