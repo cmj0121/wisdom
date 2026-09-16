@@ -60,16 +60,17 @@ in `CLAUDE_CODE_EXTENSIONS`; a third one needs the same:
   an agent can reach sets both — `fork` aims the pin at a subagent, `background: false` keeps
   the result inline for the caller.
 
-The body is phase-by-phase instructions, under 500 lines, with a warning at 250 that asks for
+The body is phase-by-phase instructions, under 500 lines, with a warning at 300 that asks for
 a judgement rather than a split. **Form decides what moves, not topic.** A list or table
 carries items a run looks up one at a time — a roster, a field table, a rubric — and each row
 stands alone, so it survives the move into `references/` intact. Prose carries what joins
 them: the condition, the tie-break, the reason. `If both trigger types appear, prefer
 Autonomous mode.` is a relation, not an item; as two bullets it becomes two assertions with
 nothing between them, and the case neither covers gets improvised. So prose stays in the body
-and is shortened in place — which bounds what a split can reach: of `agent-smith`'s 322 lines,
-94 are table, list and heading, so moving every movable line still leaves 228. A target under
-that is a rewrite of the phase text, and is worth planning as one.
+and is shortened in place — which bounds what a split can reach: of `agent-smith`'s 292 lines,
+84 are table, list and heading, so moving every movable line still leaves 208, and most of
+those 84 are unconditional and would only cost a fetch. A target under that is a rewrite of
+the phase text, and is worth planning as one.
 
 Whether a procedure moves is a second, orthogonal question: unconditional or conditional. A
 procedure every run needs is read anyway, one fetch later, so moving it costs a round trip and

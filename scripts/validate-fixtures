@@ -560,7 +560,9 @@ echo "==> Fixture: a body approaching, but not over, the budget"
 fresh_copy
 dirty "$SPEC_SKILL"
 for _ in $(seq 1 380); do echo "filler" >>"$TMP_DIR/repo/$SPEC_SKILL"; done
-expect_spec_warn "over the 250 line where a body is worth re-reading" \
+# Matched by shape, not by value: a fixture that pins the threshold fails when
+# the threshold moves, for a reason that was never about the check.
+expect_spec_warn "line where a body is worth re-reading" \
 	"a body nearing the ceiling warns without failing"
 
 echo "==> Fixture: a reference to a file that is not bundled"
