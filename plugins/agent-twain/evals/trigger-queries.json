@@ -1,6 +1,6 @@
 {
   "skill": "agent-twain",
-  "about": "Trigger eval queries for this skill's description. A query is labelled with whether the skill should activate for it; the negatives are near-misses that share vocabulary with the skill but need something else. Split fixed so successive description edits are compared on the same ground: tune against train, judge against validation.",
+  "about": "Trigger eval queries for this skill's description. A query is labelled with whether the skill should activate for it; the negatives are near-misses that share vocabulary with the skill but need something else. Split fixed so successive description edits are compared on the same ground: tune against train, judge against validation. Two validation labels were corrected by hand (issue #10): `write release notes readers can act on` is a negative here, not a positive, because twain's own body delegates changelogs to changelog-gen and changelog-gen's positives claim that ground; `review the docs for accuracy` was dropped rather than relabelled, because as a positive it only repeats the two stale-docs positives already here, and as a negative it turns on a review-versus-write line no description in this marketplace draws.",
   "how_to_run": "No runner is committed here, which does not mean a rewrite cannot be judged. Preferred: `skillgrade`, which runs a labelled set like this one and exits non-zero when the pass rate falls below a threshold. Fallback, needing nothing installed: run each query with `claude -p --output-format json` and count the runs whose transcript contains a Skill tool_use naming this skill. Cheapest of all, and closest to the router's real conditions: give a model only the name and description of every installed skill, with no bodies and no repo access, and have it pick one skill or none per query. `claude plugin eval` is still the intended runner and is still in early access.",
   "runs_per_query": 3,
   "trigger_rate_threshold": 0.5,
@@ -36,7 +36,7 @@
       "split": "train"
     },
     {
-      "query": "write release notes readers can act on",
+      "query": "our api docs are missing the new query parameters",
       "should_trigger": true,
       "split": "validation"
     },
@@ -86,7 +86,7 @@
       "split": "train"
     },
     {
-      "query": "review the docs for accuracy",
+      "query": "write release notes readers can act on",
       "should_trigger": false,
       "split": "validation"
     },
