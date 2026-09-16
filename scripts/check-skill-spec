@@ -94,7 +94,13 @@ DESCRIPTION_MAX = 1024
 # This repo's own ceiling. A description is also catalogue copy -- it shows in
 # `/plugin` listings and in both READMEs -- so one written purely for trigger
 # accuracy becomes unreadable long before it reaches the standard's limit.
-DESCRIPTION_PREFERRED_MAX = 400
+#
+# 400 was never reachable: the longest here was 356 and is now 284. Lowered to
+# 320 rather than to 300, which would have left 16 characters of headroom above
+# a value that is not going anywhere -- briefing sits at 284 because a shorter
+# version measurably lost two trigger queries to compactor. A threshold that
+# fails the repo on the day it lands gets raised back rather than obeyed.
+DESCRIPTION_PREFERRED_MAX = 320
 COMPATIBILITY_MAX = 500
 # https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
 BODY_MAX_LINES = 500

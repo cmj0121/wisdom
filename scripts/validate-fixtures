@@ -516,7 +516,9 @@ with open(path) as handle:
 with open(path, "w") as handle:
     handle.write(re.sub(r"(?m)^description: .*$", "description: " + "Compacts results. " * 30, text))
 INNER
-expect_spec_fail "over this repo's 400 limit" \
+# Matched by shape, not by value: pinning the number made this fixture fail the
+# moment the threshold moved, for a reason that was never about the check.
+expect_spec_fail "characters, over this repo's" \
 	"a description written only for triggering, unreadable as catalogue copy, is rejected"
 
 echo "==> Fixture: allowed-tools written as a string"

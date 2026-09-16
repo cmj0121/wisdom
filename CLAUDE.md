@@ -34,8 +34,10 @@ layers, and `scripts/check-skill-spec` enforces the split. Anything outside both
 which reject an unknown key outright rather than ignoring it. Three carry rules worth stating:
 
 - `description`: what the skill does **and when to use it**, third person. The repo ceiling is
-  400 characters and its skills sit near 160, because the same string is catalogue copy in
-  `/plugin`, in `marketplace.json` and in both READMEs.
+  320 characters and its skills average 173, because the same string is catalogue copy in four
+  places: `/plugin`, `marketplace.json`, the plugin `README.md` blockquote and the skill's own
+  frontmatter. All four are compared; the blockquote is line-wrapped, so an edit by exact
+  string match reaches three of them and leaves the fourth stale.
 - `allowed-tools`: a **YAML list**, the one place this repo knowingly departs from the
   standard's space-separated string. 70 grants contain a space (`Bash(git status:*)`), and the
   space-free spelling `Bash(git:*)` widens the grant from one subcommand to all of git. Of the
