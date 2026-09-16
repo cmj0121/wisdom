@@ -67,7 +67,12 @@ and is shortened in place — which bounds what a split can reach: of `agent-smi
 94 are table, list and heading, so moving every movable line still leaves 228. A target under
 that is a rewrite of the phase text, and is worth planning as one.
 
-A procedure does not belong in `references/` either way: it is read anyway, one fetch later.
+Whether a procedure moves is a second, orthogonal question: unconditional or conditional. A
+procedure every run needs is read anyway, one fetch later, so moving it costs a round trip and
+buys nothing. A procedure only some runs need is what `references/` is for — put it there and
+name the file where the condition is stated, because nothing in `references/` is read unless
+the body says to read it. `agent-smith`'s Phase 2.5 is the example: it now runs only when the
+plan touches a user-visible surface, so on most dispatches its detail is cost with no reader.
 
 ### Skill Discovery (Three Tiers)
 
