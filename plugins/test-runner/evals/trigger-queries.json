@@ -1,6 +1,6 @@
 {
   "skill": "test-runner",
-  "about": "Trigger eval queries for this skill's description. A query is labelled with whether the skill should activate for it; the negatives are near-misses that share vocabulary with the skill but need something else. Split fixed so successive description edits are compared on the same ground: tune against train, judge against validation.",
+  "about": "Trigger eval queries for this skill's description. A query is labelled with whether the skill should activate for it; the negatives are near-misses that share vocabulary with the skill but need something else. Split fixed so successive description edits are compared on the same ground: tune against train, judge against validation. Near-misses hardened 2026-09-16 after a measured 3-sample blind-router baseline scored this set 20/20: a set at the ceiling cannot register a loss when its description is edited, so negatives no router would have reached were replaced with ones a sibling skill owns.",
   "how_to_run": "`make eval` is the committed runner, but it covers only the queries a 3-sample blind-router baseline actually missed, not this whole file -- see CLAUDE.md for why 13 and not 380. To judge the rest: `skillgrade` runs a labelled set like this one and exits non-zero when the pass rate falls below a threshold. Needing nothing installed: run each query with `claude -p --output-format json` and count the runs whose transcript contains a Skill tool_use naming this skill. Cheapest of all, and closest to the router's real conditions: give a model only the name and description of every installed skill, with no bodies and no repo access, and have it pick one skill or none per query. `claude plugin eval`, which `make eval` drives, is generally available rather than early access; what it needs instead is a credential, a network and real money -- $0.142 a run, measured -- which is why it sits outside `make test` and CI does not run it. It will not reproduce this file query-for-query either: a bare query does not fire a skill, so a case is one of these queries rewritten as a realistic turn. This file stays the cheap, free, offline record.",
   "runs_per_query": 3,
   "trigger_rate_threshold": 0.5,
@@ -61,17 +61,17 @@
       "split": "train"
     },
     {
-      "query": "why is my pytest fixture with scope=session not being reused",
+      "query": "three tests are failing, go fix them",
       "should_trigger": false,
       "split": "train"
     },
     {
-      "query": "add pytest and pytest-cov to the dev dependencies",
+      "query": "check our test dependencies are up to date",
       "should_trigger": false,
       "split": "train"
     },
     {
-      "query": "explain what makes a test flaky",
+      "query": "the tests pass -- now tell me if the code is any good",
       "should_trigger": false,
       "split": "train"
     },
