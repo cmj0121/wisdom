@@ -1,6 +1,6 @@
 ---
 name: shortcut
-description: Dispatches the skill whose declared magic word appears in the prompt, and lists every shortcut available across personal, project and plugin skills.
+description: Dispatches the skill or command whose declared magic word appears in the prompt. Use at the start of a turn to check for a registered trigger phrase, or to list the magic words available across personal, project and plugin skills.
 license: MIT
 model: haiku
 allowed-tools:

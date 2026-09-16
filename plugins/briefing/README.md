@@ -1,7 +1,8 @@
 # Briefing Plugin
 
-> Output style for planning and review agents — compact results, each question summarised before it
-> is answered, discussion one numbered topic at a time.
+> Output style for planning and review agents — keeps results compact, summarises each question
+> before answering it, and drives discussion one numbered topic at a time. Use when running agent-
+> smith or tenth-man, or when the user asks for shorter output or to decide one thing at a time.
 
 A shared output style for the agents that talk to you the most. It governs shape, not
 content: it makes results shorter and decisions sequential, and never licenses dropping a

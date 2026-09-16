@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "shortcut",
-      "description": "Dispatches the skill whose declared magic word appears in the prompt, and lists every shortcut available across personal, project and plugin skills.",
+      "description": "Dispatches the skill or command whose declared magic word appears in the prompt. Use at the start of a turn to check for a registered trigger phrase, or to list the magic words available across personal, project and plugin skills.",
       "version": "2.0.0",
       "source": "./plugins/shortcut"
     },
@@ -98,7 +98,7 @@
     },
     {
       "name": "briefing",
-      "description": "Output style for planning and review agents — compact results, each question summarised before it is answered, discussion one numbered topic at a time.",
+      "description": "Output style for planning and review agents — keeps results compact, summarises each question before answering it, and drives discussion one numbered topic at a time. Use when running agent-smith or tenth-man, or when the user asks for shorter output or to decide one thing at a time.",
       "version": "2.0.0",
       "source": "./plugins/briefing"
     },
