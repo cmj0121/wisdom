@@ -38,29 +38,12 @@ test:				# run the four repo checks (not the validator self-test)
 	printf '==> %d of %d checks FAILED -- re-run with WISDOM_VERBOSE=1 for per-item detail\n' "$$failed" "$$total"; \
 	exit 1
 
-# Deliberately NOT part of `test`, for `doctor`'s reason and then some: every
-# case here is a full Claude child session on the operator's own credential, so
-# it wants a network and real money where the four checks want neither. CI is
-# not an option either -- .github/workflows/checks.yml runs with
-# `permissions: contents: read` and no secrets, and adding one to a public repo
-# to automate a check a human can run by hand is a bad trade.
-#
-# --ablation none is not a speed knob. Under the default with-without ablation
-# the CLI demotes a `tool_used: Skill` grader to a with-only indicator and stops
-# scoring it -- and that grader is the only thing these cases assert.
-# --no-publish keeps the HTML report off claude.ai, because a check in this repo
-# uploading its results is a surprise nobody asked for.
-#
-# The CLI takes one plugin per invocation, so the list is derived from the cases
-# on disk rather than written out: a case added under a new plugin needs no edit
-# here, and a plugin with no cases is never invoked. The ceiling is therefore
-# per plugin -- the largest set today is 4 cases x 3 runs, about $1.70 at the
-# measured $0.142 a run, and all 13 cases together come to roughly $5.50.
-#
-# Like `test`, it runs every plugin even after one fails and fails at the end:
-# a routing regression in the first plugin is no reason to leave the other
-# eight unmeasured once the money is already committed.
-eval:				# run the committed trigger cases (needs a credential, a network and ~$5.50)
+# Deliberately NOT part of `test`: every case is a full Claude child session on
+# the operator's own credential, so it wants a network and real money, and CI
+# has no secret to give it. --ablation none keeps a `tool_used: Skill` grader
+# scored; --no-publish keeps the report off claude.ai. Plugins without cases
+# under evals/ are never invoked.
+eval:				# run the committed trigger cases (needs a credential and a network)
 	@failed=0; \
 	for plugin in $$(find plugins -path '*/evals/*/prompt.md' | cut -d/ -f1-2 | sort -u); do \
 		printf '\n==> %s\n' "$$plugin"; \

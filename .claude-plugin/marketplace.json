@@ -1,124 +1,16 @@
 {
   "name": "wisdom",
-  "version": "2.2.0",
+  "version": "3.0.0",
   "owner": {
     "name": "cmj",
     "url": "https://github.com/cmj0121"
   },
   "plugins": [
     {
-      "name": "shortcut",
-      "description": "Dispatches the skill or command whose declared magic word appears in the prompt. Use at the start of a turn to check for a registered trigger phrase, or to list the magic words available across personal, project and plugin skills.",
-      "version": "2.0.0",
-      "source": "./plugins/shortcut"
-    },
-    {
-      "name": "agent-smith",
-      "description": "Project Leader agent — plans a piece of work, dispatches it to the scrum team and coordinates the iterations. Use to build, implement, refactor or fix something substantial, with or without a named agent.",
-      "version": "2.1.0",
-      "source": "./plugins/agent-smith"
-    },
-    {
-      "name": "agent-ward",
-      "description": "Architect agent — designs systems and APIs and decides the tech stack. Use before implementation starts, or to weigh one library or protocol against another.",
-      "version": "2.1.0",
-      "source": "./plugins/agent-ward"
-    },
-    {
-      "name": "agent-hale",
-      "description": "Developer agent — writes clean, maintainable code and its tests from an agreed plan. Use when implementation is the task and the approach is already settled.",
-      "version": "2.1.0",
-      "source": "./plugins/agent-hale"
-    },
-    {
-      "name": "agent-ellis",
-      "description": "QA agent — reviews code quality and security, runs the suite, and verifies work against its acceptance criteria. Use before a change lands. Not for whole-repo audits (sec-review) or for running tests alone (test-runner).",
-      "version": "2.1.0",
-      "source": "./plugins/agent-ellis"
-    },
-    {
-      "name": "agent-twain",
-      "description": "Technical Writer agent — writes user documentation, API references, migration guides and tutorials. Use when a change needs documenting or its docs have gone stale.",
-      "version": "2.1.0",
-      "source": "./plugins/agent-twain"
-    },
-    {
-      "name": "agent-page",
-      "description": "SRE agent — reviews code and infrastructure for operational readiness: observability, reliability, performance, security posture. Use before a release.",
-      "version": "2.1.0",
-      "source": "./plugins/agent-page"
-    },
-    {
-      "name": "agent-ross",
-      "description": "Release Manager agent — writes commit messages, runs CI/CD and Docker builds, deploys and tags releases. Use when finished work needs to ship. It runs the pipeline; diagnosing or fixing a failing build or test is not its job.",
-      "version": "2.1.0",
-      "source": "./plugins/agent-ross"
-    },
-    {
-      "name": "spec-writer",
-      "description": "Writes technical specifications — requirements, interfaces, data models and architecture diagrams. Use when a design needs recording before it is built. Not for writing the code it specifies (agent-hale), nor for reviewing a spec already written (agent-ward).",
-      "version": "2.1.0",
-      "source": "./plugins/spec-writer"
-    },
-    {
-      "name": "tenth-man",
-      "description": "Devil's advocate — challenges the assumptions behind a plan and names the blind spots a group has agreed past. Use before committing to a decision.",
-      "version": "2.1.0",
-      "source": "./plugins/tenth-man"
-    },
-    {
-      "name": "ascii-grapher",
-      "description": "Draws ASCII diagrams for architecture, data flows, state machines and concepts. Use when a structure is easier to see than to read, or must survive in a terminal. It draws a structure that is already decided — deciding it is agent-ward's.",
-      "version": "2.1.0",
-      "source": "./plugins/ascii-grapher"
-    },
-    {
-      "name": "test-runner",
-      "description": "Detects the project's test framework, runs its suite, and reports what passed, what failed and why. Runs tests only — it does not review the code (agent-ellis).",
-      "version": "2.1.0",
-      "source": "./plugins/test-runner"
-    },
-    {
-      "name": "changelog-gen",
-      "description": "Generates changelog entries from git history, grouping conventional commits by type. Use when a release needs notes or a CHANGELOG has fallen behind. It writes the entries; restructuring or reformatting the CHANGELOG file itself is not its job.",
-      "version": "2.1.0",
-      "source": "./plugins/changelog-gen"
-    },
-    {
-      "name": "dep-auditor",
-      "description": "Audits dependencies for known vulnerabilities and outdated versions across npm, pip, go, cargo and bundler. Use before a release or when a lockfile changes.",
-      "version": "2.1.0",
-      "source": "./plugins/dep-auditor"
-    },
-    {
-      "name": "compactor",
-      "description": "Re-renders the previous result as a dense, scannable table, dropping prose framing but keeping every data point. Use when an answer was longer than it needed to be. Not for setting a standing output style, and it adds no recommendation the original answer did not contain (briefing).",
-      "version": "2.1.0",
-      "source": "./plugins/compactor"
-    },
-    {
-      "name": "briefing",
-      "description": "Output style for planning and review agents — keeps results compact, summarises each question before answering it, and drives discussion one numbered topic at a time. Use when running agent-smith or tenth-man, or when the user asks for shorter output or to decide one thing at a time.",
-      "version": "2.0.0",
-      "source": "./plugins/briefing"
-    },
-    {
-      "name": "pr-flow",
-      "description": "Walks a pull request from its issue to merge-ready — checks the diff against the issue body, then works each reviewer comment test-first. Merging stays with the user.",
-      "version": "2.1.0",
-      "source": "./plugins/pr-flow"
-    },
-    {
-      "name": "sec-review",
-      "description": "Reviews source for security issues and maps each finding to a CWE — whole project by default, or the scope its caller states. Use when security is the question, not code review.",
-      "version": "2.1.0",
-      "source": "./plugins/sec-review"
-    },
-    {
-      "name": "lingua",
-      "description": "Answers in the user's chosen language whatever language they write in, restating the question in correct terminology first. Use to set or load that preference. Not a translation service: it does not translate a file, a document or a passage on request.",
-      "version": "2.1.0",
-      "source": "./plugins/lingua"
+      "name": "wisdom",
+      "description": "Single-purpose skills to plan, build, review and ship software, led by smith.",
+      "version": "3.0.0",
+      "source": "./plugins/wisdom"
     }
   ]
 }
