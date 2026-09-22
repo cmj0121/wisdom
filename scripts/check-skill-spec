@@ -221,7 +221,7 @@ def check_description(label, fields):
     elif len(desc) > DESCRIPTION_PREFERRED_MAX:
         bad(
             f"{label}: description is {len(desc)} characters, over this repo's"
-            f" {DESCRIPTION_PREFERRED_MAX} limit -- it is catalogue copy as well as"
+            f" {DESCRIPTION_PREFERRED_MAX} limit -- it is"
             " loaded in every session, so it stays one short sentence"
         )
     if XML_TAG_RE.search(desc):
