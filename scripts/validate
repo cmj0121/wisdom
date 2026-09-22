@@ -6,8 +6,8 @@
 #      across every skill the marketplace ships.
 #   3. Both top-level READMEs list exactly the shipped skills in their
 #      '## Skills' tables, each with exactly the magic words it declares.
-#   4. A '<plugin>:<skill>' reference in a skill resolves to a shipped skill,
-#      or to a known external plugin.
+#   4. A '<plugin>:<skill>' reference to a plugin this marketplace ships
+#      resolves to one of its skills.
 #   5. Code fences in skills and READMEs are balanced.
 #
 # An optional first argument overrides the repo root, so the fixture harness
@@ -34,8 +34,6 @@ GREEN, RED, YELLOW, RESET = "\033[32m", "\033[31m", "\033[33m", "\033[0m"
 WISDOM_VERBOSE = os.environ.get("WISDOM_VERBOSE", "") not in ("", "0")
 errors = 0
 
-# Plugins outside this repo that a skill may hand work to.
-KNOWN_EXTERNAL = {"frontend-design"}
 READMES = ("README.md", "README.zh-TW.md")
 
 FENCE_RE = re.compile(r"^\s*(```|~~~)")
@@ -159,7 +157,9 @@ for skill, path in skills.items():
             bad(f"{rel(doc)}: unterminated code fence")
             continue
         for plugin, target in REF_RE.findall("\n".join(lines)):
-            if plugin in KNOWN_EXTERNAL or (plugin in plugins and target in skills):
+            if plugin not in plugins:
+                continue  # file:line, or another marketplace's plugin
+            if target in skills:
                 ok(f"{rel(doc)}: {plugin}:{target}")
             else:
                 bad(f"{rel(doc)}: reference '{plugin}:{target}' resolves to no skill")
