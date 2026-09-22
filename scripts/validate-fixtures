@@ -12,6 +12,13 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+# Every fixture mutates a shipped plugin; with none shipped there is nothing to break.
+if [ ! -d "$REPO_ROOT/plugins" ]; then
+	echo "==> No plugins to mutate -- skipping validator fixtures"
+	exit 0
+fi
+
 TMP_DIR="$(mktemp -d)"
 
 # The fixtures assert on the validator's exact per-item lines, the magic-word

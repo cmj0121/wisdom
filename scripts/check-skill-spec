@@ -375,8 +375,14 @@ def check_body(label, path, body):
 
 print("==> Checking SKILL.md against the Agent Skills standard")
 paths = sorted(glob.glob(os.path.join(root, "plugins", "*", "skills", "*", "SKILL.md")))
+# An empty glob is a layout the check no longer understands -- unless the
+# marketplace registers no plugin at all, which is a repo with nothing to ship.
 if not paths:
-    bad("no SKILL.md found under plugins/*/skills/*/")
+    import json
+    with open(os.path.join(root, ".claude-plugin", "marketplace.json")) as f:
+        registered = json.load(f).get("plugins", [])
+    if registered:
+        bad("no SKILL.md found under plugins/*/skills/*/")
 
 for path in paths:
     label = rel(path)
