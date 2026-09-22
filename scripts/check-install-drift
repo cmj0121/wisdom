@@ -63,7 +63,7 @@ VERSION_RE = re.compile(r'^\s*version:\s*["\']?([^"\'\s]+)', re.M)
 
 
 def version_of(path):
-    """The skill's metadata.version, or '?' when it cannot be read."""
+    """A SKILL.md's version (a v3 skill carries none, so its plugin's), or '?'."""
     try:
         text = open(path, encoding="utf-8").read()
     except OSError:
@@ -74,7 +74,12 @@ def version_of(path):
 
 
 mk = json.load(open(os.path.join(root, ".claude-plugin", "marketplace.json")))
-shipped = {p["name"] for p in mk["plugins"]}
+# v3 ships many skills per plugin, so the roster is the skill directories.
+shipped = {}
+for p in mk["plugins"]:
+    src = p["source"][2:] if p["source"].startswith("./") else p["source"]
+    for path in glob.glob(os.path.join(root, src, "skills", "*", "SKILL.md")):
+        shipped[os.path.basename(os.path.dirname(path))] = path
 
 # The tiers that outrank an installed plugin, nearest first. Both may be absent
 # -- on a machine that never installed the marketplace, or in CI -- and an
@@ -95,7 +100,7 @@ for tier, base in TIERS:
         if name not in shipped:
             continue  # somebody else's skill; not this marketplace's business
         found = True
-        ours = os.path.join(root, "plugins", name, "skills", name, "SKILL.md")
+        ours = shipped[name]
         bad(
             f"{name}: also served from the {tier} tier at {path}"
             f" (that copy says version {version_of(path)},"

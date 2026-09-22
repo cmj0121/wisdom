@@ -1,24 +1,18 @@
 #!/usr/bin/env bash
 # Semantic checks for the marketplace:
-#   1. Cross-skill references (`<plugin>:<skill>`) resolve to a real skill of a
-#      marketplace plugin, or to a known external plugin.
-#   2. Every SKILL.md has a closed YAML frontmatter block, and its 'model:'
-#      value (when present) is a known tier, 'inherit', or a full model ID.
-#   3. Every plugin skill declares at least one magic (trigger) word in
-#      'metadata.shortcut', its '## Shortcut' section spells each one out for
-#      human readers, and no word is claimed by two different plugins.
-#   4. Every plugin README has the required sections, and its magic-word
-#      section documents exactly the trigger words the skill declares.
-#   5. The top-level README lists every plugin the marketplace registers.
-#   6. Each plugin's description reads the same in marketplace.json, its
-#      plugin.json and its SKILL.md frontmatter.
-#   7. Every plugin carries evals/trigger-queries.json, labelled on both sides
-#      and split both ways.
-#   8. A skill that emits a verdict block declares it in 'metadata.verdict',
-#      and every verdict another skill routes on is one some skill emits.
+#   1. Each plugin's description reads the same in marketplace.json and its
+#      plugin.json, and the top-level README names every plugin in prose.
+#   2. A skill's magic words ('metadata.shortcut', comma-separated) are unique
+#      across every skill the marketplace ships.
+#   3. Both top-level READMEs list exactly the shipped skills in their
+#      '## Skills' tables, each with exactly the magic words it declares.
+#   4. A '<plugin>:<skill>' reference in a skill resolves to a shipped skill,
+#      or to a known external plugin.
+#   5. Code fences in skills and READMEs are balanced.
 #
-# An optional first argument overrides the repo root, so the fixture
-# harness can point the validator at a mutated copy of the repo.
+# An optional first argument overrides the repo root, so the fixture harness
+# can point the validator at a mutated copy of the repo. Quiet by default;
+# WISDOM_VERBOSE=1 restores the per-item PASS lines.
 set -euo pipefail
 
 if [ $# -ge 1 ]; then
@@ -36,11 +30,17 @@ import sys
 
 root = sys.argv[1]
 
-GREEN, RED, RESET = "\033[32m", "\033[31m", "\033[0m"
-# Quiet by default; WISDOM_VERBOSE=1 restores the per-item PASS lines. See the same
-# comment in scripts/test for why an environment variable and not a flag.
+GREEN, RED, YELLOW, RESET = "\033[32m", "\033[31m", "\033[33m", "\033[0m"
 WISDOM_VERBOSE = os.environ.get("WISDOM_VERBOSE", "") not in ("", "0")
 errors = 0
+
+# Plugins outside this repo that a skill may hand work to.
+KNOWN_EXTERNAL = {"frontend-design"}
+READMES = ("README.md", "README.zh-TW.md")
+
+FENCE_RE = re.compile(r"^\s*(```|~~~)")
+TICK_RE = re.compile(r"`([^`]+)`")
+REF_RE = re.compile(r"`([a-z0-9-]+):([a-z0-9-]+)`")
 
 
 def ok(msg):
@@ -54,660 +54,119 @@ def bad(msg):
     errors += 1
 
 
-# Plugins shipped outside this marketplace (installed from elsewhere) that
-# skills here may legitimately reference. Only the plugin half is checked for
-# these: their skill directories do not exist in this repo.
-EXTERNAL_PLUGINS = {"frontend-design"}
+def rel(path):
+    return os.path.relpath(path, root)
 
-# 'inherit' is documented by Claude Code as a value of 'model:', meaning "keep
-# the active model". Omitting the field does the same thing, so rejecting it was
-# never load-bearing -- but it rejected something the platform accepts.
-MODEL_TIERS = {"fable", "opus", "sonnet", "haiku", "inherit"}
-MODEL_ID_RE = re.compile(r"^claude-[a-z0-9.-]+$")
-# A skill reference is a backtick span whose ENTIRE content is <plugin>:<skill>;
-# substrings inside longer spans (shell commands, ini sections) must not match.
-REF_RE = re.compile(r"`([a-z0-9-]+:[a-z0-9-]+)`")
-BACKTICK_RE = re.compile(r"`([^`]+)`")
-# A markdown table row: a '|' indented at most three spaces. At four the line
-# is an indented code block, which fence_marker() rightly refuses to treat as a
-# fence — so its content reaches prose_lines() and would otherwise count as
-# real text. Requiring the row keeps such a block out of the roster.
-TABLE_ROW_RE = re.compile(r"^ {0,3}\|")
 
-SHORTCUT_HEADING = "## Shortcut"
-# Every plugin skill must declare its magic words. The shortcut plugin is the
-# dispatcher rather than a dispatch target: nothing dispatches TO it, so it has
-# no magic words of its own and needs no '## Shortcut' section. Its README
-# documents how OTHER skills register words, and the `/shortcut` command that
-# lists them — not trigger words of its own.
-SHORTCUT_EXEMPT = {"shortcut"}
-MAGIC_HEADING_RE = re.compile(r"magic word", re.IGNORECASE)
-# A README may spell a trigger out with placeholders — `respond in <lang>`
-# documents the declared `respond in`. EVERY `<...>` is stripped, wherever in
-# the span it sits, and what is left must equal a declared word exactly — that
-# exactness is what stops `lingua off` passing as `lingua`. Stripping mid-span
-# is safe because the opposite direction independently requires the span to
-# contain the declared word literally, so `compact <the> it` is still rejected.
-PLACEHOLDER_RE = re.compile(r"\s*<[^>]*>")
-# Where a skill declares its trigger words. Before v2.0.0 this was the prose of
-# the '## Shortcut' section, which meant a collision check could not afford to
-# miss a declaration and so read EVERY backtick span there as one — forcing an
-# authoring rule that reserved backticks in that section. The declaration now
-# lives in frontmatter, where it is unambiguous, and the section is checked for
-# agreeing with it rather than parsed as the source of truth.
-SHORTCUT_KEY = "shortcut"
+def read(path):
+    with open(path, encoding="utf-8") as handle:
+        return handle.read()
+
+
+def unfenced(text):
+    """Lines outside code fences, or None when a fence is left open."""
+    out, inside = [], False
+    for line in text.splitlines():
+        if FENCE_RE.match(line):
+            inside = not inside
+        elif not inside:
+            out.append(line)
+    return None if inside else out
+
+
+def shortcut_of(path):
+    """The comma-separated metadata.shortcut words of a SKILL.md."""
+    text = read(path)
+    head = text.split("\n---", 1)[0] if text.startswith("---") else ""
+    m = re.search(r"^\s+shortcut:\s*[\"']?([^\"'\n]*)", head, re.M)
+    return [w.strip() for w in m.group(1).split(",") if w.strip()] if m else []
+
 
 mk = json.load(open(os.path.join(root, ".claude-plugin", "marketplace.json")))
-plugin_names = {p["name"] for p in mk["plugins"]}
-known_plugins = plugin_names | EXTERNAL_PLUGINS
 
-plugin_dirs = sorted(d for d in glob.glob(os.path.join(root, "plugins", "*")) if os.path.isdir(d))
-# Every README path this file reads, derived ONCE. The fence check used to
-# build its own list from plugin_dirs alone, so the top-level README was never
-# checked for balanced fences — an unterminated one there truncated the roster
-# check below in silence, and the validator still exited 0.
-plugin_readmes = [os.path.join(d, "README.md") for d in plugin_dirs]
-top_readme = os.path.join(root, "README.md")
-readme_files = plugin_readmes + [top_readme]
-skill_files = sorted(glob.glob(os.path.join(root, "plugins", "*", "skills", "*", "SKILL.md")))
-
-
-def read_lines(path):
-    with open(path) as handle:
-        return handle.read().splitlines()
-
-
-# The two line classifiers every section-bounding check shares. Getting
-# either wrong moves a section boundary, and a section that ends too early
-# drops declarations silently — the failure mode this file keeps hitting.
-FENCE_RE = re.compile(r"^ {0,3}(```|~~~)")
-HEADING_RE = re.compile(r"^(#{1,6})( |$)")
-
-
-def readme_lead_quote(lines):
-    """The description blockquote a plugin README opens with: H1, blank, quote.
-
-    Strict on position on purpose. This is the description's fourth copy, and it
-    is only comparable if it always sits in the same place -- a loose search for
-    the first blockquote finds whichever paragraph a README happens to quote.
-    Returns the unwrapped text, or None when that shape does not hold.
-    """
-    if len(lines) < 3 or not lines[0].startswith("# "):
-        return None
-    if lines[1].strip() or not lines[2].startswith("> "):
-        return None
-    quoted = []
-    for line in lines[2:]:
-        if not line.startswith("> "):
-            break
-        quoted.append(line[2:].strip())
-    return " ".join(quoted)
-
-
-def fence_marker(line):
-    """The code-fence marker `line` opens or closes with, or None.
-
-    CommonMark allows up to three spaces of indent; at four the line is an
-    indented code block, not a fence, and must not toggle the fence state.
-    """
-    match = FENCE_RE.match(line)
-    return match.group(1) if match else None
-
-
-def heading_level(line):
-    """ATX heading level of `line`, or 0 when it is ordinary text.
-
-    CommonMark needs one to six '#' followed by a space or the line end, so
-    '#1 rule of ...', '#!/usr/bin/env note' and '####### deep note' are
-    paragraphs. Treating them as headings would end a section early.
-    """
-    match = HEADING_RE.match(line)
-    return len(match.group(1)) if match else 0
-
-
-def classify(lines):
-    """One (line, kind, level) triple per line — the file's ONLY fence walk.
-
-    kind is 'fence' for a marker line, 'fenced' for a line a fence hides, and
-    'prose' for everything else. A fence closes only on the marker that opened
-    it, so a ``` inside a ~~~ block does not end it early, and every 'fence'
-    line is therefore exactly one toggle.
-
-    Marker lines are their own kind rather than part of 'fenced' on purpose:
-    BACKTICK_RE reads ```text as the span `text - `, which would misfire the
-    check that rejects a backtick span hidden in a fence.
-
-    level is the ATX heading level and is 0 for everything that is not a prose
-    heading, so a '## ...' inside a fence bounds no section.
-
-    Every section-bounding check reads this one function. Two of them used to
-    keep private fence toggles that had to agree forever, which is where this
-    file's recurring bug class — a boundary that moves in one place only —
-    came from.
-    """
-    triples, fence = [], None
-    for line in lines:
-        marker = fence_marker(line)
-        if marker and fence in (None, marker):
-            fence = marker if fence is None else None
-            triples.append((line, "fence", 0))
-        elif fence is not None:
-            triples.append((line, "fenced", 0))
-        else:
-            triples.append((line, "prose", heading_level(line)))
-    return triples
-
-
-def prose_lines(lines):
-    return [line for line, kind, _ in classify(lines) if kind == "prose"]
-
-
-def unterminated_fence(lines):
-    """True when a fence is still open at EOF.
-
-    prose_lines() silently drops everything after such a fence, which would
-    hide a trigger declaration from the collision check.
-    """
-    return sum(1 for _, kind, _ in classify(lines) if kind == "fence") % 2 == 1
-
-
-def frontmatter(lines):
-    """Lines between the opening '---' pair, or None when there is no closed block."""
-    if not lines or lines[0].strip() != "---":
-        return None
-    for i, line in enumerate(lines[1:], start=1):
-        if line.strip() == "---":
-            return lines[1:i]
-    return None
-
-
-def frontmatter_field(front, key):
-    """Value of a top-level `key:` in a frontmatter block, or None when absent."""
-    prefix = key + ":"
-    for line in front:
-        if line.startswith(prefix):
-            return line[len(prefix):].strip().strip("\"'")
-    return None
-
-
-def frontmatter_metadata(front, key):
-    """Value of `key:` inside the frontmatter's `metadata:` mapping, or None.
-
-    Only two levels deep and only in this repo's shape, which is all the
-    frontmatter here has ever been. A key outside a `metadata:` block is not
-    found, so a misplaced `shortcut:` fails as an absent one rather than
-    quietly working.
-    """
-    inside, prefix = False, "  " + key + ":"
-    for line in front:
-        if not line.startswith(" "):
-            inside = line.startswith("metadata:")
-            continue
-        if inside and line.startswith(prefix):
-            return line[len(prefix):].strip().strip("\"'")
-    return None
-
-
-def declared_words(value):
-    """Split a `metadata.shortcut` string into its words, in declaration order."""
-    seen, out = set(), []
-    for word in value.split(","):
-        word = " ".join(word.split())
-        if word and word not in seen:
-            seen.add(word)
-            out.append(word)
-    return out
-
-
-def section_lines(lines, wanted):
-    """RAW body lines of EVERY heading `wanted` accepts, or None when there is none.
-
-    A section ends only at a heading of the SAME OR HIGHER level, so a nested
-    '### Additional Triggers' stays part of its '## Shortcut' parent. Ending at
-    a heading of ANY level dropped everything below the first subheading and
-    said nothing about it — the silent-truncation failure this file exists to
-    prevent. A non-matching deeper heading is kept in the body for the same
-    reason: a word declared in a subheading is still a declaration.
-
-    Headings inside fenced code blocks bound nothing, but the fences themselves
-    are kept, so a caller can still see — and reject — what they hide. A
-    repeated heading resumes collection rather than being ignored.
-    """
-    body, active, found, level = [], False, False, 0
-    for line, _, line_level in classify(lines):
-        # Only a prose heading carries a level, so a fence marker and anything
-        # it hides fall straight through and can never end a section.
-        if line_level:
-            if wanted(line.strip()):
-                active, found, level = True, True, line_level
-                continue
-            if active and line_level <= level:
-                active = False
-                continue
-        if active:
-            body.append(line)
-    return body if found else None
-
-
-def section_body(lines, wanted):
-    """Prose body lines of a section — its fenced code blocks stripped."""
-    raw = section_lines(lines, wanted)
-    return None if raw is None else prose_lines(raw)
-
-
-def shortcut_section(lines):
-    return section_lines(lines, lambda heading: heading == SHORTCUT_HEADING)
-
-
-def backtick_spans(lines):
-    """Backtick spans in `lines`, with one wrapped across a line break rejoined.
-
-    `compact\nit` is `compact it` once markdown renders it, so it must be
-    collected as that word rather than missed for sitting on two lines.
-    """
-    text = " ".join(line.strip() for line in lines)
-    return [" ".join(span.split()) for span in BACKTICK_RE.findall(text)]
-
-
-print("==> Checking cross-skill references")
-for path in skill_files:
-    rel = os.path.relpath(path, root)
-    prose = "\n".join(prose_lines(read_lines(path)))
-    refs = REF_RE.findall(prose)
-    if not refs:
-        continue
-    problems = []
-    for ref in refs:
-        plugin, skill = ref.split(":")
-        if plugin not in known_plugins:
-            problems.append(f"unresolved reference `{ref}`: no plugin named '{plugin}'")
-        elif plugin in plugin_names and not os.path.isfile(
-            os.path.join(root, "plugins", plugin, "skills", skill, "SKILL.md")
-        ):
-            problems.append(f"unresolved reference `{ref}`: plugin '{plugin}' has no skill '{skill}'")
-    for problem in problems:
-        bad(f"{rel}: {problem}")
-    if not problems:
-        ok(f"{rel}: {len(refs)} reference(s) resolve")
-
-print("==> Checking code fences")
-fenced_files = skill_files + [p for p in readme_files if os.path.isfile(p)]
-before = errors
-for path in fenced_files:
-    if unterminated_fence(read_lines(path)):
-        bad(f"{os.path.relpath(path, root)}: unterminated code fence hides everything after it")
-if errors == before:
-    ok(f"{len(fenced_files)} file(s) have balanced code fences")
-
-print("==> Checking model declarations")
-for path in skill_files:
-    rel = os.path.relpath(path, root)
-    front = frontmatter(read_lines(path))
-    if front is None:
-        bad(f"{rel}: no closed YAML frontmatter block")
-        continue
-    model = frontmatter_field(front, "model") or ""
-    if not model:
-        ok(f"{rel}: no model (inherits session default)")
-    elif model in MODEL_TIERS or MODEL_ID_RE.match(model):
-        ok(f"{rel}: model {model}")
-    else:
-        bad(f"{rel}: invalid model '{model}'")
-
-print("==> Checking magic-word declarations and collisions")
-# plugin -> the trigger words it declares. Three states, kept apart on purpose:
-# a list of words, [] for a plugin that legitimately declares none, and
-# UNCHECKED when a failure below stopped this check from reading its words at
-# all. The README cross-check reads this dict, and reading "no entry" as
-# "declares nothing" silently switched that cross-check off for exactly the
-# plugin whose declaration had just failed here — the safety net disarming
-# itself when its subject breaks.
-UNCHECKED = object()
-triggers = {}
-before = errors
-for path in skill_files:
-    rel = os.path.relpath(path, root)
-    plugin = os.path.relpath(path, os.path.join(root, "plugins")).split(os.sep)[0]
-    front = frontmatter(read_lines(path))
-    raw = None if front is None else frontmatter_metadata(front, SHORTCUT_KEY)
-    words = [] if raw is None else declared_words(raw)
-
-    if not words:
-        if plugin in SHORTCUT_EXEMPT:
-            triggers[plugin] = []
-        else:
-            triggers[plugin] = UNCHECKED
-            bad(
-                f"{rel}: declares no trigger word in 'metadata.shortcut'"
-                " (a comma-separated string; a skill that never dispatches belongs"
-                " in SHORTCUT_EXEMPT in scripts/validate)"
-            )
-        continue
-    triggers[plugin] = words
-
-    # The section is documentation now, not the declaration, so this runs one
-    # way only: every declared word must appear there in backticks, and a
-    # backtick span that is not a trigger word is simply prose. That relaxation
-    # is the whole point of moving the declaration into frontmatter.
-    section = shortcut_section(read_lines(path))
-    if section is None:
-        bad(f"{rel}: declares trigger words but has no '## Shortcut' section spelling them out")
-        continue
-    spans = backtick_spans(prose_lines(section))
-    missing = [w for w in words if w not in spans]
-    if missing:
-        bad(
-            f"{rel}: '## Shortcut' does not spell out "
-            + ", ".join(f"`{w}`" for w in missing)
-            + " (declared in metadata.shortcut; a reader of the section would never see it)"
-        )
-
-# The collision check is `triggers` read the other way round, so it is derived
-# from it rather than accumulated beside it. Sorting the claimants also keeps
-# the message independent of the order the skill files happened to be walked.
-claims = {}  # trigger word -> the plugins claiming it
-for plugin, words in triggers.items():
-    if words is UNCHECKED:
-        continue
-    for word in words:
-        claims.setdefault(word, set()).add(plugin)
-for word in sorted(claims):
-    owners = sorted(claims[word])
-    if len(owners) > 1:
-        bad(f"magic word `{word}` claimed by both {' and '.join(owners)}")
-if errors == before:
-    declaring = [p for p, words in triggers.items() if words]
-    ok(f"{len(claims)} trigger word(s) across {len(declaring)} plugin(s), no collisions")
-
-print("==> Checking README sections")
-for directory, readme in zip(plugin_dirs, plugin_readmes):
-    name = os.path.basename(directory)
-    rel = os.path.relpath(readme, root)
-    if not os.path.isfile(readme):
-        bad(f"{rel}: missing")
-        continue
-    headings = [l for l in prose_lines(read_lines(readme)) if heading_level(l)]
-    problems = []
-    if not any(heading_level(h) == 1 for h in headings):
-        problems.append("no H1 title")
-    for section in ("Installation", "License"):
-        if not any(h.strip() == f"## {section}" for h in headings):
-            problems.append(f"no '## {section}' section")
-    declared = triggers.get(name, [])
-    if declared is UNCHECKED:
-        problems.append(
-            "its SKILL.md trigger declaration could not be read (see the failure above),"
-            " so what this README must document is unknown and was NOT cross-checked"
-        )
-    elif declared:
-        documented = section_body(read_lines(readme), MAGIC_HEADING_RE.search)
-        if documented is None:
-            problems.append("declares trigger words but has no 'Magic Word' heading")
-        else:
-            spans = backtick_spans(documented)
-            for word in declared:
-                if not any(word in span for span in spans):
-                    problems.append(
-                        f"magic word `{word}` is declared in SKILL.md but undocumented here"
-                        " (under a Magic Words heading, backticks are reserved for trigger words)"
-                    )
-            for span in spans:
-                if PLACEHOLDER_RE.sub("", span).strip() not in declared:
-                    problems.append(
-                        f"documents `{span}`, which the skill does not declare"
-                        " (under a Magic Words heading, backticks are reserved for trigger words)"
-                    )
-    for problem in problems:
-        bad(f"{rel}: {problem}")
-    if not problems:
-        ok(f"{rel}: required sections present")
-
-print("==> Checking plugin descriptions agree across their sources")
+print("==> Checking plugin descriptions and the README roster")
+readme_prose = "\n".join(unfenced(read(os.path.join(root, "README.md"))) or [])
+skills = {}  # name -> SKILL.md path
 for entry in mk["plugins"]:
     name = entry["name"]
     src = entry["source"][2:] if entry["source"].startswith("./") else entry["source"]
-    # The one sentence a plugin repeats verbatim in four places, so the one
-    # piece of prose that is mechanically comparable. Bodies are not: they say
-    # the same thing at different lengths on purpose.
-    #
-    # The fourth is the README blockquote, and it was unchecked while this
-    # comment said three. It is line-wrapped, so an edit that rewrites the
-    # other three by exact string match leaves it behind and every check still
-    # passes -- which is how nineteen of them went stale in one commit.
-    sources = {".claude-plugin/marketplace.json": entry.get("description")}
-    pj_path = os.path.join(root, src, ".claude-plugin", "plugin.json")
-    if os.path.isfile(pj_path):
-        sources[os.path.relpath(pj_path, root)] = json.load(open(pj_path)).get("description")
-    sk_path = os.path.join(root, src, "skills", name, "SKILL.md")
-    if os.path.isfile(sk_path):
-        front = frontmatter(read_lines(sk_path)) or []
-        sources[os.path.relpath(sk_path, root)] = frontmatter_field(front, "description")
-    rd_path = os.path.join(root, src, "README.md")
-    if os.path.isfile(rd_path):
-        rel_rd = os.path.relpath(rd_path, root)
-        quoted = readme_lead_quote(read_lines(rd_path))
-        if quoted is None:
-            bad(
-                f"{rel_rd}: must open with its H1, a blank line, then the"
-                " description as a `> ` blockquote -- that position is what makes"
-                " the fourth copy comparable"
-            )
-        else:
-            sources[rel_rd] = quoted
-    if len(set(sources.values())) == 1:
-        ok(f"{name}: description agrees across {len(sources)} source(s)")
+    pj = json.load(open(os.path.join(root, src, ".claude-plugin", "plugin.json")))
+    if pj.get("description") == entry.get("description"):
+        ok(f"{name}: description agrees")
     else:
-        detail = "; ".join(f"{where} says {value!r}" for where, value in sorted(sources.items()))
-        bad(f"{name}: description differs between its sources ({detail})")
+        bad(f"{name}: description differs between marketplace.json and plugin.json")
+    if re.search(rf"\b{re.escape(name)}\b", readme_prose):
+        ok(f"{name}: named in README.md")
+    else:
+        bad(f"{name}: registered in marketplace.json but never named in README.md prose")
+    for path in sorted(glob.glob(os.path.join(root, src, "skills", "*", "SKILL.md"))):
+        skill = os.path.basename(os.path.dirname(path))
+        if skill in skills:
+            bad(f"{skill}: shipped by two plugins")
+        skills[skill] = path
 
-print("==> Checking the top-level README lists every plugin")
-if not os.path.isfile(top_readme):
-    bad("README.md: missing")
-else:
-    # The roster is the one thing duplicated between marketplace.json and the
-    # top-level README, so it is the one thing mechanically comparable. The
-    # descriptions are prose and stay a matter of reading.
-    #
-    # Membership, not mere presence: a plugin counts as listed only when a
-    # ROSTER ROW names it — a table row, outside any code block, carrying the
-    # name as a whole backtick span. Searching the README text for the name
-    # instead let one passing mention stand in for a deleted row: strip every
-    # `tenth-man` row from the tables, leave the words
-    # `plugins/tenth-man/README.md` in a sentence, and the roster read as
-    # complete.
-    rows = [l for l in prose_lines(read_lines(top_readme)) if TABLE_ROW_RE.match(l)]
-    listed = {span for row in rows for span in backtick_spans([row])}
-    missing = [n for n in sorted(plugin_names) if n not in listed]
-    for name in missing:
-        bad(f"README.md: plugin '{name}' is registered in marketplace.json but not listed here")
-    if not missing:
-        ok(f"README.md lists all {len(plugin_names)} registered plugin(s)")
+print("==> Checking magic words are unique")
+owner = {}
+for skill, path in skills.items():
+    for word in shortcut_of(path):
+        if word in owner:
+            bad(f"magic word '{word}' is claimed by both {owner[word]} and {skill}")
+        else:
+            owner[word] = skill
+            ok(f"{skill}: '{word}'")
 
-# A verdict block is the one machine-facing thing these skills exchange: Ellis
-# hands Smith a PASS/WARN/FAIL, Page hands it a READY/CONCERN/BLOCK. Until now
-# the marker naming that block existed only in prose in both the skill that
-# emits it and the skill that routes on it, so a rename on one side was a
-# silent failure on the other -- the caller reads no verdict and proceeds as
-# though there were no findings, which is the worst of the possible defaults.
-#
-# 'metadata.verdict' makes the emitting side declarable, and this check closes
-# it from both ends: what is declared must be emitted, what is emitted must be
-# declared, and what is routed on must exist somewhere.
-VERDICT_KEY = "verdict"
-# A marker alone on its own line inside a fenced block: the skill is showing
-# the block's shape. The same token inside prose backticks is a mention -- the
-# caller naming a verdict it acts on -- and mentions are checked separately,
-# further down, against what the emitters declare.
-VERDICT_MARKER_RE = re.compile(r"^__[A-Z][A-Z0-9_]*__$")
-VERDICT_FIELD_RE = re.compile(r"^[A-Za-z][A-Za-z ]*:\s*\S")
-
-print("==> Checking verdict contracts")
-declared_verdicts = {}
-for path in skill_files:
-    shown = os.path.relpath(path, root)
-    lines = read_lines(path)
-    front = frontmatter(lines) or []
-    declared = frontmatter_metadata(front, VERDICT_KEY)
-
-    # Walk the body's fenced blocks, collecting markers that open one.
-    emitted, fence, block = [], None, []
+print("==> Checking the README skill tables")
+for readme in READMES:
+    path = os.path.join(root, readme)
+    if not os.path.isfile(path):
+        bad(f"{readme} is missing")
+        continue
+    lines = unfenced(read(path))
+    if lines is None:
+        bad(f"{readme}: unterminated code fence")
+        continue
+    listed, in_skills = {}, False
     for line in lines:
-        marker = fence_marker(line)
-        if fence is None:
-            if marker:
-                fence, block = marker, []
+        if line.startswith("## "):
+            in_skills = line.strip() == "## Skills"
+        if not in_skills or not line.startswith("|"):
             continue
-        if marker == fence:
-            # Blank edges are formatting, not content: a blank first line must
-            # not turn a shown block into a missing one, or a whitespace edit
-            # reads as a renamed contract.
-            trimmed = block[:]
-            while trimmed and not trimmed[0].strip():
-                trimmed.pop(0)
-            while trimmed and not trimmed[-1].strip():
-                trimmed.pop()
-            if trimmed and VERDICT_MARKER_RE.match(trimmed[0].strip()):
-                emitted.append((trimmed[0].strip(), trimmed))
-            fence = None
-            continue
-        block.append(line)
-
-    problems = []
-    if declared and not VERDICT_MARKER_RE.match(declared):
-        problems.append(
-            f"metadata.verdict is {declared!r}, which is not a __MARKER__ name"
-        )
-    for marker, block in emitted:
-        if marker != declared:
-            problems.append(
-                f"emits a {marker} block but metadata.verdict is"
-                f" {declared or 'absent'}; a caller routing on it has nothing to read"
-            )
-            continue
-        if block[-1].strip() != marker:
-            problems.append(f"the {marker} block does not close with {marker}")
-        if not any(VERDICT_FIELD_RE.match(l.strip()) for l in block[1:-1]):
-            problems.append(
-                f"the {marker} block carries no 'Field: value' line, so it"
-                " states a contract with no content"
-            )
-    if declared and not emitted:
-        problems.append(
-            f"declares metadata.verdict {declared} but its body never shows"
-            f" the block, so nothing says what {declared} contains"
-        )
-    # Recorded from the declaration alone. The routing half asks whether some
-    # skill claims this marker, which stays true while that skill's own block
-    # is being fixed -- otherwise one malformed block fails every caller too,
-    # and the real error is buried among its consequences.
-    if declared:
-        declared_verdicts[declared] = os.path.basename(os.path.dirname(path))
-    for problem in problems:
-        bad(f"{shown}: {problem}")
-    if not problems and declared:
-        ok(f"{shown}: emits and declares {declared}")
-
-# The routing half. A skill that acts on someone else's verdict names it in
-# prose; that name must belong to a skill that actually emits one.
-for path in skill_files:
-    shown = os.path.relpath(path, root)
-    lines = read_lines(path)
-    own = frontmatter_metadata(frontmatter(lines) or [], VERDICT_KEY)
-    mentioned = set()
-    for line in prose_lines(lines):
-        for span in backtick_spans([line]):
-            if VERDICT_MARKER_RE.match(span):
-                mentioned.add(span)
-    for marker in sorted(mentioned - {own}):
-        if marker not in declared_verdicts:
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        m = re.fullmatch(r"`([a-z0-9-]+)`", cells[0])
+        if m:
+            listed[m.group(1)] = TICK_RE.findall(cells[-1])
+    for skill, path in skills.items():
+        if skill not in listed:
+            bad(f"{readme}: skill '{skill}' is missing from the '## Skills' tables")
+        elif sorted(listed[skill]) != sorted(shortcut_of(path)):
             bad(
-                f"{shown}: routes on {marker}, which no skill in this"
-                " marketplace declares in metadata.verdict"
+                f"{readme}: '{skill}' lists magic words {listed[skill]},"
+                f" but its SKILL.md declares {shortcut_of(path)}"
             )
         else:
-            ok(f"{shown}: routes on {marker}, emitted by {declared_verdicts[marker]}")
+            ok(f"{readme}: {skill}")
+    # A warning while v3 is being built skill by skill; a failure once it ships.
+    unshipped = [s for s in listed if s not in skills]
+    if unshipped:
+        print(f"  {YELLOW}WARN{RESET} {readme}: lists {len(unshipped)} skill(s) no plugin ships yet: {', '.join(unshipped)}")
 
-
-# Built by the magic-word census above: plugin -> the words it claims.
-magic_words = {plugin: sorted(w) for plugin, w in triggers.items()}
-
-print("==> Checking trigger-eval coverage")
-for directory in plugin_dirs:
-    name = os.path.basename(directory)
-    path = os.path.join(directory, "evals", "trigger-queries.json")
-    shown = os.path.relpath(path, root)
-    if not os.path.isfile(path):
-        bad(
-            f"{name}: no evals/trigger-queries.json."
-            " A description is the only part of a skill always in context, so it"
-            " is the part that decides whether the skill is ever reached;"
-            " an untested one is an untested router"
-        )
-        continue
-    try:
-        doc = json.loads(open(path).read())
-    except ValueError as exc:
-        bad(f"{shown}: not valid JSON ({exc})")
-        continue
-    problems = []
-    if doc.get("skill") != name:
-        problems.append(f"names skill {doc.get('skill')!r}, but sits under plugins/{name}")
-    queries = doc.get("queries")
-    if not isinstance(queries, list) or not queries:
-        problems.append("has no 'queries' list")
-        queries = []
-    texts = [q.get("query") for q in queries if isinstance(q, dict)]
-    if len(texts) != len(queries):
-        problems.append("has a query that is not an object")
-    elif len(set(texts)) != len(texts):
-        problems.append("repeats a query, which scores the same prompt twice")
-    labels = {q.get("should_trigger") for q in queries if isinstance(q, dict)}
-    if labels - {True, False}:
-        problems.append("has a query whose 'should_trigger' is not a boolean")
-    elif labels != {True, False}:
-        problems.append("labels every query the same way, so it cannot separate a hit from a miss")
-    splits = {q.get("split") for q in queries if isinstance(q, dict)}
-    if not {"train", "validation"} <= splits:
-        problems.append(
-            "does not split train/validation, so a description tuned on these"
-            " queries has nothing left to be judged against"
-        )
-    # Not pinned to exactly half. The negatives are what the set is for -- a
-    # description that fires on everything passes a positives-only set -- but
-    # requiring a precise ratio would make this a formatting rule rather than a
-    # coverage one.
-    negatives = sum(1 for q in queries if isinstance(q, dict) and q.get("should_trigger") is False)
-    if queries and negatives * 3 < len(queries):
-        problems.append(
-            f"has {negatives} near-miss negative(s) among {len(queries)} queries;"
-            " a set that is nearly all positives cannot catch an over-eager description"
-        )
-    # A negative that carries another plugin's magic word is the point of the
-    # set -- that is the near-miss. A POSITIVE that carries one is not a test
-    # at all: both skills are supposed to fire, so whichever wins, the run
-    # proves nothing about this description.
-    for query in queries:
-        if not isinstance(query, dict) or query.get("should_trigger") is not True:
+print("==> Checking skill references and code fences")
+plugins = {e["name"] for e in mk["plugins"]}
+for skill, path in skills.items():
+    for doc in [path] + sorted(glob.glob(os.path.join(os.path.dirname(path), "references", "*.md"))):
+        lines = unfenced(read(doc))
+        if lines is None:
+            bad(f"{rel(doc)}: unterminated code fence")
             continue
-        text = (query.get("query") or "").lower()
-        for owner, owned in sorted(magic_words.items()):
-            if owner == name:
-                continue
-            for word in owned:
-                if re.search(r"\b" + re.escape(word) + r"\b", text):
-                    problems.append(
-                        f"the positive {query['query']!r} contains {word!r},"
-                        f" a magic word of {owner}, so both skills are meant to"
-                        " fire and the run decides nothing"
-                    )
-    for problem in problems:
-        bad(f"{shown}: {problem}")
-    if not problems:
-        ok(f"{name}: {len(queries)} labelled trigger queries")
+        for plugin, target in REF_RE.findall("\n".join(lines)):
+            if plugin in KNOWN_EXTERNAL or (plugin in plugins and target in skills):
+                ok(f"{rel(doc)}: {plugin}:{target}")
+            else:
+                bad(f"{rel(doc)}: reference '{plugin}:{target}' resolves to no skill")
 
-
+print("")
 if errors:
     print(f"==> {errors} error(s) found")
     sys.exit(1)
-print("==> All semantic checks passed")
+print(f"==> All semantic checks passed ({len(skills)} skills)")
 PY

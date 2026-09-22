@@ -1,33 +1,26 @@
 #!/usr/bin/env bash
-# Negative fixtures for scripts/validate: mutate a temp copy of the repo to
-# break each semantic check in turn and assert the validator fails. A check
-# that cannot fail proves nothing, so any un-failable check fails this harness.
+# Negative fixtures for scripts/validate and scripts/check-skill-spec: break a
+# temp copy of the repo one way at a time and assert the check fails with the
+# message that names that break. A check that cannot fail proves nothing.
 #
-# Every fixture asserts the SPECIFIC message the broken check emits — a
-# validator that exits non-zero for an unrelated reason must not count as proof.
-#
-# Fixture bodies are literal markdown, so their backticks and $ are data, not
-# shell syntax. That holds for every single-quoted string below.
+# Fixture bodies are literal markdown, so their backticks are data.
 # shellcheck disable=SC2016
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-# Every fixture mutates a shipped plugin; with none shipped there is nothing to break.
-if [ ! -d "$REPO_ROOT/plugins" ]; then
-	echo "==> No plugins to mutate -- skipping validator fixtures"
+# Every fixture mutates a shipped skill; with none shipped there is nothing to break.
+if ! compgen -G "$REPO_ROOT/plugins/*/skills/*/SKILL.md" >/dev/null; then
+	echo "==> No skills to mutate -- skipping validator fixtures"
 	exit 0
 fi
 
 TMP_DIR="$(mktemp -d)"
-
-# The fixtures assert on the validator's exact per-item lines, the magic-word
-# census among them, and those lines are quiet by default. This harness is the
-# one caller that wants every one of them, so it always runs it verbose.
-export WISDOM_VERBOSE=1
 trap 'rm -rf "$TMP_DIR"' EXIT
-
 ERRORS=0
+
+SKILLS="plugins/wisdom/skills"
+TARGET="$SKILLS/shortcut/SKILL.md"
 
 pass() { printf "  \033[32mPASS\033[0m %s\n" "$1"; }
 fail() {
@@ -35,744 +28,90 @@ fail() {
 	ERRORS=$((ERRORS + 1))
 }
 
-# Everything the validator reads, copied once. Fixtures mutate $TMP_DIR/repo
-# and fresh_copy restores it from here; re-copying the whole subtree per
-# fixture cost 1.9s of the harness's 4.6s runtime for no gain.
-mkdir -p "$TMP_DIR/pristine" "$TMP_DIR/repo"
-cp -R "$REPO_ROOT/.claude-plugin" "$REPO_ROOT/plugins" "$TMP_DIR/pristine/"
-cp "$REPO_ROOT/README.md" "$TMP_DIR/pristine/"
-cp -R "$TMP_DIR/pristine/." "$TMP_DIR/repo/"
-
-# Paths the current fixture has changed. mutate() and replace() record their
-# own target; a fixture that writes to the copy directly records its own with
-# dirty. Forgetting one would leak into every later fixture, which is what the
-# check at the bottom of this file exists to catch.
-DIRTY=()
-
-dirty() { DIRTY+=("$@"); }
-
-# Undo the current fixture, restoring only what it touched. A path absent from
-# the pristine copy (plugins/ghost) is simply removed.
 fresh_copy() {
-	local path
-	for path in ${DIRTY[@]+"${DIRTY[@]}"}; do
-		rm -rf "${TMP_DIR:?}/repo/$path"
-		if [ -e "$TMP_DIR/pristine/$path" ]; then
-			cp -R "$TMP_DIR/pristine/$path" "$TMP_DIR/repo/$path"
-		fi
-	done
-	DIRTY=()
+	rm -rf "$TMP_DIR/repo"
+	mkdir -p "$TMP_DIR/repo"
+	cp -R "$REPO_ROOT/.claude-plugin" "$REPO_ROOT/plugins" "$REPO_ROOT/README.md" \
+		"$REPO_ROOT/README.zh-TW.md" "$TMP_DIR/repo/"
 }
 
-# expect_pass <label> — the empty substring matches any non-empty file, and
-# the validator always prints something.
-expect_pass() { expect_pass_with "" "$1"; }
+# ghost <name> [shortcut] -- a minimal extra skill in the copy.
+ghost() {
+	mkdir -p "$TMP_DIR/repo/$SKILLS/$1"
+	{
+		printf -- '---\nname: %s\ndescription: Does one thing for the fixtures.\n' "$1"
+		[ -n "${2:-}" ] && printf 'metadata:\n  shortcut: "%s"\n' "$2"
+		printf -- '---\n\n# Ghost\n'
+	} >"$TMP_DIR/repo/$SKILLS/$1/SKILL.md"
+}
 
-# expect_pass_with <expected-message-substring> <label>
-expect_pass_with() {
-	if ! bash "$REPO_ROOT/scripts/validate" "$TMP_DIR/repo" >"$TMP_DIR/out" 2>&1; then
-		fail "$2: validator failed on a copy it should accept"
-		sed 's/^/      /' "$TMP_DIR/out"
-	elif grep -qF "$1" "$TMP_DIR/out"; then
-		pass "$2"
+# expect <script> <pass|substring> <label>
+expect() {
+	local out="$TMP_DIR/out"
+	if bash "$REPO_ROOT/scripts/$1" "$TMP_DIR/repo" >"$out" 2>&1; then
+		if [ "$2" = pass ]; then pass "$3"; else fail "$3: $1 passed but should have failed"; fi
+	elif [ "$2" = pass ]; then
+		fail "$3: $1 failed on a copy it should accept"
+		sed 's/^/      /' "$out"
+	elif grep -qF "$2" "$out"; then
+		pass "$3"
 	else
-		fail "$2: validator passed, but without \"$1\""
-		sed 's/^/      /' "$TMP_DIR/out"
+		fail "$3: $1 failed, but without \"$2\""
+		sed 's/^/      /' "$out"
 	fi
+	fresh_copy
 }
 
-# expect_fail <expected-message-substring> <label>
-expect_fail() {
-	if bash "$REPO_ROOT/scripts/validate" "$TMP_DIR/repo" >"$TMP_DIR/out" 2>&1; then
-		fail "$2: validator passed but should have failed"
-	elif grep -qF "$1" "$TMP_DIR/out"; then
-		pass "$2"
-	else
-		fail "$2: validator failed, but not with \"$1\""
-		sed 's/^/      /' "$TMP_DIR/out"
-	fi
-}
-
-# The same two expectations against scripts/check-skill-spec. It reads only
-# plugins/*/skills/*/SKILL.md, so it reuses the copy the fixtures above mutate.
-
-# expect_spec_fail <expected-message-substring> <label>
-expect_spec_fail() {
-	if bash "$REPO_ROOT/scripts/check-skill-spec" "$TMP_DIR/repo" >"$TMP_DIR/out" 2>&1; then
-		fail "$2: spec check passed but should have failed"
-	elif grep -qF "$1" "$TMP_DIR/out"; then
-		pass "$2"
-	else
-		fail "$2: spec check failed, but not with \"$1\""
-		sed 's/^/      /' "$TMP_DIR/out"
-	fi
-}
-
-# expect_spec_warn <expected-message-substring> <label> — the check must still
-# pass, but must have said something on the way.
-expect_spec_warn() {
-	if ! bash "$REPO_ROOT/scripts/check-skill-spec" "$TMP_DIR/repo" >"$TMP_DIR/out" 2>&1; then
-		fail "$2: spec check failed on a copy it should only warn about"
-		sed 's/^/      /' "$TMP_DIR/out"
-	elif grep -qF "$1" "$TMP_DIR/out"; then
-		pass "$2"
-	else
-		fail "$2: spec check passed, but without warning \"$1\""
-		sed 's/^/      /' "$TMP_DIR/out"
-	fi
-}
-
-expect_spec_pass() {
-	if bash "$REPO_ROOT/scripts/check-skill-spec" "$TMP_DIR/repo" >"$TMP_DIR/out" 2>&1; then
-		pass "$1"
-	else
-		fail "$1: spec check failed on a copy it should accept"
-		sed 's/^/      /' "$TMP_DIR/out"
-	fi
-}
-
-# In-place sed that works with both BSD and GNU sed.
-mutate() {
-	local expr="$1" file="$2"
-	dirty "$file"
-	sed -i.bak "$expr" "$TMP_DIR/repo/$file"
-	rm "$TMP_DIR/repo/$file.bak"
-}
-
-# Replace an exact multi-line block; sed cannot do this portably.
-replace() {
-	dirty "$1"
-	python3 - "$TMP_DIR/repo/$1" "$2" "$3" <<'PY'
-import sys
-
-path, old, new = sys.argv[1], sys.argv[2], sys.argv[3]
-with open(path) as handle:
-    text = handle.read()
-assert old in text, f"fixture target not found in {path}: {old!r}"
-with open(path, "w") as handle:
-    handle.write(text.replace(old, new))
-PY
-}
-
-# The sentence tenth-man declares its trigger words with. Most fixtures work by
-# swapping it for something else, so it is written out once, here.
-TRIGGER_SENTENCE='This skill is triggered when the user'"'"'s prompt contains `challenge this` or `tenth man`.'
-
-# retrigger <new-body> — swap that sentence in tenth-man's SKILL.md.
-retrigger() {
-	replace plugins/tenth-man/skills/tenth-man/SKILL.md "$TRIGGER_SENTENCE" "$1"
-}
-
-echo "==> Baseline: unmutated copy"
-fresh_copy
-expect_pass "clean copy passes"
-# The magic-word census, read off the clean copy rather than hardcoded. The
-# fixtures below assert it to prove a section was not truncated; pinning the
-# numbers instead made adding one plugin break three fixtures that were never
-# about the count — and the hook that runs this file is gated on ^scripts/, so
-# a content-only commit would not even surface the breakage.
-CENSUS="$(grep -o '[0-9]* trigger word(s) across [0-9]* plugin(s)' "$TMP_DIR/out" || true)"
-if [ -n "$CENSUS" ]; then
-	pass "census reported: $CENSUS"
-else
-	fail "baseline: the validator printed no magic-word census at all"
-fi
-
-echo "==> Fixture: unresolvable cross-skill reference"
-fresh_copy
-dirty plugins/compactor/skills/compactor/SKILL.md
-echo 'See `nope:nope` for details.' >>"$TMP_DIR/repo/plugins/compactor/skills/compactor/SKILL.md"
-expect_fail "no plugin named 'nope'" "unresolved \`nope:nope\` reference is caught"
-
-echo "==> Fixture: reference to a skill the plugin does not have"
-fresh_copy
-dirty plugins/compactor/skills/compactor/SKILL.md
-echo 'See `agent-hale:agent-typo` for details.' >>"$TMP_DIR/repo/plugins/compactor/skills/compactor/SKILL.md"
-expect_fail "has no skill 'agent-typo'" "\`agent-hale:agent-typo\` (real plugin, unknown skill) is caught"
-
-echo "==> Fixture: <plugin>:<skill>-shaped token inside a fenced code block"
-fresh_copy
-dirty plugins/compactor/skills/compactor/SKILL.md
-printf '\n```sh\ndocker run `docker-run:latest`\n```\n' \
-	>>"$TMP_DIR/repo/plugins/compactor/skills/compactor/SKILL.md"
-expect_pass "fenced \`docker-run:latest\` is not mistaken for a skill reference"
-
-echo "==> Fixture: invalid model value"
-fresh_copy
-mutate 's/^model: haiku$/model: gpt-4/' plugins/lingua/skills/lingua/SKILL.md
-expect_fail "invalid model 'gpt-4'" "invalid 'model: gpt-4' is caught"
-
-echo "==> Fixture: SKILL.md with no YAML frontmatter"
-fresh_copy
-mutate '1,/^---$/d;1,/^---$/d' plugins/compactor/skills/compactor/SKILL.md
-expect_fail "no closed YAML frontmatter block" "missing frontmatter is caught"
-
-# ---------------------------------------------------------------------------
-# Magic words. The declaration lives in `metadata.shortcut`; the '## Shortcut'
-# section spells it out for human readers and is checked one way only, which is
-# what lets a backtick there mean nothing in particular.
-# ---------------------------------------------------------------------------
-
-# A literal single quote, for splicing into the single-quoted fixture bodies
-# below. Same trick as TRIGGER_SENTENCE above, named so the bodies stay legible.
-Q="'"
-
-# spell_out <plugin> <old-word> <new-word> — keep the '## Shortcut' section in
-# step with a changed declaration, so a fixture about one thing does not also
-# trip the spell-out check.
-spell_out() {
-	mutate "s/\`$2\`/\`$3\`/" "plugins/$1/skills/$1/SKILL.md"
-}
-
-# declare_words <plugin> <comma-separated> — rewrite metadata.shortcut.
-declare_words() {
-	mutate "s/^  shortcut: .*/  shortcut: \"$2\"/" "plugins/$1/skills/$1/SKILL.md"
-}
-
-echo "==> Fixture: magic word claimed by two plugins"
-fresh_copy
-declare_words tenth-man "compact it, tenth man"
-spell_out tenth-man "challenge this" "compact it"
-expect_fail "claimed by both compactor and tenth-man" \
-	"duplicated magic word \`compact it\` is caught"
-
-echo "==> Fixture: a plugin skill declaring no magic word"
-fresh_copy
-mutate '/^  shortcut: /d' plugins/compactor/skills/compactor/SKILL.md
-expect_fail "declares no trigger word in 'metadata.shortcut'" \
-	"an absent declaration is a failure, not a silent pass"
-
-echo "==> Fixture: an empty declaration"
-fresh_copy
-declare_words compactor ""
-expect_fail "declares no trigger word in 'metadata.shortcut'" \
-	"an empty declaration is caught"
-
-echo "==> Fixture: a declaration of nothing but separators"
-fresh_copy
-declare_words compactor " , , "
-expect_fail "declares no trigger word in 'metadata.shortcut'" \
-	"a declaration that splits into no words is caught"
-
-echo "==> Fixture: shortcut declared outside the metadata block"
-fresh_copy
-mutate '/^  shortcut: /d' plugins/compactor/skills/compactor/SKILL.md
-mutate 's/^license: MIT$/license: MIT\nshortcut: "compact it"/' plugins/compactor/skills/compactor/SKILL.md
-expect_fail "declares no trigger word in 'metadata.shortcut'" \
-	"a top-level shortcut key does not quietly stand in for the metadata one"
-
-echo "==> Fixture: a declared word the Shortcut section never spells out"
-fresh_copy
-declare_words compactor "compact it, squash it"
-expect_fail "does not spell out \`squash it\`" \
-	"a word only frontmatter knows about is caught, since no reader would see it"
-
-echo "==> Fixture: a declaring skill with no '## Shortcut' section at all"
-fresh_copy
-mutate 's/^## Shortcut$/## Triggers/' plugins/compactor/skills/compactor/SKILL.md
-expect_fail "has no '## Shortcut' section spelling them out" \
-	"renaming the heading is caught, not silently ignored"
-
-echo "==> Fixture: the spelled-out word hidden in a fenced block"
-fresh_copy
-replace plugins/compactor/skills/compactor/SKILL.md \
-	'This skill is triggered when the user'"$Q"'s prompt contains `compact it`.' \
-	'This skill is triggered as follows:
-
-```text
-`compact it`
-```'
-expect_fail "does not spell out \`compact it\`" \
-	"a fence still hides text from a reader skimming the section"
-
-echo "==> Fixture: the spelled-out word under a '###' subheading"
-fresh_copy
-replace plugins/compactor/skills/compactor/SKILL.md \
-	'This skill is triggered when the user'"$Q"'s prompt contains `compact it`.' \
-	'### Triggers
-
-This skill is triggered when the user'"$Q"'s prompt contains `compact it`.'
-expect_pass_with "$CENSUS" \
-	"a '###' subsection does not end its '## Shortcut' parent"
-
-echo "==> Fixture: the spelled-out word after a same-level heading"
-fresh_copy
-replace plugins/compactor/skills/compactor/SKILL.md \
-	'This skill is triggered when the user'"$Q"'s prompt contains `compact it`.' \
-	'## Elsewhere
-
-This skill is triggered when the user'"$Q"'s prompt contains `compact it`.'
-expect_fail "does not spell out \`compact it\`" \
-	"a same-level heading still ends the Shortcut section"
-
-echo "==> Fixture: a backtick span split across a line break"
-fresh_copy
-replace plugins/compactor/skills/compactor/SKILL.md \
-	'prompt contains `compact it`.' \
-	'prompt contains `compact
-it`.'
-expect_pass_with "$CENSUS" \
-	"a backtick span split across a line break is rejoined"
-
-echo "==> Fixture: an extra backtick span beside the declared word"
-fresh_copy
-replace plugins/compactor/skills/compactor/SKILL.md \
-	'This skill is triggered when the user'"$Q"'s prompt contains `compact it`.' \
-	'This skill is triggered when the user'"$Q"'s prompt contains `compact it`.
-
-Reads nothing but the previous result; see `scripts/validate` and `compactor:compactor`.'
-expect_pass_with "$CENSUS" \
-	"a backtick span that is not a trigger word is ordinary prose now"
-
-echo "==> Fixture: README missing Installation section"
-fresh_copy
-mutate 's/^## Installation$/## Setup/' plugins/compactor/README.md
-expect_fail "no '## Installation' section" "missing '## Installation' section is caught"
-
-echo "==> Fixture: README missing License section"
-fresh_copy
-mutate 's/^## License$/## Licence/' plugins/compactor/README.md
-expect_fail "no '## License' section" "missing '## License' section is caught"
-
-echo "==> Fixture: README with no H1 title"
-fresh_copy
-mutate 's/^# Compactor Plugin$/## Compactor Plugin/' plugins/compactor/README.md
-expect_fail "no H1 title" "missing H1 title is caught"
-
-echo "==> Fixture: README of a trigger-declaring plugin with no Magic Word heading"
-fresh_copy
-mutate 's/^### Magic Words$/### Triggers/' plugins/compactor/README.md
-expect_fail "no 'Magic Word' heading" "undocumented magic words are caught"
-
-echo "==> Fixture: README documenting a magic word the skill never declares"
-fresh_copy
-replace plugins/lingua/README.md \
-	'| `reply in <lang>`   | Same as above                                 |' \
-	'| `reply in <lang>`   | Same as above                                 |
-| `lingua off`        | Suspend for the current session               |'
-expect_fail 'documents `lingua off`, which the skill does not declare' \
-	"a README magic word with no SKILL.md declaration is caught"
-
-echo "==> Fixture: SKILL.md trigger word missing from the README"
-fresh_copy
-# Declared and spelled out, so the only thing left wrong is the README.
-declare_words compactor "compact it, squash it"
-mutate 's/`compact it`./`compact it` or `squash it`./' plugins/compactor/skills/compactor/SKILL.md
-expect_fail 'magic word `squash it` is declared in SKILL.md but undocumented here' \
-	"a declared trigger word absent from the README is caught"
-
-echo "==> Fixture: README cross-check is not disarmed by an unreadable declaration"
-fresh_copy
-# Deleting metadata.shortcut stops the check above from learning compactor's
-# words. The README cross-check must say so rather than read "no words
-# collected" as "this plugin declares none" and print a green tick over the
-# bogus row added here.
-mutate '/^  shortcut: /d' plugins/compactor/skills/compactor/SKILL.md
-replace plugins/compactor/README.md '- `compact it` → Compact the previous result' '- `compact it` → Compact the previous result
-- `totally-bogus-word` → nothing at all'
-expect_fail "could not be read (see the failure above)" "a plugin whose trigger declaration failed is not silently skipped by the README check"
-
-echo "==> Fixture: README spelling a trigger word with a placeholder"
-fresh_copy
-mutate 's/`compact it` →/`compact it <target>` →/' plugins/compactor/README.md
-expect_pass "\`compact it <target>\` documents the declared \`compact it\`"
-
-echo "==> Fixture: unterminated code fence in a README"
-fresh_copy
-dirty plugins/compactor/README.md
-printf '\n```text\nunclosed\n' >>"$TMP_DIR/repo/plugins/compactor/README.md"
-expect_fail "plugins/compactor/README.md: unterminated code fence" \
-	"an unterminated fence in a README is an error, not a quiet truncation"
-
-echo "==> Fixture: unterminated code fence in the top-level README"
 fresh_copy
-dirty README.md
-printf '\n```text\nunclosed\n' >>"$TMP_DIR/repo/README.md"
-expect_fail "README.md: unterminated code fence" \
-	"an unterminated fence in the TOP-LEVEL README is an error, not a quiet truncation"
+echo "==> scripts/validate"
+expect validate pass "the repo as it stands is accepted"
 
-echo "==> Fixture: plugin directory absent from marketplace.json"
-fresh_copy
-dirty plugins/ghost
-mkdir -p "$TMP_DIR/repo/plugins/ghost"
-echo '# Ghost Plugin' >"$TMP_DIR/repo/plugins/ghost/README.md"
-expect_fail "plugins/ghost/README.md: no '## Installation' section" \
-	"README of an unregistered plugin directory is still checked"
-
-echo "==> Fixture: SKILL.md description drifting from the manifests"
-fresh_copy
-# Matched by shape, not by content: pinning the wording made this fixture
-# break every time the description was edited, for a reason that was never
-# about drift.
-mutate 's/^description: .*/description: Something else entirely./' \
-	plugins/compactor/skills/compactor/SKILL.md
-expect_fail "compactor: description differs between its sources" \
-	"a SKILL.md description that drifts from plugin.json and marketplace.json is caught"
-
-echo "==> Fixture: plugin.json description drifting from the other two"
-fresh_copy
-mutate 's/"description": ".*"/"description": "Something else entirely."/' \
-	plugins/compactor/.claude-plugin/plugin.json
-expect_fail "compactor: description differs between its sources" \
-	"a plugin.json description that drifts from SKILL.md and marketplace.json is caught"
-
-echo "==> Fixture: README blockquote drifting from the manifests"
-fresh_copy
-# The fourth copy. It is line-wrapped, so an edit that rewrites the other three
-# by exact string match leaves this one behind -- which is exactly what happened
-# to nineteen of them while this check only read three sources.
-mutate '3s/.*/> Something else entirely./' plugins/compactor/README.md
-expect_fail "compactor: description differs between its sources" \
-	"a plugin README blockquote that drifts from the three manifests is caught"
-
-echo "==> Fixture: README description blockquote in the wrong place"
-fresh_copy
-# Position is the whole point: a loose search for the first blockquote would
-# compare whichever paragraph a README happens to quote.
-mutate '2s/.*/Some prose before the quote./' plugins/compactor/README.md
-expect_fail "plugins/compactor/README.md: must open with its H1, a blank line, then the" \
-	"a description blockquote not sitting directly under the H1 is caught"
-
-echo "==> Fixture: plugin missing from the top-level README"
-fresh_copy
-mutate 's/compactor//g' README.md
-expect_fail "plugin 'compactor' is registered in marketplace.json but not listed here" \
-	"a plugin the top-level README does not list is caught"
-
-echo "==> Fixture: roster row deleted, a prose mention left behind"
-fresh_copy
-# Drop every table row naming the plugin. `tenth-man` still appears in the
-# Model Tiers prose and in the fenced workflow diagram, so a substring search
-# over the README would still find it.
-mutate '/^|.*tenth-man/d' README.md
-expect_fail "plugin 'tenth-man' is registered in marketplace.json but not listed here" \
-	"a prose mention does not substitute for a deleted roster row"
-
-echo "==> Fixture: roster row hidden in a four-space-indented code block"
-fresh_copy
-mutate '/^|.*`compactor`/d' README.md
-printf '\n    | `compactor` | Re-renders the previous result |\n' >>"$TMP_DIR/repo/README.md"
-expect_fail "plugin 'compactor' is registered in marketplace.json but not listed here" \
-	"an indented code block is not a roster row"
-
-echo "==> Fixture: top-level README naming a plugin only inside a code fence"
-fresh_copy
-mutate 's/compactor//g' README.md
-printf '\n```text\ncompactor\n```\n' >>"$TMP_DIR/repo/README.md"
-expect_fail "plugin 'compactor' is registered in marketplace.json but not listed here" \
-	"a plugin named only inside a code fence does not count as listed"
-
-# ---------------------------------------------------------------------------
-# scripts/check-skill-spec — one fixture per rule. A rule that cannot be made
-# to fail is a rule that proves nothing, which is the whole point of this file.
-# compactor is the target throughout: it is the smallest skill, so a mutation
-# there is the cheapest one that still exercises the reader.
-# ---------------------------------------------------------------------------
-SPEC_SKILL=plugins/compactor/skills/compactor/SKILL.md
-
-echo "==> Baseline: unmutated copy against the standard"
-fresh_copy
-expect_spec_pass "clean copy follows the standard"
-
-echo "==> Fixture: a frontmatter key outside both allowed sets"
-fresh_copy
-mutate 's/^license: MIT$/license: MIT\nargument-hint: "[x]"/' "$SPEC_SKILL"
-expect_spec_fail "unknown frontmatter key 'argument-hint'" \
-	"a Claude Code field this repo has not adopted is rejected"
-
-echo "==> Fixture: a name outside the standard's grammar"
-fresh_copy
-mutate 's/^name: compactor$/name: Compactor/' "$SPEC_SKILL"
-expect_spec_fail "must be lowercase letters, numbers and single" \
-	"an uppercase name is rejected"
-
-echo "==> Fixture: a reserved word in the name"
-fresh_copy
-mutate 's/^name: compactor$/name: claude-compactor/' "$SPEC_SKILL"
-expect_spec_fail "contains the reserved word 'claude'" \
-	"a reserved word in the name is rejected"
-
-echo "==> Fixture: a name that does not match its directory"
-fresh_copy
-mutate 's/^name: compactor$/name: compact-or/' "$SPEC_SKILL"
-expect_spec_fail "does not match its directory 'compactor'" \
-	"a name drifting from its directory is rejected"
-
-echo "==> Fixture: a description written in the first person"
-fresh_copy
-mutate 's/^description: .*/description: I can help you compact things./' "$SPEC_SKILL"
-expect_spec_fail "description must be third person" \
-	"a first-person description is rejected"
-
-echo "==> Fixture: an XML tag in the description"
-fresh_copy
-mutate 's|^description: .*|description: <b>Compacts</b> results.|' "$SPEC_SKILL"
-expect_spec_fail "description contains an XML tag" \
-	"a tag in the description is rejected"
-
-echo "==> Fixture: a description past this repo's length limit"
-fresh_copy
-dirty "$SPEC_SKILL"
-python3 - "$TMP_DIR/repo/$SPEC_SKILL" <<'INNER'
-import re
-import sys
-
-path = sys.argv[1]
-with open(path) as handle:
-    text = handle.read()
-with open(path, "w") as handle:
-    handle.write(re.sub(r"(?m)^description: .*$", "description: " + "Compacts results. " * 30, text))
-INNER
-# Matched by shape, not by value: pinning the number made this fixture fail the
-# moment the threshold moved, for a reason that was never about the check.
-expect_spec_fail "characters, over this repo's" \
-	"a description written only for triggering, unreadable as catalogue copy, is rejected"
-
-echo "==> Fixture: allowed-tools written as a string"
-fresh_copy
-replace "$SPEC_SKILL" 'allowed-tools:
-  - Read
-  - Glob
-  - Grep' 'allowed-tools: Read, Glob, Grep'
-expect_spec_fail "allowed-tools must be a YAML list, not a string" \
-	"a string, which a spec-strict reader would split on spaces into nonsense, is rejected"
-
-echo "==> Fixture: a metadata key with no value"
-fresh_copy
-mutate 's/^  version: .*/  version:/' "$SPEC_SKILL"
-expect_spec_fail "metadata.version must hold a string value" \
-	"a valueless metadata key is rejected"
-
-echo "==> Fixture: compatibility past its limit"
-fresh_copy
-dirty "$SPEC_SKILL"
-python3 - "$TMP_DIR/repo/$SPEC_SKILL" <<'INNER'
-import sys
-
-path = sys.argv[1]
-with open(path) as handle:
-    text = handle.read()
-with open(path, "w") as handle:
-    handle.write(text.replace("license: MIT", "license: MIT\ncompatibility: " + "x" * 501, 1))
-INNER
-expect_spec_fail "over the 500 limit" "an over-long compatibility string is rejected"
-
-echo "==> Fixture: a body past the progressive-disclosure budget"
-fresh_copy
-dirty "$SPEC_SKILL"
-for _ in $(seq 1 520); do echo "filler" >>"$TMP_DIR/repo/$SPEC_SKILL"; done
-expect_spec_fail "over the 500 budget" "a body that should have been split is rejected"
-
-echo "==> Fixture: a body approaching, but not over, the budget"
-fresh_copy
-dirty "$SPEC_SKILL"
-for _ in $(seq 1 380); do echo "filler" >>"$TMP_DIR/repo/$SPEC_SKILL"; done
-# Matched by shape, not by value: a fixture that pins the threshold fails when
-# the threshold moves, for a reason that was never about the check.
-expect_spec_warn "line where a body is worth re-reading" \
-	"a body nearing the ceiling warns without failing"
-
-echo "==> Fixture: a reference to a file that is not bundled"
-fresh_copy
-dirty "$SPEC_SKILL"
-printf '\nSee [the guide](references/gone.md).\n' >>"$TMP_DIR/repo/$SPEC_SKILL"
-expect_spec_fail "does not resolve to a bundled file" "a dangling reference is rejected"
-
-echo "==> Fixture: a Windows-style path"
-fresh_copy
-dirty "$SPEC_SKILL"
-printf '\nSee [the script](scripts\\helper.py).\n' >>"$TMP_DIR/repo/$SPEC_SKILL"
-expect_spec_fail "use forward slashes everywhere" "a backslash path is rejected"
-
-echo "==> Fixture: a reference chain two levels deep"
-fresh_copy
-dirty "$SPEC_SKILL" plugins/compactor/skills/compactor/references
-mkdir -p "$TMP_DIR/repo/plugins/compactor/skills/compactor/references"
-printf '# A\n\nSee [b](b.md).\n' >"$TMP_DIR/repo/plugins/compactor/skills/compactor/references/a.md"
-printf '# B\n' >"$TMP_DIR/repo/plugins/compactor/skills/compactor/references/b.md"
-printf '\nSee [a](references/a.md).\n' >>"$TMP_DIR/repo/$SPEC_SKILL"
-expect_spec_fail "Keep every reference" "a second level of indirection is rejected"
-
-echo "==> Fixture: a long reference file with no contents list"
-fresh_copy
-dirty "$SPEC_SKILL" plugins/compactor/skills/compactor/references
-mkdir -p "$TMP_DIR/repo/plugins/compactor/skills/compactor/references"
-{
-	echo "# Long"
-	for _ in $(seq 1 120); do echo "line"; done
-} >"$TMP_DIR/repo/plugins/compactor/skills/compactor/references/long.md"
-printf '\nSee [long](references/long.md).\n' >>"$TMP_DIR/repo/$SPEC_SKILL"
-expect_spec_fail "needs a" "a long reference file with no contents list is rejected"
+sed -i.bak 's/"description": "/"description": "Changed. /' "$TMP_DIR/repo/plugins/wisdom/.claude-plugin/plugin.json"
+expect validate "description differs" "a plugin.json description drifting from marketplace.json is caught"
 
-echo "==> Fixture: frontmatter with no closing marker"
-fresh_copy
-dirty "$SPEC_SKILL"
-python3 - "$TMP_DIR/repo/$SPEC_SKILL" <<'INNER'
-import sys
-
-path = sys.argv[1]
-with open(path) as handle:
-    text = handle.read()
-with open(path, "w") as handle:
-    handle.write(text.replace("---", "", 1))
-INNER
-expect_spec_fail "closing '---' is absent" "unterminated frontmatter is rejected"
-
-echo "==> Fixture: an emitted verdict block that nothing declares"
-fresh_copy
-mutate '/^  verdict: /d' "plugins/agent-ellis/skills/agent-ellis/SKILL.md"
-expect_fail "but metadata.verdict is absent" \
-	"a verdict block with no declaration is rejected"
-
-echo "==> Fixture: a declared verdict the body never shows"
-fresh_copy
-dirty "plugins/agent-ellis/skills/agent-ellis/SKILL.md"
-python3 - "$TMP_DIR/repo/plugins/agent-ellis/skills/agent-ellis/SKILL.md" <<'INNER'
-import re
-import sys
-
-path = sys.argv[1]
-with open(path) as handle:
-    text = handle.read()
-# Drop the fenced block whole -- fence markers included, so the fence check
-# downstream still sees a balanced file.
-text = re.sub(
-	r"```txt\n__REVIEW_VERDICT__\n.*?```\n",
-	"",
-	text,
-	count=1,
-	flags=re.S,
-)
-with open(path, "w") as handle:
-    handle.write(text)
-INNER
-expect_fail "its body never shows the block" \
-	"a declaration with no block is rejected"
-
-echo "==> Fixture: a verdict block with no fields in it"
-fresh_copy
-python3 - "$TMP_DIR/repo/plugins/agent-ellis/skills/agent-ellis/SKILL.md" <<'INNER'
-import re
-import sys
+sed -i.bak 's/wisdom/sagesse/g' "$TMP_DIR/repo/README.md"
+expect validate "never named in README.md prose" "a plugin missing from the README prose is caught"
 
-path = sys.argv[1]
-with open(path) as handle:
-    text = handle.read()
-# Keep the fence and both markers, drop the 'Field: value' lines between them.
-text = re.sub(
-	r"(__REVIEW_VERDICT__\n).*?(__REVIEW_VERDICT__\n)",
-	r"\1\2",
-	text,
-	count=1,
-	flags=re.S,
-)
-with open(path, "w") as handle:
-    handle.write(text)
-INNER
-dirty "plugins/agent-ellis/skills/agent-ellis/SKILL.md"
-expect_fail "carries no 'Field: value' line" "an empty verdict block is rejected"
+ghost ghost-a "boo"
+ghost ghost-b "boo"
+expect validate "magic word 'boo' is claimed by both" "a magic word claimed twice is caught"
 
-echo "==> Fixture: a verdict block renamed on one side only"
-fresh_copy
-dirty "plugins/agent-ellis/skills/agent-ellis/SKILL.md"
-printf '\n```txt\n__EXTRA_VERDICT__\nStatus: OK\n__EXTRA_VERDICT__\n```\n' \
-	>>"$TMP_DIR/repo/plugins/agent-ellis/skills/agent-ellis/SKILL.md"
-expect_fail "but metadata.verdict is __REVIEW_VERDICT__" \
-	"a block whose marker is not the declared one is rejected"
-
-echo "==> Fixture: a blank line inside a verdict block is formatting, not a rename"
-fresh_copy
-dirty "plugins/agent-ellis/skills/agent-ellis/SKILL.md"
-python3 - "$TMP_DIR/repo/plugins/agent-ellis/skills/agent-ellis/SKILL.md" <<'INNER'
-import sys
+ghost ghost
+expect validate "skill 'ghost' is missing from the '## Skills' tables" "a skill missing from a README is caught"
 
-path = sys.argv[1]
-with open(path) as handle:
-    text = handle.read()
-with open(path, "w") as handle:
-    handle.write(text.replace("```txt\n__REVIEW_VERDICT__\n", "```txt\n\n__REVIEW_VERDICT__\n", 1))
-INNER
-expect_pass_with "emits and declares __REVIEW_VERDICT__" \
-	"a blank first line does not read as a missing block"
+sed -i.bak 's/^description: .*/&\nmetadata:\n  shortcut: "dispatch it"/' "$TMP_DIR/repo/$TARGET"
+expect validate "but its SKILL.md declares" "a magic word the README does not list is caught"
 
-echo "==> Fixture: routing on a verdict no skill emits"
-fresh_copy
-mutate 's/`__OPS_VERDICT__`/`__OPERATIONS_VERDICT__`/' \
-	"plugins/agent-smith/skills/agent-smith/SKILL.md"
-expect_fail "which no skill in this marketplace declares" \
-	"a caller routing on an unknown verdict is rejected"
+echo 'Hand off to `wisdom:nope`.' >>"$TMP_DIR/repo/$TARGET"
+expect validate "reference 'wisdom:nope' resolves to no skill" "an unresolved skill reference is caught"
 
-echo "==> Fixture: a plugin with no trigger evals"
-fresh_copy
-dirty "plugins/compactor/evals"
-rm -rf "$TMP_DIR/repo/plugins/compactor/evals"
-expect_fail "no evals/trigger-queries.json" "a plugin without trigger evals is rejected"
+printf '\n```text\nopen\n' >>"$TMP_DIR/repo/$TARGET"
+expect validate "unterminated code fence" "an unclosed fence in a skill is caught"
 
-echo "==> Fixture: trigger evals with every query labelled the same way"
-fresh_copy
-dirty "plugins/compactor/evals"
-python3 - "$TMP_DIR/repo/plugins/compactor/evals/trigger-queries.json" <<'INNER'
-import json
-import sys
+printf '\n```text\nopen\n' >>"$TMP_DIR/repo/README.zh-TW.md"
+expect validate "README.zh-TW.md: unterminated code fence" "an unclosed fence in a README is caught"
 
-path = sys.argv[1]
-with open(path) as handle:
-    doc = json.load(handle)
-for query in doc["queries"]:
-    query["should_trigger"] = True
-with open(path, "w") as handle:
-    json.dump(doc, handle, indent=2)
-INNER
-expect_fail "labels every query the same way" "a positives-only eval set is rejected"
+echo "==> scripts/check-skill-spec"
+expect check-skill-spec pass "the repo as it stands is accepted"
 
-echo "==> Fixture: trigger evals that never split off a validation set"
-fresh_copy
-dirty "plugins/compactor/evals"
-python3 - "$TMP_DIR/repo/plugins/compactor/evals/trigger-queries.json" <<'INNER'
-import json
-import sys
+sed -i.bak 's/^license: MIT$/license: MIT\nversion: 1/' "$TMP_DIR/repo/$TARGET"
+expect check-skill-spec "unknown frontmatter key 'version'" "an unknown frontmatter key is caught"
 
-path = sys.argv[1]
-with open(path) as handle:
-    doc = json.load(handle)
-for query in doc["queries"]:
-    query["split"] = "train"
-with open(path, "w") as handle:
-    json.dump(doc, handle, indent=2)
-INNER
-expect_fail "does not split train/validation" "an eval set with no validation half is rejected"
+sed -i.bak "s/^description: .*/description: $(printf 'x%.0s' $(seq 1 161))/" "$TMP_DIR/repo/$TARGET"
+expect check-skill-spec "over this repo's 160 limit" "a description over 160 characters is caught"
 
-echo "==> Fixture: a positive query carrying another plugin's magic word"
-fresh_copy
-dirty "plugins/agent-twain/evals"
-mutate 's/"our readme still documents the old flags"/"the readme is out of date, fix it"/' \
-	"plugins/agent-twain/evals/trigger-queries.json"
-expect_fail "a magic word of agent-smith" \
-	"an ambiguous positive query is rejected"
+sed -i.bak 's/^description: .*/description: I dispatch skills./' "$TMP_DIR/repo/$TARGET"
+expect check-skill-spec "must be third person" "a first-person description is caught"
 
-echo "==> Fixture: trigger evals naming a skill that is not their own"
-fresh_copy
-dirty "plugins/compactor/evals"
-mutate 's/"skill": "compactor"/"skill": "spec-writer"/' \
-	"plugins/compactor/evals/trigger-queries.json"
-expect_fail "but sits under plugins/compactor" "an eval file naming the wrong skill is rejected"
+sed -i.bak 's/^name: shortcut$/name: shortcuts/' "$TMP_DIR/repo/$TARGET"
+expect check-skill-spec "does not match its directory" "a name that differs from its directory is caught"
 
-# fresh_copy restores only what a fixture declared, so an undeclared mutation
-# would silently poison every fixture after it. Restore, then prove the work
-# copy is the pristine one again.
-echo "==> Checking every fixture declared what it mutated"
-fresh_copy
-if diff -r "$TMP_DIR/pristine" "$TMP_DIR/repo" >"$TMP_DIR/drift" 2>&1; then
-	pass "no fixture leaked a mutation into the ones after it"
-else
-	fail "a fixture changed a path it never passed to dirty, so it leaked into later fixtures"
-	sed 's/^/      /' "$TMP_DIR/drift"
-fi
+seq 1 101 >>"$TMP_DIR/repo/$TARGET"
+expect check-skill-spec "over its 100-line budget" "a body over its line budget is caught"
 
 echo ""
-if [ "$ERRORS" -gt 0 ]; then
-	echo "==> $ERRORS error(s) found"
+if [ "$ERRORS" -ne 0 ]; then
+	echo "==> $ERRORS fixture(s) FAILED"
 	exit 1
-else
-	echo "==> All fixtures behaved as expected"
 fi
+echo "==> All fixtures passed"

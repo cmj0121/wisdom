@@ -34,7 +34,7 @@ import sys
 
 root = sys.argv[1]
 
-GREEN, RED, YELLOW, RESET = "\033[32m", "\033[31m", "\033[33m", "\033[0m"
+GREEN, RED, RESET = "\033[32m", "\033[31m", "\033[0m"
 # Quiet by default; WISDOM_VERBOSE=1 restores the per-item PASS lines. Same
 # reasoning as scripts/test and scripts/validate.
 WISDOM_VERBOSE = os.environ.get("WISDOM_VERBOSE", "") not in ("", "0")
@@ -50,12 +50,6 @@ def bad(msg):
     global errors
     print(f"  {RED}FAIL{RESET} {msg}")
     errors += 1
-
-
-def warn(msg):
-    # Always printed, unlike the PASS lines: a warning nobody reads is not a
-    # warning. It does not affect the exit status.
-    print(f"  {YELLOW}WARN{RESET} {msg}")
 
 
 # ---------------------------------------------------------------- the policy
@@ -91,48 +85,16 @@ NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 NAME_MAX = 64
 # The standard's hard ceiling.
 DESCRIPTION_MAX = 1024
-# This repo's own ceiling. A description is also catalogue copy -- it shows in
-# `/plugin` listings and in both READMEs -- so one written purely for trigger
-# accuracy becomes unreadable long before it reaches the standard's limit.
-#
-# 400 was never reachable: the longest here was 356 and is now 284. Lowered to
-# 320 rather than to 300, which would have left 16 characters of headroom above
-# a value that is not going anywhere -- briefing sits at 284 because a shorter
-# version measurably lost two trigger queries to compactor. A threshold that
-# fails the repo on the day it lands gets raised back rather than obeyed.
-DESCRIPTION_PREFERRED_MAX = 320
+# This repo's own ceiling. A description is loaded in every session, whether
+# or not its skill fires, so v3 holds it to one short sentence.
+DESCRIPTION_PREFERRED_MAX = 160
 COMPATIBILITY_MAX = 500
-# https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices
-BODY_MAX_LINES = 500
-# Splitting a skill is worth doing as it approaches the ceiling, not once it is
-# over: a body that must be read in full every run saves nothing by moving to a
-# second file, so the useful moment to split is while there is still a choice
-# about which sections to move. This warns; it does not fail.
-#
-# 350 never fired. The longest body in the marketplace, agent-smith, sat at 346
-# -- four lines under the line meant to draw attention to it, and read in full
-# on every dispatch. The threshold was measuring nothing.
-#
-# What the warning asks for is a judgement, not a split. Two axes decide it.
-# Form: a list or table survives a move into references/ because each row is
-# looked up on its own, while prose carries the conditions and tie-breaks that
-# join them and is shortened in place instead. Condition: loading is
-# just-in-time, so an unconditional procedure is read anyway one fetch later,
-# and only a procedure some runs skip is genuinely saved by moving.
-#
-# 250 was raised to 300 once agent-smith had been through that judgement.
-# Everything there that qualified on both axes moved -- Phase 5, which Partner
-# mode skips outright -- and the body came out at 292. The remaining distance
-# to 250 was a rewrite of the phase text, and rewriting instructions a
-# coordinator executes, to satisfy a number that was itself picked to make the
-# warning fire rather than measured, trades a real risk for a false precision.
-# The observed ecosystem median body is ~2,000 tokens with a range to ~8,000;
-# agent-smith at ~3,600 is above median, not an outlier.
-#
-# This leaves eight lines of headroom, which is deliberate for a warning rather
-# than a failure: the next substantial addition to the largest body here should
-# prompt the judgement again.
-BODY_WARN_LINES = 300
+# A body is read in full each time its skill runs. v3 budgets it well under
+# the standard's 500: one purpose fits in 100 lines, and the coordinator,
+# which names every other skill, gets 150. What only some runs need moves to
+# references/, where it is read only when the body says so.
+BODY_MAX_LINES = 100
+BODY_MAX_LINES_FOR = {"smith": 150}
 # A reference file past this length gets previewed rather than read whole, so
 # it needs a contents list for the preview to still show its full scope.
 TOC_REQUIRED_OVER = 100
@@ -260,7 +222,7 @@ def check_description(label, fields):
         bad(
             f"{label}: description is {len(desc)} characters, over this repo's"
             f" {DESCRIPTION_PREFERRED_MAX} limit -- it is catalogue copy as well as"
-            " a trigger, and stops being readable well before the standard's 1024"
+            " loaded in every session, so it stays one short sentence"
         )
     if XML_TAG_RE.search(desc):
         bad(f"{label}: description contains an XML tag, which the standard forbids")
@@ -324,18 +286,11 @@ def check_shapes(label, fields):
 
 
 def check_body(label, path, body):
-    if len(body) > BODY_MAX_LINES:
+    limit = BODY_MAX_LINES_FOR.get(os.path.basename(os.path.dirname(path)), BODY_MAX_LINES)
+    if len(body) > limit:
         bad(
-            f"{label}: body is {len(body)} lines, over the {BODY_MAX_LINES} budget"
-            " -- move detail into references/ and link to it"
-        )
-    elif len(body) > BODY_WARN_LINES:
-        warn(
-            f"{label}: body is {len(body)} lines, over the {BODY_WARN_LINES} line"
-            f" where a body is worth re-reading (the {BODY_MAX_LINES} budget is"
-            " the ceiling, not the target) -- move what a run merely consults"
-            " into references/, and shorten what it executes rather than"
-            " moving that too"
+            f"{label}: body is {len(body)} lines, over its {limit}-line budget"
+            " -- shorten it, or move what only some runs need into references/"
         )
 
     skill_dir = os.path.dirname(path)
