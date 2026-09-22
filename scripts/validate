@@ -5,7 +5,8 @@
 #   2. A skill's magic words ('metadata.shortcut', comma-separated) are unique
 #      across every skill the marketplace ships.
 #   3. Both top-level READMEs list exactly the shipped skills in their
-#      '## Skills' tables, each with exactly the magic words it declares.
+#      '## Skills' tables, each with exactly the magic words it declares, and
+#      list no skill that is not shipped.
 #   4. A '<plugin>:<skill>' reference to a plugin this marketplace ships
 #      resolves to one of its skills.
 #   5. Code fences in skills and READMEs are balanced.
@@ -30,7 +31,7 @@ import sys
 
 root = sys.argv[1]
 
-GREEN, RED, YELLOW, RESET = "\033[32m", "\033[31m", "\033[33m", "\033[0m"
+GREEN, RED, RESET = "\033[32m", "\033[31m", "\033[0m"
 WISDOM_VERBOSE = os.environ.get("WISDOM_VERBOSE", "") not in ("", "0")
 errors = 0
 
@@ -143,10 +144,9 @@ for readme in READMES:
             )
         else:
             ok(f"{readme}: {skill}")
-    # A warning while v3 is being built skill by skill; a failure once it ships.
-    unshipped = [s for s in listed if s not in skills]
-    if unshipped:
-        print(f"  {YELLOW}WARN{RESET} {readme}: lists {len(unshipped)} skill(s) no plugin ships yet: {', '.join(unshipped)}")
+    for skill in listed:
+        if skill not in skills:
+            bad(f"{readme}: lists '{skill}', which no plugin ships")
 
 print("==> Checking skill references and code fences")
 plugins = {e["name"] for e in mk["plugins"]}

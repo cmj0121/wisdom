@@ -79,6 +79,9 @@ expect validate "magic word 'boo' is claimed by both" "a magic word claimed twic
 ghost ghost
 expect validate "skill 'ghost' is missing from the '## Skills' tables" "a skill missing from a README is caught"
 
+rm -rf "$TMP_DIR/repo/$SKILLS/compact"
+expect validate "lists 'compact', which no plugin ships" "a README row for an unshipped skill is caught"
+
 sed -i.bak 's/^description: .*/&\nmetadata:\n  shortcut: "dispatch it"/' "$TMP_DIR/repo/$TARGET"
 expect validate "but its SKILL.md declares" "a magic word the README does not list is caught"
 
