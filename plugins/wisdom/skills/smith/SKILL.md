@@ -22,8 +22,11 @@ is to call it with the right input, read its result, and decide what happens nex
 - **No missing input is filled in.** A skill that returns no result, or a review with no
   `VERDICT` line, is a gap: retry it once, then stop and tell the user. A result Smith
   writes for a silent skill is indistinguishable from a real one.
-- **Language.** Talk to the user in their `lingua` language if one is set; keep prompts to
-  skills and subagents in English — they are read by a model, and they add up.
+- **Language.** Before step 1, take `respond_in` from the `lingua` preference in context,
+  else from `~/.claude/projects/<project-path>/memory/lingua.md`; with neither, use the
+  user's language. Write both checkpoints and the report in it, whatever the skills
+  returned. Keep prompts to skills and subagents in English — a model reads them, and
+  they add up.
 - **Never tag, release or push** unless the user asks in this conversation.
 
 ## 1. Plan
