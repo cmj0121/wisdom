@@ -68,6 +68,7 @@ other skills in turn. Every skill also works on its own.
 | `audit`     | Audit dependencies for known vulnerabilities and staleness | `audit deps` |
 | `ops`       | Review operational readiness before a release              | `ops review` |
 | `challenge` | Argue against a plan and name its blind spots              | `tenth man`  |
+| `lsp`       | Say whether the repo needs a language server, and which    | `need lsp`   |
 
 ### Output
 
