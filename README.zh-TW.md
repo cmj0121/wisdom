@@ -65,6 +65,7 @@ v3 從零重寫，圍繞三條規則。
 | `audit`     | 稽核相依套件的已知漏洞與過期版本 | `audit deps` |
 | `ops`       | 發佈前審查維運就緒程度           | `ops review` |
 | `challenge` | 反對一項計畫，點出其盲點         | `tenth man`  |
+| `lsp`       | 判斷專案是否需要 language server | `need lsp`   |
 
 ### 輸出
 
