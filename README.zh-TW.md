@@ -20,7 +20,7 @@ v3 從零重寫，圍繞三條規則。
 1. **一個 skill，一個目的。** 每個 skill 只做一件事，並以該件事命名。需要第二項工作時，
    呼叫負責那件事的 skill，而不是自己長出新職責。
 2. **需要時才用 shortcut。** 每個 skill 都能以 `/wisdom:<name>` 執行。常用到會順口說出的
-   skill 另外宣告 magic word——例如說 `smith`，dispatcher 就會啟動主導 skill。magic word 在
+   skill 另外宣告 magic word——例如說 `smith`，prompt hook 就會啟動主導 skill。magic word 在
    整個 plugin 內不得重複。
 3. **更少的 token。** `description` 每個 session 都會載入，所以只寫一句短句；body 在每次
    執行時載入，同樣保持精簡；只有部分執行才需要的內容放在 `references/`，需要時才讀。不設
@@ -69,13 +69,13 @@ v3 從零重寫，圍繞三條規則。
 
 ### 輸出
 
-| Skill      | 目的                                         | Magic word       |
-| ---------- | -------------------------------------------- | ---------------- |
-| `diagram`  | 為已定案的結構畫 ASCII 圖                    | `draw a diagram` |
-| `compact`  | 把上一個回答重新整理成精簡表格               | `compact it`     |
-| `brief`    | 讓回答保持簡短，一次只討論一個主題           | `brief me`       |
-| `lingua`   | 以你選定的語言回答，並依專案記住             | `reply in`       |
-| `shortcut` | 依 prompt 中出現的 magic word 派送對應 skill | —                |
+| Skill      | 目的                                            | Magic word       |
+| ---------- | ----------------------------------------------- | ---------------- |
+| `diagram`  | 為已定案的結構畫 ASCII 圖                       | `draw a diagram` |
+| `compact`  | 把上一個回答重新整理成精簡表格                  | `compact it`     |
+| `brief`    | 讓回答保持簡短，一次只討論一個主題              | `brief me`       |
+| `lingua`   | 以你選定的語言回答，並依專案記住                | `reply in`       |
+| `shortcut` | 列出所有 magic word，或手動派送 hook 漏掉的那個 | —                |
 
 ## smith 如何運作
 
@@ -108,6 +108,7 @@ Skill 是帶有 YAML frontmatter 的 Markdown，遵循
 ```text
 plugins/wisdom/
 ├── .claude-plugin/plugin.json
+├── hooks/               # hooks.json 與它執行的腳本
 └── skills/<name>/
     ├── SKILL.md
     └── references/      # optional

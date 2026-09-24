@@ -3,13 +3,16 @@
 #   1. Every marketplace.json plugin version matches its plugin.json version.
 #   2. The marketplace.json top-level version never lags the latest git tag
 #      (equal = released, ahead = next release in prep, behind = error).
+#   3. A plugin whose files changed since the latest tag carries a new version:
+#      an installed copy is re-fetched only when the version moves, so a change
+#      without a bump never reaches anyone who already has the plugin.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 LATEST_TAG="$(git -C "$REPO_ROOT" tag --sort=-v:refname --list 'v*' 2>/dev/null | head -n1 || true)"
 
 python3 - "$REPO_ROOT" "$LATEST_TAG" <<'PY'
-import json, os, re, sys
+import json, os, re, subprocess, sys
 
 root = sys.argv[1]
 latest_tag = sys.argv[2] if len(sys.argv) > 2 else ""
@@ -78,6 +81,35 @@ else:
         ok(f"marketplace version {mk_version} ahead of latest tag {latest_tag} (release pending)")
     else:
         bad(f"marketplace version {mk_version} is behind latest tag {latest_tag}")
+
+print("==> Checking plugins changed since the latest tag were bumped")
+if not latest_tag:
+    print("  skip: no 'v*' tags found")
+else:
+    for p in mk["plugins"]:
+        name = p["name"]
+        src = p["source"][2:] if p["source"].startswith("./") else p["source"]
+        changed = subprocess.run(
+            ["git", "-C", root, "diff", "--quiet", latest_tag, "--", src],
+        ).returncode != 0
+        if not changed:
+            ok(f"{name}: unchanged since {latest_tag}")
+            continue
+        pj_path = os.path.join(root, src, ".claude-plugin", "plugin.json")
+        try:
+            now = json.load(open(pj_path)).get("version", "")
+            shown = subprocess.run(
+                ["git", "-C", root, "show", f"{latest_tag}:{src}/.claude-plugin/plugin.json"],
+                capture_output=True, text=True, check=True,
+            ).stdout
+            then = json.loads(shown).get("version", "")
+        except (OSError, ValueError, subprocess.CalledProcessError):
+            ok(f"{name}: no plugin.json at {latest_tag} to compare with")
+            continue
+        if semver(now) > semver(then):
+            ok(f"{name}: changed since {latest_tag}, bumped {then} -> {now}")
+        else:
+            bad(f"{name}: files changed since {latest_tag} but the version is still {now}")
 
 if errors:
     print(f"==> {errors} version problem(s) found")
