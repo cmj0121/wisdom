@@ -71,9 +71,10 @@ are already merged. For each batch:
    A finding that says the design is wrong goes to `wisdom:design`, not to `code`. After two
    failed fix rounds on the same unit, stop and bring it to the user.
 
-4. **Merge** each passing worktree branch into the feature branch, one at a time; resolve a
-   conflict with a `wisdom:code` subagent, then review the result again.
-5. **Commit** each unit with `wisdom:commit`, and mark it `done` in `PLAN.md`.
+4. **Commit** each passing unit with `wisdom:commit` — inside its worktree when it has one,
+   since an uncommitted branch cannot be merged — and mark it `done` in `PLAN.md`.
+5. **Merge** each committed worktree branch into the feature branch, one at a time; resolve
+   a conflict with a `wisdom:code` subagent, then review and commit the result again.
 
 ## 4. Check
 
