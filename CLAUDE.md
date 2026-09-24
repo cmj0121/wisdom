@@ -46,12 +46,12 @@ scripts/                            # the checks
 pre-commit runs the same four on every commit, plus `scripts/validate-fixtures` when
 `scripts/` changes; CI runs all five on every push.
 
-| Script                       | Fails when                                                       |
-| ---------------------------- | ---------------------------------------------------------------- |
-| `scripts/test`               | a required file is missing or a manifest name disagrees          |
-| `scripts/check-version-sync` | plugin versions disagree, or the release lags the latest tag     |
-| `scripts/validate`           | a magic word repeats, a README table drifts, a reference dangles |
-| `scripts/check-skill-spec`   | frontmatter breaks the Agent Skills standard or the budgets      |
+| Script                       | Fails when                                                                |
+| ---------------------------- | ------------------------------------------------------------------------- |
+| `scripts/test`               | a required file is missing or a manifest name disagrees                   |
+| `scripts/check-version-sync` | versions disagree, the release lags the tag, or a plugin changed unbumped |
+| `scripts/validate`           | a magic word repeats, a README table drifts, a reference dangles          |
+| `scripts/check-skill-spec`   | frontmatter breaks the Agent Skills standard or the budgets               |
 
 Run `bash scripts/validate-fixtures` after editing `validate` or `check-skill-spec`: it
 breaks a temp copy one way at a time and asserts each check notices. `make doctor` reports a
@@ -64,6 +64,8 @@ Green checks do not prove the prose is right; a stale sentence still needs readi
 - One version, in two places that must agree: the plugin's entry in `marketplace.json` and
   `plugins/wisdom/.claude-plugin/plugin.json`. The top-level `version` in `marketplace.json`
   must not lag the latest `v*` tag.
-- Bump the plugin when what a skill does changes; a description-only edit bumps the
-  top-level version alone. At most one plugin bump between two tags.
+- Bump the plugin whenever anything under `plugins/wisdom/` changes, a description
+  included: an installed copy is re-fetched only when the version moves. A change outside
+  it (README, scripts) bumps the top-level version alone. At most one plugin bump between
+  two tags.
 - Never tag or release without the user asking.
