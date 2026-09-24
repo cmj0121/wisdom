@@ -114,6 +114,7 @@ Skills are Markdown with YAML frontmatter following the
 ```text
 plugins/wisdom/
 ├── .claude-plugin/plugin.json
+├── hooks/               # hooks.json and the scripts it runs
 └── skills/<name>/
     ├── SKILL.md
     └── references/      # optional

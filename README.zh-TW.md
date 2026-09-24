@@ -108,6 +108,7 @@ Skill 是帶有 YAML frontmatter 的 Markdown，遵循
 ```text
 plugins/wisdom/
 ├── .claude-plugin/plugin.json
+├── hooks/               # hooks.json 與它執行的腳本
 └── skills/<name>/
     ├── SKILL.md
     └── references/      # optional
