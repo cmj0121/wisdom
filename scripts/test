@@ -4,7 +4,9 @@
 #   2. Every registered plugin declares its four entry fields, its source
 #      directory exists, its plugin.json parses and names the same plugin,
 #      and it ships a LICENSE.
-#   3. Every script in scripts/ is present and executable.
+#   3. Every ${CLAUDE_PLUGIN_ROOT} path a plugin's hooks/hooks.json runs exists,
+#      so a renamed hook script fails here and not at the next session start.
+#   4. Every script in scripts/ is present and executable.
 #
 # Deliberately NOT checked here — each is covered by a sibling script, and
 # duplicating it would only make one more place to keep in step:
@@ -18,6 +20,7 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 python3 - "$REPO_ROOT" <<'PY'
 import json
 import os
+import re
 import sys
 
 root = sys.argv[1]
@@ -127,6 +130,24 @@ for entry in plugins:
         ok("LICENSE exists")
     else:
         bad("missing LICENSE")
+
+    # Claude Code resolves ${CLAUDE_PLUGIN_ROOT} to the plugin directory when
+    # it runs a hook, so a path after it is relative to plugin_dir. Only
+    # those are checked: a bare command like `python3` is the machine's.
+    hooks_path = os.path.join(plugin_dir, "hooks", "hooks.json")
+    if os.path.isfile(hooks_path):
+        hooks = load_json(hooks_path)
+        if hooks is None:
+            bad("hooks/hooks.json is not valid JSON")
+        else:
+            for event, groups in hooks.get("hooks", {}).items():
+                for group in groups:
+                    for hook in group.get("hooks", []):
+                        for ref in re.findall(r"\$\{CLAUDE_PLUGIN_ROOT\}/(\S+)", hook.get("command", "")):
+                            if os.path.isfile(os.path.join(plugin_dir, ref)):
+                                ok(f"hooks.json {event} runs {ref}")
+                            else:
+                                bad(f"hooks.json {event} runs {ref}, which does not exist")
 
 # The check scripts themselves. Deleting one is invisible to every `files:`
 # gated hook — pre-commit builds its candidate list with
