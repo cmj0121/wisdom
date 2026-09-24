@@ -21,7 +21,7 @@ v3 is a rewrite from scratch around three rules.
 1. **One skill, one purpose.** Each skill does one thing and is named after it. A skill that
    needs a second job calls the skill that owns it instead of growing one.
 2. **Shortcuts where they help.** Every skill runs with `/wisdom:<name>`. A skill used often
-   enough to type in passing also declares a magic word — say `smith` and the dispatcher
+   enough to type in passing also declares a magic word — say `smith` and a prompt hook
    starts the lead skill. Words are unique across the plugin.
 3. **Fewer tokens.** A description is loaded in every session, so it stays one short
    sentence. A body is loaded each time its skill runs, so it stays short too; anything only
@@ -72,13 +72,13 @@ other skills in turn. Every skill also works on its own.
 
 ### Output
 
-| Skill      | Purpose                                                   | Magic word       |
-| ---------- | --------------------------------------------------------- | ---------------- |
-| `diagram`  | Draw an ASCII diagram of a decided structure              | `draw a diagram` |
-| `compact`  | Re-render the previous answer as a dense table            | `compact it`     |
-| `brief`    | Keep answers short and discuss one topic at a time        | `brief me`       |
-| `lingua`   | Answer in your chosen language, remembered per project    | `reply in`       |
-| `shortcut` | Dispatch the skill whose magic word appears in the prompt | —                |
+| Skill      | Purpose                                                | Magic word       |
+| ---------- | ------------------------------------------------------ | ---------------- |
+| `diagram`  | Draw an ASCII diagram of a decided structure           | `draw a diagram` |
+| `compact`  | Re-render the previous answer as a dense table         | `compact it`     |
+| `brief`    | Keep answers short and discuss one topic at a time     | `brief me`       |
+| `lingua`   | Answer in your chosen language, remembered per project | `reply in`       |
+| `shortcut` | List every magic word, or dispatch one the hook missed | —                |
 
 ## How smith runs
 

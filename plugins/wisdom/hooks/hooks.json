@@ -1,5 +1,5 @@
 {
-  "description": "Load the per-project lingua language preference at session start.",
+  "description": "Load the per-project lingua language at session start; dispatch magic words on every prompt.",
   "hooks": {
     "SessionStart": [
       {
@@ -8,6 +8,17 @@
           {
             "type": "command",
             "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/lingua-session-start.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/shortcut-prompt.py",
             "timeout": 10
           }
         ]
