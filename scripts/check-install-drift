@@ -9,9 +9,8 @@
 #   3. plugin   the installed marketplace
 #
 # A leftover copy in tier 1 does not replace the plugin -- both are offered, as
-# `<name>` and `<plugin>:<name>` -- so the model picks between two routers whose
-# descriptions have since diverged. Every trigger eval in this repo then measures
-# a description the session may never have loaded.
+# `<name>` and `<plugin>:<name>` -- so the model picks between two skills whose
+# descriptions have since diverged, and a session may never load the shipped one.
 #
 # This is the one check that asserts on the MACHINE rather than on the repo, so
 # it is deliberately not part of `make test`, pre-commit or CI: there is no

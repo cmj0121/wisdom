@@ -1,6 +1,6 @@
 SUBDIR :=
 
-.PHONY: all clean test eval doctor run build upgrade install help $(SUBDIR)
+.PHONY: all clean test doctor run build upgrade install help $(SUBDIR)
 
 all: $(SUBDIR) 		# default action
 	@[ -f .git/hooks/pre-commit ] || pre-commit install --install-hooks
@@ -37,26 +37,6 @@ test:				# run the four repo checks (not the validator self-test)
 	fi; \
 	printf '==> %d of %d checks FAILED -- re-run with WISDOM_VERBOSE=1 for per-item detail\n' "$$failed" "$$total"; \
 	exit 1
-
-# Deliberately NOT part of `test`: every case is a full Claude child session on
-# the operator's own credential, so it wants a network and real money, and CI
-# has no secret to give it. --ablation none keeps a `tool_used: Skill` grader
-# scored; --no-publish keeps the report off claude.ai. Plugins without cases
-# under evals/ are never invoked.
-eval:				# run the committed trigger cases (needs a credential and a network)
-	@failed=0; \
-	for plugin in $$(find plugins -path '*/evals/*/prompt.md' | cut -d/ -f1-2 | sort -u); do \
-		printf '\n==> %s\n' "$$plugin"; \
-		claude plugin eval "$$plugin" \
-			--trust-plugin \
-			--ablation none \
-			--no-publish \
-			--max-cost-usd 3.00 || failed=$$((failed + 1)); \
-	done; \
-	if [ $$failed -ne 0 ]; then \
-		printf '\n==> %d plugin suite(s) FAILED\n' "$$failed"; \
-		exit 1; \
-	fi
 
 # Deliberately NOT part of `test`: this one asserts on the machine, not on the
 # repo. There is no $$HOME/.claude in CI, where it would pass for the wrong
