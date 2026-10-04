@@ -75,6 +75,7 @@ other skills in turn. Every skill also works on its own.
 | Skill      | Purpose                                                | Magic word       |
 | ---------- | ------------------------------------------------------ | ---------------- |
 | `diagram`  | Draw an ASCII diagram of a decided structure           | `draw a diagram` |
+| `assets`   | Build media assets one confirmed change per round      | `build assets`   |
 | `compact`  | Re-render the previous answer as a dense table         | `compact it`     |
 | `brief`    | Keep answers short and discuss one topic at a time     | `brief me`       |
 | `lingua`   | Answer in your chosen language, remembered per project | `reply in`       |
