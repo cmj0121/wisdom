@@ -78,8 +78,16 @@ other skills in turn. Every skill also works on its own.
 | `assets`   | Build media assets one confirmed change per round      | `build assets`   |
 | `compact`  | Re-render the previous answer as a dense table         | `compact it`     |
 | `brief`    | Keep answers short and discuss one topic at a time     | `brief me`       |
+| `afk`      | Work to the end and ping you when done or needed       | `afk mode`       |
 | `lingua`   | Answer in your chosen language, remembered per project | `reply in`       |
 | `shortcut` | List every magic word, or dispatch one the hook missed | —                |
+
+`afk` rings the terminal (bell + OSC 9) when the agent stops; `afk off` ends it. It does not
+change the permission mode: a permission request still stops the agent, and is the
+needs-you ping. Terminal.app shows no OSC 9, so there the message arrives through
+Notification Center, listed under Script Editor — allow its notifications. Under tmux only
+the bell gets through unless passthrough is on. Claude Code's own notification channel, if
+you set one, pings as well.
 
 ## How smith runs
 

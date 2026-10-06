@@ -15,7 +15,7 @@ entry point and coordinates the rest. `README.md` is the roster and the design; 
 .claude-plugin/marketplace.json     # registers the wisdom plugin
 plugins/wisdom/
 ├── .claude-plugin/plugin.json
-├── hooks/                          # lingua's SessionStart hook
+├── hooks/                          # hooks.json and the scripts it runs
 └── skills/<name>/
     ├── SKILL.md
     └── references/                 # optional, read only when the body says so
