@@ -5,13 +5,25 @@ Matches the prompt against every magic word the installed skills declare
 (`metadata.shortcut` in their frontmatter) and, on a hit, tells the model which
 skill to run. Dispatch therefore no longer depends on the model choosing to run
 the `shortcut` skill, and no skill file is read at the model's expense.
-Silent no-op when no word matches.
+Silent no-op when no word matches, or when the prompt is not the user's own text.
 """
 import glob
 import json
 import os
 import re
 import sys
+
+# How Claude Code opens a prompt the user did not type: a subagent's report, a
+# background-task event, a message from another session. A magic word in one
+# is something a model wrote, so it must not dispatch a skill.
+NOT_USER = (
+    "Another Claude session sent a message:",
+    "<agent-message",
+    "[Subagent hand-back]",
+    "<cross-session-message",
+    "<task-notification",
+    "[SYSTEM NOTIFICATION",
+)
 
 # Highest priority first, mirroring how Claude Code resolves a skill name.
 # The wisdom skills are invoked as `wisdom:<name>`; user and project ones bare.
@@ -55,6 +67,8 @@ def main() -> int:
     # A slash command already names its skill; matching its text would only
     # tell the model to run what it is running.
     if not prompt.strip() or prompt.lstrip().startswith("/"):
+        return 0
+    if prompt.lstrip().startswith(NOT_USER):
         return 0
 
     cwd = data.get("cwd") or os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
