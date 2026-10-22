@@ -98,7 +98,7 @@ passthrough，否則只有響鈴會通過。若你設定了 Claude Code 自己�
       │ wisdom:challenge  │
       └───────────────────┘
                 │
-                ├──PAUSE──> smith revises, challenge once more
+                ├──PAUSE──> smith revises, same challenger re-checks
                 ├──RECONSIDER──> ask user
                 │ GO
                 ▼
@@ -124,7 +124,7 @@ passthrough，否則只有響鈴會通過。若你設定了 Claude Code 自己�
                          ▼
   smith ─ routes VERDICT lines ──design wrong──> smith ─ wisdom:design
                          │
-                         ├──FAIL──> same code agent fixes ──> review again
+                         ├──FAIL──> same code agent fixes ──> same reviewer re-checks
                          │ PASS
                          ▼
   ┌──────────────────────────────────────────────┐
@@ -136,7 +136,7 @@ passthrough，否則只有響鈴會通過。若你設定了 Claude Code 自己�
                          │
                          ▼
   ┌──────────────────────────────────────────────┐
-  │ wisdom:test · full suite on feat/<slug>      │   once per batch
+  │ wisdom:test · full suite on feat/<slug>      │   once per batch, unless reused
   └──────────────────────────────────────────────┘
                          │
                          ├──FAIL──> new wisdom:code agent ──> review, commit, test

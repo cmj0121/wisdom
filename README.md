@@ -103,7 +103,7 @@ A boxed step runs in its own subagent; a `smith ─` step is Smith itself; `★`
       │ wisdom:challenge  │
       └───────────────────┘
                 │
-                ├──PAUSE──> smith revises, challenge once more
+                ├──PAUSE──> smith revises, same challenger re-checks
                 ├──RECONSIDER──> ask user
                 │ GO
                 ▼
@@ -129,7 +129,7 @@ A boxed step runs in its own subagent; a `smith ─` step is Smith itself; `★`
                          ▼
   smith ─ routes VERDICT lines ──design wrong──> smith ─ wisdom:design
                          │
-                         ├──FAIL──> same code agent fixes ──> review again
+                         ├──FAIL──> same code agent fixes ──> same reviewer re-checks
                          │ PASS
                          ▼
   ┌──────────────────────────────────────────────┐
@@ -141,7 +141,7 @@ A boxed step runs in its own subagent; a `smith ─` step is Smith itself; `★`
                          │
                          ▼
   ┌──────────────────────────────────────────────┐
-  │ wisdom:test · full suite on feat/<slug>      │   once per batch
+  │ wisdom:test · full suite on feat/<slug>      │   once per batch, unless reused
   └──────────────────────────────────────────────┘
                          │
                          ├──FAIL──> new wisdom:code agent ──> review, commit, test
