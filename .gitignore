@@ -1,8 +1,9 @@
 *.sw[po]
 
-# agent-smith writes PLAN.md at the repo root as a living plan for the current
-# piece of work, and removes it after the merge. It is never committed.
+# smith writes PLAN.md and PLAN_DETAILS.md at the repo root as the living plan for
+# the current piece of work, and removes them after the merge. Never committed.
 PLAN.md
+PLAN_DETAILS.md
 
 # `make eval` writes aggregate-result.json and an HTML report per run into the
 # plugin it evaluated. They are run artefacts of a paid, machine-local check,

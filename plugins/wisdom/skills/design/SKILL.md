@@ -23,8 +23,10 @@ full specification.
 4. **Recommend one** and say why in two sentences. When the choice is hard to reverse
    (public API, data model, dependency, file format) or the options are close, ask the user
    to choose before recording it.
-5. **Record** the decision (below). When `PLAN.md` exists, append a row to its Decisions
-   table as well.
+5. **Record** the decision (below). When the plan files exist, add `Question | Chosen | Why`
+   to `PLAN.md` Decisions, its Interface and Left out under the matching `D<n>` in
+   `PLAN_DETAILS.md`, and correct the `Files` of the units it changes. Write the Interface
+   verbatim: `code` builds against it without reopening the files it describes.
 
 ## Design rules
 

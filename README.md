@@ -41,15 +41,15 @@ other skills in turn. Every skill also works on its own.
 
 ### Build
 
-| Skill    | Purpose                                                     | Magic word    |
-| -------- | ----------------------------------------------------------- | ------------- |
-| `plan`   | Turn an idea into `PLAN.md`: goal, units of work, decisions | `plan it`     |
-| `design` | Decide an architecture, API or tech choice, with trade-offs | `design it`   |
-| `spec`   | Write a technical specification for an agreed design        | `write spec`  |
-| `code`   | Implement one unit of work with its tests                   | `code it`     |
-| `test`   | Run the project's test suite and report the result          | `run tests`   |
-| `review` | Review a diff for correctness and quality                   | `review it`   |
-| `docs`   | Write or update user-facing documentation                   | `document it` |
+| Skill    | Purpose                                                                    | Magic word    |
+| -------- | -------------------------------------------------------------------------- | ------------- |
+| `plan`   | Turn an idea into `PLAN.md` and `PLAN_DETAILS.md`: units, decisions, setup | `plan it`     |
+| `design` | Decide an architecture, API or tech choice, with trade-offs                | `design it`   |
+| `spec`   | Write a technical specification for an agreed design                       | `write spec`  |
+| `code`   | Implement one unit of work with its tests                                  | `code it`     |
+| `test`   | Run the project's test suite and report the result                         | `run tests`   |
+| `review` | Review a diff for correctness and quality                                  | `review it`   |
+| `docs`   | Write or update user-facing documentation                                  | `document it` |
 
 ### Ship
 
@@ -91,19 +91,88 @@ you set one, pings as well.
 
 ## How smith runs
 
+A boxed step runs in its own subagent; a `smith ─` step is Smith itself; `★` waits for you.
+
 ```text
-  idea ──> smith ──> plan ──> (design) ──> code ×N ──> review ──> docs ──> commit
-             │         │                     ▲           │
-             │         └── challenge         └── fix ────┘
-             │
-             └── release · only when you ask
+① Plan & Design
+
+  smith ─ wisdom:plan ──> PLAN.md + PLAN_DETAILS.md
+                │
+                ▼
+      ┌───────────────────┐
+      │ wisdom:challenge  │
+      └───────────────────┘
+                │
+                ├──PAUSE──> smith revises, challenge once more
+                ├──RECONSIDER──> ask user
+                │ GO
+                ▼
+  ★ Checkpoint 1 · user approves plan
+                │
+                ▼
+  smith ─ wisdom:design / wisdom:spec ──> design units marked done
+                │
+                ▼
+             ② Build
+
+② Build · repeated per batch
+
+  ┌──────────────────────┐ ┌──────────────────────┐
+  │ wisdom:code · U1     │ │ wisdom:code · U2     │   parallel, one worktree each
+  └──────────────────────┘ └──────────────────────┘
+             │                        │
+             ▼                        ▼
+  ┌──────────────────────┐ ┌──────────────────────┐
+  │ wisdom:review · U1   │ │ wisdom:review · U2   │   parallel
+  └──────────────────────┘ └──────────────────────┘
+             └───────────┬────────────┘
+                         ▼
+  smith ─ routes VERDICT lines ──design wrong──> smith ─ wisdom:design
+                         │
+                         ├──FAIL──> same code agent fixes ──> review again
+                         │ PASS
+                         ▼
+  ┌──────────────────────────────────────────────┐
+  │ same code agent · wisdom:commit in worktree  │   resumed via SendMessage
+  └──────────────────────────────────────────────┘
+                         │
+                         ▼
+  smith ─ merges each branch into feat/<slug>
+                         │
+                         ▼
+  ┌──────────────────────────────────────────────┐
+  │ wisdom:test · full suite on feat/<slug>      │   once per batch
+  └──────────────────────────────────────────────┘
+                         │
+                         ├──FAIL──> new wisdom:code agent ──> review, commit, test
+                         │ PASS
+                         ▼
+  smith ─ Baseline = PASS at <sha> ──> next batch, or ③
+
+③ Check & Merge
+
+  ┌─────────────┐ ┌───────────────┐ ┌──────────────┐ ┌────────────┐
+  │ wisdom:docs │ │ wisdom:secure │ │ wisdom:audit │ │ wisdom:ops │   only those needed
+  └─────────────┘ └───────────────┘ └──────────────┘ └────────────┘
+         └────────────────┴────────┬───────┴───────────────┘
+                                   │
+                                   ├──FAIL──> new wisdom:code agent ──> review, commit
+                                   ▼
+               ★ Checkpoint 2 · user approves merge
+                                   │
+                                   ▼
+  smith ─ git merge --no-ff into main · rm PLAN.md PLAN_DETAILS.md
 ```
 
-- `plan` writes `PLAN.md` once — context, units, decisions — and every later skill reads it
-  instead of rediscovering the project.
-- Independent units run in parallel, each `code` in its own git worktree.
-- `review` returns a one-line verdict; `smith` routes a failure back to `code` (or to
-  `design` when the design is at fault).
+- `plan` writes two files once, and every later skill reads them instead of rediscovering
+  the project: `PLAN.md`, the short view `smith` reads — units, decisions, verdicts — and
+  `PLAN_DETAILS.md`, what a subagent needs to start cold — setup, baseline, each unit's
+  files and acceptance, each decision's interface.
+- Every step on a unit runs in a subagent; `smith` reads result lines, never diffs.
+- Independent units run in parallel, each `code` in its own git worktree, running only its
+  own tests; the full suite runs once per merged batch.
+- `review` returns a one-line verdict; `smith` routes a failure back to the same `code`
+  subagent (or to `design` when the design is at fault), which commits once it passes.
 - `smith` stops for you twice: to approve the plan, and to approve the merge. It never tags
   or releases unless you ask.
 
