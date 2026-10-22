@@ -11,7 +11,7 @@ metadata:
 Implement one unit and its tests. Read Setup, the unit and the decisions it follows from
 the prompt when it pastes them, else from `PLAN_DETAILS.md` at the path given or the repo
 root; with neither, the prompt is the unit. In a fresh worktree, run Setup's `Install`
-before anything else.
+before anything else, quietly — keep only a failure's output.
 
 ## Steps
 
@@ -26,9 +26,10 @@ before anything else.
    - Bug: failing regression test → minimal fix → green.
    - Feature: one test per acceptance criterion → implement → refactor only once green.
    - Refactor: green before, small steps, green after every step.
-4. **Check.** Run those tests again — and the full suite once, unless the prompt says the
-   caller runs it after merging. Exercise the change the way a user would when tests
-   cannot (a request, a CLI run, a page load).
+4. **Check.** Do not re-run the tests step 3 left green. Run the full suite once only when
+   step 3 ran a subset and the prompt does not say the caller runs it after merging.
+   Exercise the change the way a user would when tests cannot (a request, a CLI run, a
+   page load).
 5. **Report** in the format below.
 
 ## Code rules

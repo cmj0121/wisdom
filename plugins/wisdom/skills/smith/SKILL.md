@@ -40,7 +40,7 @@ is to call it with the right input, read its result, and decide what happens nex
 Run `wisdom:plan` on the idea. Then have a subagent run `wisdom:challenge` on the plan:
 
 - `GO` → note its top items as risks in `PLAN.md`.
-- `PAUSE` → revise the named items, then challenge again once.
+- `PAUSE` → revise the named items, then `SendMessage` the same challenger to re-check once.
 - `RECONSIDER` → bring the finding to the user before anything else.
 
 **Checkpoint 1:** show the goal, the units and the open risks. Wait for approval.
@@ -69,14 +69,17 @@ are already merged or `done`. For each batch:
 2. **Review.** One subagent per unit, the whole batch in parallel, each running
    `wisdom:review` on its unit's diff — in the worktree path, when it has one — with the
    unit's `Acceptance` and the code report's `Tests` line, so the tests are not run again.
+   Keep each reviewer's agent ID: a re-review goes to the same reviewer by `SendMessage`,
+   asking it to check only the fix. Only one that cannot be resumed is replaced by a new
+   reviewer with the whole diff.
 3. **Route the verdict**, and write it to the unit's `Verdict` in `PLAN.md`:
 
-   | Verdict | Next                                                                 |
-   | ------- | -------------------------------------------------------------------- |
-   | `PASS`  | commit                                                               |
-   | `WARN`  | fix if the finding lines show it is cheap; else accept, note `WARN`  |
-   | `FAIL`  | `SendMessage` the findings to the unit's code subagent, review again |
-   | no line | re-run the review once; still none → stop, the unit is unreviewed    |
+   | Verdict | Next                                                                   |
+   | ------- | ---------------------------------------------------------------------- |
+   | `PASS`  | commit                                                                 |
+   | `WARN`  | fix if the finding lines show it is cheap; else accept, note `WARN`    |
+   | `FAIL`  | `SendMessage` the findings to the unit's code subagent, then re-review |
+   | no line | re-run the review once; still none → stop, the unit is unreviewed      |
 
    A finding that says the design is wrong: run `wisdom:design` inline, then `SendMessage`
    the new Interface to the unit's code subagent. After two failed fix rounds on the same
@@ -91,7 +94,9 @@ are already merged or `done`. For each batch:
    — the one full-suite run per batch. `PASS` → set `PLAN_DETAILS.md` Baseline to
    `PASS at <short SHA>` before the next batch. `FAIL` → a new code subagent on the feature
    branch gets the failures and the units whose `Files` they touch; review, commit and run
-   the suite again. Two failed rounds → stop and bring it to the user.
+   the suite again. Two failed rounds → stop and bring it to the user. When the batch was
+   one unit built on the feature branch and its `Tests` line is already a full-suite run,
+   take that as this step's result instead of running the suite again.
 
 ## 4. Check
 
