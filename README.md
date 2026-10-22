@@ -91,14 +91,77 @@ you set one, pings as well.
 
 ## How smith runs
 
+A boxed step runs in its own subagent; a `smith ─` step is Smith itself; `★` waits for you.
+
 ```text
-  idea ──> smith ──> plan ──> (design) ──> code ×N ──> review ──> commit ──> merge
-             │         │                     ▲           │                    │
-             │         └── challenge         └── fix ────┘                    ▼
-             │                               next batch <── pass ── full-suite test
-             │                                                                │
-             │                                       merge to main <── checks ┘
-             └── release · only when you ask
+① Plan & Design
+
+  smith ─ wisdom:plan ──> PLAN.md + PLAN_DETAILS.md
+                │
+                ▼
+      ┌───────────────────┐
+      │ wisdom:challenge  │
+      └───────────────────┘
+                │
+                ├──PAUSE──> smith revises, challenge once more
+                ├──RECONSIDER──> ask user
+                │ GO
+                ▼
+  ★ Checkpoint 1 · user approves plan
+                │
+                ▼
+  smith ─ wisdom:design / wisdom:spec ──> design units marked done
+                │
+                ▼
+             ② Build
+
+② Build · repeated per batch
+
+  ┌──────────────────────┐ ┌──────────────────────┐
+  │ wisdom:code · U1     │ │ wisdom:code · U2     │   parallel, one worktree each
+  └──────────────────────┘ └──────────────────────┘
+             │                        │
+             ▼                        ▼
+  ┌──────────────────────┐ ┌──────────────────────┐
+  │ wisdom:review · U1   │ │ wisdom:review · U2   │   parallel
+  └──────────────────────┘ └──────────────────────┘
+             └───────────┬────────────┘
+                         ▼
+  smith ─ routes VERDICT lines ──design wrong──> smith ─ wisdom:design
+                         │
+                         ├──FAIL──> same code agent fixes ──> review again
+                         │ PASS
+                         ▼
+  ┌──────────────────────────────────────────────┐
+  │ same code agent · wisdom:commit in worktree  │   resumed via SendMessage
+  └──────────────────────────────────────────────┘
+                         │
+                         ▼
+  smith ─ merges each branch into feat/<slug>
+                         │
+                         ▼
+  ┌──────────────────────────────────────────────┐
+  │ wisdom:test · full suite on feat/<slug>      │   once per batch
+  └──────────────────────────────────────────────┘
+                         │
+                         ├──FAIL──> new wisdom:code agent ──> review, commit, test
+                         │ PASS
+                         ▼
+  smith ─ Baseline = PASS at <sha> ──> next batch, or ③
+
+③ Check & Merge
+
+  ┌─────────────┐ ┌───────────────┐ ┌──────────────┐ ┌────────────┐
+  │ wisdom:docs │ │ wisdom:secure │ │ wisdom:audit │ │ wisdom:ops │   only those needed
+  └─────────────┘ └───────────────┘ └──────────────┘ └────────────┘
+         └────────────────┴────────┬───────┴───────────────┘
+                                   │
+                                   ├──FAIL──> new wisdom:code agent ──> review, commit
+                                   ▼
+               ★ Checkpoint 2 · user approves merge
+                                   │
+                                   ▼
+  smith ─ git merge --no-ff into main · rm PLAN.md PLAN_DETAILS.md
 ```
 
 - `plan` writes two files once, and every later skill reads them instead of rediscovering

@@ -86,14 +86,77 @@ passthrough，否則只有響鈴會通過。若你設定了 Claude Code 自己�
 
 ## smith 如何運作
 
+有框的步驟在獨立的 subagent 中執行；`smith ─` 開頭的步驟由 Smith 自己執行；`★` 會停下來等你。
+
 ```text
-  idea ──> smith ──> plan ──> (design) ──> code ×N ──> review ──> commit ──> merge
-             │         │                     ▲           │                    │
-             │         └── challenge         └── fix ────┘                    ▼
-             │                               next batch <── pass ── full-suite test
-             │                                                                │
-             │                                       merge to main <── checks ┘
-             └── release · only when you ask
+① Plan & Design
+
+  smith ─ wisdom:plan ──> PLAN.md + PLAN_DETAILS.md
+                │
+                ▼
+      ┌───────────────────┐
+      │ wisdom:challenge  │
+      └───────────────────┘
+                │
+                ├──PAUSE──> smith revises, challenge once more
+                ├──RECONSIDER──> ask user
+                │ GO
+                ▼
+  ★ Checkpoint 1 · user approves plan
+                │
+                ▼
+  smith ─ wisdom:design / wisdom:spec ──> design units marked done
+                │
+                ▼
+             ② Build
+
+② Build · repeated per batch
+
+  ┌──────────────────────┐ ┌──────────────────────┐
+  │ wisdom:code · U1     │ │ wisdom:code · U2     │   parallel, one worktree each
+  └──────────────────────┘ └──────────────────────┘
+             │                        │
+             ▼                        ▼
+  ┌──────────────────────┐ ┌──────────────────────┐
+  │ wisdom:review · U1   │ │ wisdom:review · U2   │   parallel
+  └──────────────────────┘ └──────────────────────┘
+             └───────────┬────────────┘
+                         ▼
+  smith ─ routes VERDICT lines ──design wrong──> smith ─ wisdom:design
+                         │
+                         ├──FAIL──> same code agent fixes ──> review again
+                         │ PASS
+                         ▼
+  ┌──────────────────────────────────────────────┐
+  │ same code agent · wisdom:commit in worktree  │   resumed via SendMessage
+  └──────────────────────────────────────────────┘
+                         │
+                         ▼
+  smith ─ merges each branch into feat/<slug>
+                         │
+                         ▼
+  ┌──────────────────────────────────────────────┐
+  │ wisdom:test · full suite on feat/<slug>      │   once per batch
+  └──────────────────────────────────────────────┘
+                         │
+                         ├──FAIL──> new wisdom:code agent ──> review, commit, test
+                         │ PASS
+                         ▼
+  smith ─ Baseline = PASS at <sha> ──> next batch, or ③
+
+③ Check & Merge
+
+  ┌─────────────┐ ┌───────────────┐ ┌──────────────┐ ┌────────────┐
+  │ wisdom:docs │ │ wisdom:secure │ │ wisdom:audit │ │ wisdom:ops │   only those needed
+  └─────────────┘ └───────────────┘ └──────────────┘ └────────────┘
+         └────────────────┴────────┬───────┴───────────────┘
+                                   │
+                                   ├──FAIL──> new wisdom:code agent ──> review, commit
+                                   ▼
+               ★ Checkpoint 2 · user approves merge
+                                   │
+                                   ▼
+  smith ─ git merge --no-ff into main · rm PLAN.md PLAN_DETAILS.md
 ```
 
 - `plan` 只寫一次兩個檔，之後每個 skill 都讀它們，不再重新探索專案：`PLAN.md` 是 `smith`
