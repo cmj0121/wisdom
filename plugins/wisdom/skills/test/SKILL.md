@@ -12,8 +12,8 @@ Run the test suite and report the result. Never edit code or tests.
 
 ## Steps
 
-1. **Find the command**, first match wins: `PLAN.md` Context → `Makefile` `test` target →
-   the manifest (`package.json` scripts, `pyproject.toml`, `go.mod`, `Cargo.toml`,
+1. **Find the command**, first match wins: `PLAN_DETAILS.md` Setup → `Makefile` `test`
+   target → the manifest (`package.json` scripts, `pyproject.toml`, `go.mod`, `Cargo.toml`,
    `Gemfile`) → the framework's default runner.
 2. **Run it** once, with any path or filter the caller gave. Do not retry a failing suite.
 3. **Report** in the format below. For each failure give the test, the assertion or error in

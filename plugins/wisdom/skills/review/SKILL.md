@@ -14,7 +14,7 @@ Review a change and return findings with a verdict. Read-only: never edit files.
 
 The caller's diff, else `git diff` plus `git diff --cached`, else `git diff main...HEAD`.
 Nothing to review: `VERDICT: SKIP`. Judge the change against its purpose — the unit's
-acceptance in `PLAN.md`, or the prompt — not against work nobody asked for.
+`Acceptance` in `PLAN_DETAILS.md`, or the prompt — not against work nobody asked for.
 
 ## Checks
 

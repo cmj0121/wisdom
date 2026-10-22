@@ -38,15 +38,15 @@ v3 從零重寫，圍繞三條規則。
 
 ### 建構
 
-| Skill    | 目的                                       | Magic word    |
-| -------- | ------------------------------------------ | ------------- |
-| `plan`   | 把想法寫成 `PLAN.md`：目標、工作單元、決策 | `plan it`     |
-| `design` | 決定架構、API 或技術選型，並列出取捨       | `design it`   |
-| `spec`   | 為已定案的設計撰寫技術規格                 | `write spec`  |
-| `code`   | 實作一個工作單元及其測試                   | `code it`     |
-| `test`   | 執行專案的測試套件並回報結果               | `run tests`   |
-| `review` | 審查一份 diff 的正確性與品質               | `review it`   |
-| `docs`   | 撰寫或更新面向使用者的文件                 | `document it` |
+| Skill    | 目的                                                             | Magic word    |
+| -------- | ---------------------------------------------------------------- | ------------- |
+| `plan`   | 把想法寫成 `PLAN.md` 與 `PLAN_DETAILS.md`：工作單元、決策、setup | `plan it`     |
+| `design` | 決定架構、API 或技術選型，並列出取捨                             | `design it`   |
+| `spec`   | 為已定案的設計撰寫技術規格                                       | `write spec`  |
+| `code`   | 實作一個工作單元及其測試                                         | `code it`     |
+| `test`   | 執行專案的測試套件並回報結果                                     | `run tests`   |
+| `review` | 審查一份 diff 的正確性與品質                                     | `review it`   |
+| `docs`   | 撰寫或更新面向使用者的文件                                       | `document it` |
 
 ### 交付
 
@@ -87,16 +87,23 @@ passthrough，否則只有響鈴會通過。若你設定了 Claude Code 自己�
 ## smith 如何運作
 
 ```text
-  idea ──> smith ──> plan ──> (design) ──> code ×N ──> review ──> docs ──> commit
-             │         │                     ▲           │
-             │         └── challenge         └── fix ────┘
-             │
+  idea ──> smith ──> plan ──> (design) ──> code ×N ──> review ──> commit ──> merge
+             │         │                     ▲           │                    │
+             │         └── challenge         └── fix ────┘                    ▼
+             │                               next batch <── pass ── full-suite test
+             │                                                                │
+             │                                       merge to main <── checks ┘
              └── release · only when you ask
 ```
 
-- `plan` 只寫一次 `PLAN.md`——context、工作單元、決策——之後每個 skill 都讀它，不再重新探索專案。
-- 互相獨立的工作單元平行執行，每個 `code` 各自在獨立的 git worktree 中。
-- `review` 回傳一行 verdict；失敗時 `smith` 把它送回 `code`（設計有問題時則送回 `design`）。
+- `plan` 只寫一次兩個檔，之後每個 skill 都讀它們，不再重新探索專案：`PLAN.md` 是 `smith`
+  讀的精簡視圖——工作單元、決策、verdict；`PLAN_DETAILS.md` 是 subagent 冷啟動所需——setup、
+  baseline、每個單元的檔案與驗收條件、每個決策的介面。
+- 每個單元的每一步都在 subagent 中執行；`smith` 只讀結果行，從不讀 diff。
+- 互相獨立的工作單元平行執行，每個 `code` 各自在獨立的 git worktree 中，只跑自己的測試；
+  每個 batch merge 後才跑一次完整測試。
+- `review` 回傳一行 verdict；失敗時 `smith` 把它送回同一個 `code` subagent（設計有問題時則
+  送回 `design`），通過後由它 commit。
 - `smith` 只會停下來問你兩次：核准計畫、核准 merge。除非你要求，它不會打 tag 或發佈。
 
 ## Token 預算

@@ -13,8 +13,8 @@ open design question goes back to `wisdom:design`.
 
 ## Steps
 
-1. **Collect the decision:** the prompt, `PLAN.md` Decisions, the output of `design`. Read
-   only the code the spec's interfaces touch.
+1. **Collect the decision:** the prompt, the output of `design`, or its `PLAN.md` row and
+   `PLAN_DETAILS.md` Interface. Read only the code the spec's interfaces touch.
 2. **Ask** about any gap that would force the builder to guess — an unstated error case, a
    missing field, an unclear limit. Do not fill it in yourself.
 3. **Write** the spec in the shape below, to the path the user gives or
