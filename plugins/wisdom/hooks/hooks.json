@@ -1,5 +1,5 @@
 {
-  "description": "Load the per-project lingua language at session start; dispatch magic words on every prompt; notify on stop or a permission request while afk mode is on.",
+  "description": "Load the per-project lingua language at session start; repeat it and dispatch magic words on every prompt; notify on stop or a permission request while afk mode is on.",
   "hooks": {
     "SessionStart": [
       {
@@ -19,6 +19,11 @@
           {
             "type": "command",
             "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/shortcut-prompt.py",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/lingua-prompt.py",
             "timeout": 10
           }
         ]
