@@ -27,6 +27,8 @@ v3 is a rewrite from scratch around three rules.
    sentence. A body is loaded each time its skill runs, so it stays short too; anything only
    some runs need lives in `references/` and is read only then. No personas, no role-play
    framing, no repeated project discovery: the plan file carries the context forward.
+   Two hooks keep a long session on course: one repeats the `lingua` language on every
+   prompt, the other re-injects `PLAN.md` after compaction while a unit is unfinished.
 
 ## Skills
 
