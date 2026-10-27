@@ -25,6 +25,8 @@ v3 從零重寫，圍繞三條規則。
 3. **更少的 token。** `description` 每個 session 都會載入，所以只寫一句短句；body 在每次
    執行時載入，同樣保持精簡；只有部分執行才需要的內容放在 `references/`，需要時才讀。不設
    人設、不做角色扮演、不重複探索專案：由計畫檔把 context 往下傳遞。
+   兩個 hook 讓長 session 不偏離：一個在每次 prompt 重申 `lingua` 語言，另一個在仍有未完成
+   的 unit 時，於壓縮後重新注入 `PLAN.md`。
 
 ## Skills
 

@@ -20,11 +20,14 @@ is to call it with the right input, read its result, and decide what happens nex
   what a subagent needs. Neither is committed, so a worktree lacks both: paste Setup, the
   unit's section and the decisions it follows into the prompt, and give the main
   checkout's absolute path to both files as a fallback. Subagents only read them; Smith
-  writes them, itself or through the `wisdom:design` it runs inline.
+  writes them, itself or through the `wisdom:design` it runs inline, and updates `PLAN.md`
+  before each step: a hook re-injects it after compaction, and then it is all Smith
+  remembers.
 - **Delegate every unit step.** Each skill run on a unit — code, review, fix, commit, test
-  — goes to a subagent through `Agent`. Ask it to return its fixed result line, plus one
-  line per finding on `WARN` or `FAIL`. Smith reads those lines, never a diff, and writes
-  the verdict into `PLAN.md`; once a unit is merged, drop its reports from what you carry.
+  — goes to a subagent through `Agent`. Ask it to return only its fixed result line, plus
+  one line per finding on `WARN` or `FAIL` — no prose summary. Smith reads those lines,
+  never a diff, and writes the verdict into `PLAN.md`; once a unit is merged, drop its
+  reports from what you carry.
 - **No missing input is filled in.** A skill that returns no result, or a review with no
   `VERDICT` line, is a gap: retry it once, then stop and tell the user. A result Smith
   writes for a silent skill is indistinguishable from a real one.
