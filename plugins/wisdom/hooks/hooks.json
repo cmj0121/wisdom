@@ -1,5 +1,5 @@
 {
-  "description": "Load the per-project lingua language at session start; repeat it and dispatch magic words on every prompt; notify on stop or a permission request while afk mode is on.",
+  "description": "Load the per-project lingua language at session start; restore the smith plan after compaction; repeat the language and dispatch magic words on every prompt; notify on stop or a permission request while afk mode is on.",
   "hooks": {
     "SessionStart": [
       {
@@ -8,6 +8,16 @@
           {
             "type": "command",
             "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/lingua-session-start.py",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/plan-restore.py",
             "timeout": 10
           }
         ]
