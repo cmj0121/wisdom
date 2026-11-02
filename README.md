@@ -58,6 +58,7 @@ other skills in turn. Every skill also works on its own.
 | Skill       | Purpose                                                 | Magic word      |
 | ----------- | ------------------------------------------------------- | --------------- |
 | `commit`    | Write a commit message for the staged change and commit | `commit it`     |
+| `history`   | Reshape a branch into docs, feats and one test commit   | —               |
 | `changelog` | Generate changelog entries from git history             | `gen changelog` |
 | `release`   | Bump the version and tag a release — only when asked    | `release it`    |
 | `resolve`   | Work a pull request's review comments, test first       | `resolve pr`    |
@@ -160,6 +161,12 @@ A boxed step runs in its own subagent; a `smith ─` step is Smith itself; `★`
                                    │
                                    ├──FAIL──> new wisdom:code agent ──> review, commit
                                    ▼
+           ┌──────────────────────────────────────────────┐
+           │ wisdom:history · reshape feat/<slug>         │   bump, docs, feats, one test
+           └──────────────────────────────────────────────┘
+                                   │
+                                   ├──ABORTED──> branch unmoved, shown at Checkpoint 2
+                                   ▼
                ★ Checkpoint 2 · user approves merge
                                    │
                                    ▼
@@ -175,6 +182,8 @@ A boxed step runs in its own subagent; a `smith ─` step is Smith itself; `★`
   own tests; the full suite runs once per merged batch.
 - `review` returns a one-line verdict; `smith` routes a failure back to the same `code`
   subagent (or to `design` when the design is at fault), which commits once it passes.
+- Before the merge, `history` rebuilds the unpushed branch as linear history in a temporary
+  worktree; its empty diff against the start is why reviews and the suite are not run again.
 - `smith` stops for you twice: to approve the plan, and to approve the merge. It never tags
   or releases unless you ask.
 
