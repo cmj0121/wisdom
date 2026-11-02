@@ -20,11 +20,14 @@ is to call it with the right input, read its result, and decide what happens nex
   what a subagent needs. Neither is committed, so a worktree lacks both: paste Setup, the
   unit's section and the decisions it follows into the prompt, and give the main
   checkout's absolute path to both files as a fallback. Subagents only read them; Smith
-  writes them, itself or through the `wisdom:design` it runs inline.
+  writes them, itself or through the `wisdom:design` it runs inline, and updates `PLAN.md`
+  before each step: a hook re-injects it after compaction, and then it is all Smith
+  remembers.
 - **Delegate every unit step.** Each skill run on a unit — code, review, fix, commit, test
-  — goes to a subagent through `Agent`. Ask it to return its fixed result line, plus one
-  line per finding on `WARN` or `FAIL`. Smith reads those lines, never a diff, and writes
-  the verdict into `PLAN.md`; once a unit is merged, drop its reports from what you carry.
+  — goes to a subagent through `Agent`. Ask it to return only its fixed result line, plus
+  one line per finding on `WARN` or `FAIL` — no prose summary. Smith reads those lines,
+  never a diff, and writes the verdict into `PLAN.md`; once a unit is merged, drop its
+  reports from what you carry.
 - **No missing input is filled in.** A skill that returns no result, or a review with no
   `VERDICT` line, is a gap: retry it once, then stop and tell the user. A result Smith
   writes for a silent skill is indistinguishable from a real one.
@@ -33,6 +36,7 @@ is to call it with the right input, read its result, and decide what happens nex
   user's language. Write both checkpoints and the report in it, whatever the skills
   returned. Keep prompts to skills and subagents in English — a model reads them, and
   they add up.
+- **Keep the branch simple.** As simple and linear as possible.
 - **Never tag, release or push** unless the user asks in this conversation.
 
 ## 1. Plan
@@ -43,7 +47,8 @@ Run `wisdom:plan` on the idea. Then have a subagent run `wisdom:challenge` on th
 - `PAUSE` → revise the named items, then `SendMessage` the same challenger to re-check once.
 - `RECONSIDER` → bring the finding to the user before anything else.
 
-**Checkpoint 1:** show the goal, the units and the open risks. Wait for approval.
+**Checkpoint 1:** show the goal, the units and the open risks, plus `Tests deferred`, recorded
+as a decision, when the plan is large enough for tests to wait. Wait for approval.
 
 ## 2. Design
 
@@ -65,13 +70,14 @@ are already merged or `done`. For each batch:
    than one unit. Its prompt: Setup, the unit's section, the plan paths, "run
    `wisdom:code`", and "the full suite runs after merge". Keep its agent ID, and the
    worktree path and branch its result names: the same subagent fixes and commits the
-   unit. Tightly coupled units run one at a time, no worktree.
+   unit. Tightly coupled units run one at a time, no worktree. With `Tests deferred`, each
+   prompt adds "tests deferred", and one final unit writes all the tests like any other.
 2. **Review.** One subagent per unit, the whole batch in parallel, each running
    `wisdom:review` on its unit's diff — in the worktree path, when it has one — with the
-   unit's `Acceptance` and the code report's `Tests` line, so the tests are not run again.
-   Keep each reviewer's agent ID: a re-review goes to the same reviewer by `SendMessage`,
-   asking it to check only the fix. Only one that cannot be resumed is replaced by a new
-   reviewer with the whole diff.
+   unit's `Acceptance` and the code report's `Tests` line, so the tests are not run again;
+   under `Tests deferred`, say the final unit covers them. Keep each reviewer's agent ID: a
+   re-review goes to the same reviewer by `SendMessage`, asking it to check only the fix.
+   Only one that cannot be resumed is replaced by a new reviewer with the whole diff.
 3. **Route the verdict**, and write it to the unit's `Verdict` in `PLAN.md`:
 
    | Verdict | Next                                                                   |
@@ -111,10 +117,19 @@ A `FAIL`, `FINDINGS` or `BLOCK` goes to a new code subagent on the feature branc
 review and commit as in step 3. `INCOMPLETE` or `CONCERN` is reported at the checkpoint,
 not silently accepted.
 
-## 5. Merge
+## 5. Shape
 
-**Checkpoint 2:** show `git log --oneline main..HEAD`, the verdict of every unit (from
-`PLAN.md`) and check, and anything accepted with a warning. Wait for approval, then:
+A subagent runs `wisdom:history` on the feature branch, base `main`; take its `HISTORY:` line.
+`SHAPED`: the empty diff proves reviews and the suite still hold; do not re-run them.
+`UNCHANGED`: continue. `ABORTED`: the branch did not move; show the reason at Checkpoint 2.
+No line is a gap: retry once, then stop and tell the user.
+
+## 6. Merge
+
+**Checkpoint 2:** show `git log --oneline main..HEAD`, the `HISTORY:` result, the verdict of
+every unit (from `PLAN.md`) and check, and anything accepted with a warning. A commit made
+after this is shown goes through `wisdom:review` and step 5 before it is re-shown. Wait for
+approval, then:
 
 ```bash
 git checkout main
@@ -125,7 +140,7 @@ rm PLAN.md PLAN_DETAILS.md
 
 A merge conflict goes to a `wisdom:code` subagent, then `wisdom:review`.
 
-## 6. Release
+## 7. Release
 
 Only when the user asks: run `wisdom:release`.
 

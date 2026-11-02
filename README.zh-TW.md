@@ -25,6 +25,8 @@ v3 從零重寫，圍繞三條規則。
 3. **更少的 token。** `description` 每個 session 都會載入，所以只寫一句短句；body 在每次
    執行時載入，同樣保持精簡；只有部分執行才需要的內容放在 `references/`，需要時才讀。不設
    人設、不做角色扮演、不重複探索專案：由計畫檔把 context 往下傳遞。
+   兩個 hook 讓長 session 不偏離：一個在每次 prompt 重申 `lingua` 語言，另一個在仍有未完成
+   的 unit 時，於壓縮後重新注入 `PLAN.md`。
 
 ## Skills
 
@@ -53,6 +55,7 @@ v3 從零重寫，圍繞三條規則。
 | Skill       | 目的                                        | Magic word      |
 | ----------- | ------------------------------------------- | --------------- |
 | `commit`    | 為已 stage 的變更撰寫 commit message 並提交 | `commit it`     |
+| `history`   | 把分支整理成 docs、feat 與單一 test commit  | —               |
 | `changelog` | 從 git 歷史產生 changelog 條目              | `gen changelog` |
 | `release`   | 升版並打 tag 發佈——只在你要求時執行         | `release it`    |
 | `resolve`   | 以測試先行的方式處理 PR 的 review 意見      | `resolve pr`    |
@@ -153,6 +156,12 @@ passthrough，否則只有響鈴會通過。若你設定了 Claude Code 自己�
                                    │
                                    ├──FAIL──> new wisdom:code agent ──> review, commit
                                    ▼
+           ┌──────────────────────────────────────────────┐
+           │ wisdom:history · reshape feat/<slug>         │   bump、docs、feats、一個 test
+           └──────────────────────────────────────────────┘
+                                   │
+                                   ├──ABORTED──> 分支未移動，於 Checkpoint 2 顯示
+                                   ▼
                ★ Checkpoint 2 · user approves merge
                                    │
                                    ▼
@@ -167,6 +176,8 @@ passthrough，否則只有響鈴會通過。若你設定了 Claude Code 自己�
   每個 batch merge 後才跑一次完整測試。
 - `review` 回傳一行 verdict；失敗時 `smith` 把它送回同一個 `code` subagent（設計有問題時則
   送回 `design`），通過後由它 commit。
+- merge 前，`history` 在暫時的 worktree 中把尚未 push 的分支重建成線性歷史；與起點的 diff
+  為空，所以不必重跑 review 與測試。
 - `smith` 只會停下來問你兩次：核准計畫、核准 merge。除非你要求，它不會打 tag 或發佈。
 
 ## Token 預算

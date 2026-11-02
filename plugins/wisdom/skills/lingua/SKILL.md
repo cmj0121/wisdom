@@ -31,7 +31,8 @@ glossary: [] # term normalisations, e.g. "K8s → Kubernetes"
 ```
 
 The plugin's SessionStart hook loads this file into every new session, so a saved
-preference needs no magic word afterwards.
+preference needs no magic word afterwards. A prompt hook repeats the rule on every turn, so
+long sessions do not drift.
 
 ## Steps
 
