@@ -19,13 +19,12 @@ Rewrite the current branch, and only it, into linear history. Input: base ref, d
 
 ## Preflight
 
-Check in order; stop with the line shown. Never push.
+Check in order; stop with the line shown. Never push. Commit or stash nothing for the user.
 
 1. Base ref missing, or HEAD detached: `ABORTED`.
-2. `git status --porcelain` shows anything: `ABORTED`. Commit or stash nothing for the user.
-3. `git rev-list --count <base>..HEAD` is 0: `UNCHANGED`.
-4. `git rev-list --count <base>..HEAD --not --remotes` differs from that count: a commit is
-   already on a remote, so `UNCHANGED`. Never force-push.
+2. `git status --porcelain --untracked-files=no` shows anything: `ABORTED`.
+3. `git rev-list --count <base>..HEAD` is 0, or differs from the same count with `--not --remotes`
+   (a commit is already on a remote; never force-push): `UNCHANGED`.
 
 Then record `start=$(git rev-parse HEAD)` and `mb=$(git merge-base <base> HEAD)`.
 
@@ -48,16 +47,18 @@ Commits, by their code paths and subject:
 
 ## Rebuild
 
-Take each file from a commit instead of replaying its patch, so a reorder cannot conflict:
+Run this section in a temporary worktree, so the checkout and branch do not move. Take each
+file from a commit instead of replaying its patch, so a reorder cannot conflict. Cwd, variables
+and functions reset between Bash calls: re-establish `wt`, `start`, `mb`, `take` and the `cd` in each:
 
 ```bash
+wt=$(mktemp -d); git worktree add -q --detach "$wt" "$mb"; cd "$wt"
 take() { rev=$1; shift; for p in "$@"; do
   if git cat-file -e "$rev:$p" 2>/dev/null; then git checkout -q "$rev" -- "$p"
   else git rm -qf --ignore-unmatch -- "$p"; fi; done; }
 ```
 
-Run `git reset --hard "$mb"`, then build in order, skipping any commit that would be empty.
-Commit with `git commit -C <sha>`, which keeps the author and date.
+Build in order, skipping empty commits; `git commit -C <sha>` keeps the author and date.
 
 **Footers:** a commit that disappears (folded, skipped, or all its paths moved) hands its
 `Refs:`/`Closes:` lines to the commit now holding its paths; a merge or an empty commit hands
@@ -71,30 +72,29 @@ git commit -F "$msg" --author="$(git log -1 --format='%an <%ae>' <sha>)" \
 
 1. **Bump:** `take <sha> <its paths>`, then commit.
 2. **Docs:** per `docs` commit, `take <sha> <its doc-only paths>`, then commit. Before the last,
-   also `take "$start" <all doc-only paths>`; with no `docs` commit, those form a new `docs:`.
+   also `take "$start" <all doc-only paths not moved>`; with no `docs` commit, those form a new `docs:`.
 3. **Purposes**, in original order: `take <sha> <its code paths>`, then
    `take <fix> <its code paths>` for each fix folding into it, in order, then commit.
-4. **Fixes left**, in order: `take <fix> <its code paths no later purpose or folded fix changes>`,
-   then commit.
+4. **Fixes left**, in order: `take <fix> <its code paths no later purpose or folded fix changes>`, then commit.
 5. **Tests:** `take "$start" <all test-only paths>`, then commit: `-C` when one `test` commit
    holds them all, otherwise a new `test:` message.
 
 Hooks run on every commit. Never `--no-verify`. A hook failure on a docs commit may be a check
 tying a doc to code (a README row naming a skill the same branch adds): move the rejected file
 whole into the last feat that needs it, `take HEAD <file>` now and `take "$start" <file>` in
-that feat, its footers with it, and retry once. That file is no longer doc-only. Any other hook
-failure, a failed retry, a conflict or a failed step aborts: `git reset --hard "$start"`, only
-once `start` is recorded and only on this branch, and report `ABORTED`.
+that feat, its footers with it, and retry once. Any other hook failure, a failed retry, a conflict
+or failed step aborts: in the checkout, `git worktree remove --force "$wt"`; report `ABORTED`, branch unmoved.
 
 ## Verify
 
-1. `git diff --quiet "$start" HEAD` must pass; otherwise abort. This empty diff is the proof
-   that reviews and the suite still hold: do not re-run them or test intermediate commits, as
-   a feat without its tests may not pass alone.
+1. With `new=$(git -C "$wt" rev-parse HEAD)`, `git diff --quiet "$start" "$new"` must pass, or
+   abort. This empty diff proves reviews and the suite hold: do not re-run them or test commits.
 2. `git log --format=%B <range> | grep -E '^(Refs|Closes)[: ]' | sort -u` must match for
-   `$mb..$start` and `$mb..HEAD`; otherwise abort.
-3. If `git log --format=%T "$mb..HEAD"` equals the same list for `$mb..$start`, the branch was
-   already shaped: restore `start` to keep its SHAs and report `UNCHANGED`.
+   `$mb..$start` and `$mb..$new`; otherwise abort.
+3. If `git log --format=%T "$mb..$new"` equals the same list for `$mb..$start`, the branch was
+   already shaped: `git worktree remove --force "$wt"` and report `UNCHANGED`.
+4. In the checkout, HEAD must still be `$start`; otherwise abort. Then `git reset --soft "$new"`
+   there (same tree, so index and files do not change), then `git worktree remove --force "$wt"`.
 
 ## Result
 

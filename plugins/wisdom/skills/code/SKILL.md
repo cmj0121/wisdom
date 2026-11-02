@@ -26,6 +26,8 @@ before anything else, quietly — keep only a failure's output.
    - Bug: failing regression test → minimal fix → green.
    - Feature: one test per acceptance criterion → implement → refactor only once green.
    - Refactor: green before, small steps, green after every step.
+   - The prompt says "tests deferred": write no new tests, still run the existing ones, and
+     report `Tests: deferred; <pass>/<total> existing`.
 4. **Check.** Do not re-run the tests step 3 left green. Run the full suite once only when
    step 3 ran a subset and the prompt does not say the caller runs it after merging.
    Exercise the change the way a user would when tests cannot (a request, a CLI run, a
