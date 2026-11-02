@@ -1,6 +1,6 @@
 SUBDIR :=
 
-.PHONY: all clean test doctor run build upgrade install help $(SUBDIR)
+.PHONY: all clean test doctor upgrade install help $(SUBDIR)
 
 all: $(SUBDIR) 		# default action
 	@[ -f .git/hooks/pre-commit ] || pre-commit install --install-hooks
@@ -43,10 +43,6 @@ test:				# run the four repo checks (not the validator self-test)
 # reason, and a contributor's own skills are not this repo's business.
 doctor:				# check the local machine for skills shadowing this marketplace
 	@bash scripts/check-install-drift
-
-run:				# run in the local environment
-
-build:				# build the binary/library
 
 install:			# symlink marketplace for /plugin usage
 	@DEST="$$HOME/.claude/plugins/marketplaces/wisdom"; \
