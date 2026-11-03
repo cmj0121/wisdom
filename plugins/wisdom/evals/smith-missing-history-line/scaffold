@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -eu
+git init -q -b main
+git config user.name Eval
+git config user.email eval@example.com
+git config commit.gpgsign false
+save() {
+	git add -A
+	git commit -qm "$1"
+}
+echo "# demo" >README.md
+save "chore: start"
+git checkout -qb feat/work
+echo "def alpha(): return 1" >alpha.py
+save "feat: add alpha"
+echo "def beta(): return 2" >beta.py
+save "feat: add beta"
+printf '# Plan\n\nAll units done.\n' >PLAN.md
+cat >PLAN_DETAILS.md <<'MD'
+# Details
+
+## Setup
+
+Test: `true`
+MD

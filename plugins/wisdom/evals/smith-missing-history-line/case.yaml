@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: smith-missing-history-line
+expected_outcome: |
+  A history subagent that returns no HISTORY: line is retried once, then smith stops and tells the user, without inventing a result or merging.
+context:
+  scaffold_script: scaffold

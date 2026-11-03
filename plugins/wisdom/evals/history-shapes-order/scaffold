@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -eu
+git init -q -b main
+git config user.name Eval
+git config user.email eval@example.com
+git config commit.gpgsign false
+save() {
+	git add -A
+	git commit -qm "$1"
+}
+echo "# demo" >README.md
+save "chore: start"
+git checkout -qb feat/work
+echo "def alpha(): return 2" >alpha.py
+save "feat: add alpha"
+echo "assert True" >test_alpha.py
+save "test: cover alpha"
+echo "# Guide" >guide.md
+save "docs: add guide"
+echo "def beta(): return 2" >beta.py
+save "feat: add beta"
+echo "def alpha(): return 1" >alpha.py
+save "fix: correct alpha"
+echo "1.1.0" >VERSION
+save "chore: bump version to 1.1.0"

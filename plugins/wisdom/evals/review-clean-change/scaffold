@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -eu
+git init -q -b main
+git config user.name Eval
+git config user.email eval@example.com
+git config commit.gpgsign false
+save() {
+	git add -A
+	git commit -qm "$1"
+}
+echo "# demo" >README.md
+save "chore: start"
+git checkout -qb feat/work
+cat >cart.py <<'PY'
+def total(prices):
+    return sum(prices)
+PY
+cat >test_cart.py <<'PY'
+from cart import total
+
+assert total([]) == 0
+assert total([1, 2, 3]) == 6
+PY
+save "feat: add total"
