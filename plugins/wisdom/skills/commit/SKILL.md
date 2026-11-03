@@ -12,8 +12,8 @@ Write the message for what is staged and commit it. Nothing else: no push, no ta
 
 ## Steps
 
-1. `git diff --cached --stat`, then the staged diff itself. Nothing staged: ask what to
-   stage — never `git add -A` on your own — and end in `COMMIT: FAILED nothing staged`.
+1. `git diff --cached --stat`, then the staged diff itself. Nothing staged: stop and end
+   in `COMMIT: FAILED nothing staged`, without asking — never `git add -A` on your own.
 2. If the repo has a commit template (`git config commit.template`) or a visible convention
    in `git log -10`, follow it. Otherwise use the format below.
 3. Commit. If a hook fails, report its output, stop, end in `COMMIT: FAILED <hook>` — never

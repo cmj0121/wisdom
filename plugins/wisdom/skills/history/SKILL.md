@@ -63,8 +63,9 @@ python3 "${CLAUDE_SKILL_DIR}/scripts/reshape.py" "$manifest"
 ```
 
 If a command above fails (no base ref, detached HEAD), still write what you have and run the
-script: it decides. Do not rebuild or verify by hand, and do not re-run reviews or the suite
-after `SHAPED`: the script proved the tree identical.
+script: it decides. Do not rebuild or verify by hand. This run does not re-run reviews or the
+suite after `SHAPED`: the script proved the tree identical. A caller may still run the suite
+afterwards for commits nothing has tested yet, as `smith` does for its step 4's.
 
 On `ABORTED` stop and report; never push, stash, commit for the user or use `--no-verify`.
 

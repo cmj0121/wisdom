@@ -9,11 +9,9 @@ allowed-tools:
 
 # Shortcut
 
-The plugin's `UserPromptSubmit` hook (`hooks/shortcut-prompt.py`) matches every prompt
-against the magic words and names the skill to run, so a word normally dispatches before
-this skill is read. This skill lists the words, and dispatches by hand when the hook did
-not fire — hooks disabled, a skill's frontmatter over 1KB, or a word handed over as an
-argument.
+The plugin's `UserPromptSubmit` hook normally dispatches a magic word before this skill is
+read. This skill lists the words, and dispatches by hand when the hook did not fire — hooks
+disabled, a skill's frontmatter over 1KB, or a word handed over as an argument.
 
 ## Sources
 
@@ -27,12 +25,11 @@ first:
 
 ## Dispatch
 
-1. Match each word against the prompt, case-insensitive, at word boundaries — `smith`
-   matches "Hi, Smith" and not "blacksmith".
-2. More than one match: take the highest-priority source, then the longest word.
-3. Invoke the matched skill with the rest of the prompt as its arguments, and say in one
+1. Match the words as the hook does: Grep `def dispatch` with 20 lines of context in
+   [`shortcut-prompt.py`](../../hooks/shortcut-prompt.py), the one statement of that rule.
+2. Invoke the matched skill with the rest of the prompt as its arguments, and say in one
    line which word triggered it.
-4. No match: do nothing and say nothing.
+3. No match: do nothing and say nothing.
 
 ## Listing
 
