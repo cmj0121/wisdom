@@ -14,6 +14,7 @@
 #   magic words, README tables and presence, references    -> validate
 #   SKILL.md against the Agent Skills standard             -> check-skill-spec
 #   what the hooks print for a prompt                      -> test-hooks
+#   what the history skill's rebuild does to a branch      -> test-history
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -174,6 +175,7 @@ for script in (
     "check-skill-spec",
     "validate-fixtures",
     "test-hooks",
+    "test-history",
     "check-install-drift",
 ):
     path = os.path.join(root, "scripts", script)

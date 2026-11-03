@@ -13,14 +13,14 @@ clean: $(SUBDIR)	# clean-up environment
 # self-test rather than a check on this repo's contents, and it costs ~2.8s.
 # pre-commit runs it whenever scripts/ changes.
 #
-# All five run even after one fails -- a run that stops at the first failure
+# All six run even after one fails -- a run that stops at the first failure
 # hides the rest -- so the loop must say so itself: the last line of a failing
 # run used to be the LAST script's success sentence. The count is derived from
 # the loop rather than written twice, so adding a check cannot leave the summary
 # claiming the old number.
-test:				# run the five repo checks (not the validator self-test)
+test:				# run the six repo checks (not the validator self-test)
 	@failed=0; total=0; summary=""; \
-	for script in test check-version-sync validate check-skill-spec test-hooks; do \
+	for script in test check-version-sync validate check-skill-spec test-hooks test-history; do \
 		total=$$((total + 1)); \
 		if bash "scripts/$$script"; then \
 			summary="$$summary  \033[32mPASS\033[0m scripts/$$script\n"; \

@@ -1,0 +1,438 @@
+#!/usr/bin/env bash
+# Runs the history skill's reshape.py against throwaway repos and asserts each
+# outcome, and that every ABORTED leaves the checkout exactly as it found it.
+#
+# HOME is a temp directory and GIT_* is cleared, so the machine's git identity,
+# signing and hooks cannot change the result.
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+PYTHONDONTWRITEBYTECODE=1 PYTHONSAFEPATH=1 PYTHONPATH="$(cd "$(dirname "$0")" && pwd)" python3 - "$REPO_ROOT" <<'PY'
+import json
+import os
+import re
+import shutil
+import stat
+import subprocess
+import sys
+import tempfile
+
+from _common import bad, error_count, ok
+
+root = sys.argv[1]
+SCRIPT = os.path.join(root, "plugins", "wisdom", "skills", "history", "scripts", "reshape.py")
+LAST_LINE = re.compile(r"^HISTORY: (SHAPED \d+ commits|UNCHANGED \S.*|ABORTED \S.*)$")
+
+work = tempfile.mkdtemp()
+home = os.path.join(work, "home")
+os.mkdir(home)
+with open(os.path.join(home, ".gitconfig"), "w") as handle:
+    handle.write(
+        "[user]\n\tname = Tester\n\temail = tester@example.com\n"
+        "[init]\n\tdefaultBranch = main\n"
+        "[commit]\n\tgpgsign = false\n"
+    )
+ENV = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+ENV.update(HOME=home, XDG_CONFIG_HOME=home, GIT_CONFIG_NOSYSTEM="1")
+
+ALICE = {"GIT_AUTHOR_NAME": "Alice", "GIT_AUTHOR_EMAIL": "alice@example.com"}
+count = {"repo": 0, "date": 0}
+REJECT_DOCS = (
+    "git diff --cached --name-only | grep -q '[.]md$' && { echo 'README.md rejected'; exit 1; }; exit 0"
+)
+
+
+def git(cwd, *args, env=None):
+    return subprocess.run(
+        ["git", *args], cwd=cwd, env={**ENV, **(env or {})}, check=True, capture_output=True, text=True
+    ).stdout.strip()
+
+
+def write(repo, path, text):
+    full = os.path.join(repo, path)
+    os.makedirs(os.path.dirname(full), exist_ok=True)
+    with open(full, "w") as handle:
+        handle.write(text)
+
+
+def save(repo, message, files):
+    """Commit `files` ({path: text, or None to delete}) as Alice at a unique date; its sha."""
+    for path, text in files.items():
+        if text is None:
+            git(repo, "rm", "-q", path)
+        else:
+            write(repo, path, text)
+            git(repo, "add", path)
+    count["date"] += 1
+    date = f"2020-01-01T00:00:{count['date'] % 60:02d}+08:00"
+    git(repo, "commit", "-q", "-m", message, env={**ALICE, "GIT_AUTHOR_DATE": date})
+    return git(repo, "rev-parse", "HEAD")
+
+
+def new_repo():
+    """A repo on branch feat, one commit past main, with untracked and ignored files."""
+    count["repo"] += 1
+    repo = os.path.join(work, f"repo{count['repo']}")
+    os.mkdir(repo)
+    git(repo, "init", "-q")
+    save(repo, "init", {"README.md": "base\n", "code/a.py": "a0\n", "VERSION": "1\n", ".gitignore": "*.log\n"})
+    git(repo, "checkout", "-q", "-b", "feat")
+    write(repo, "notes.txt", "untracked\n")
+    write(repo, "debug.log", "ignored\n")
+    return repo
+
+
+def hook(repo, name, body):
+    path = os.path.join(repo, ".git", "hooks", name)
+    with open(path, "w") as handle:
+        handle.write("#!/bin/sh\n" + body + "\n")
+    os.chmod(path, os.stat(path).st_mode | stat.S_IXUSR)
+
+
+def manifest(repo, commits, docs=(), tests=(), base="main", start=None):
+    """Write a manifest for `commits`: (sha, kind) or (sha, kind, fold_into)."""
+    data = {
+        "base": base,
+        "start": start or git(repo, "rev-parse", "HEAD"),
+        "docs": list(docs),
+        "tests": list(tests),
+        "commits": [{"sha": c[0], "kind": c[1], "fold_into": c[2] if len(c) > 2 else None} for c in commits],
+    }
+    fd, path = tempfile.mkstemp(dir=work)
+    with os.fdopen(fd, "w") as handle:
+        json.dump(data, handle)
+    return path
+
+
+def snapshot(repo):
+    """What an ABORTED must leave alone: status, and the bytes of untracked and ignored files."""
+    status = git(repo, "status", "--porcelain", "--ignored")
+    files = {}
+    for line in status.splitlines():
+        if line[:2] in ("??", "!!"):
+            with open(os.path.join(repo, line[3:]), "rb") as handle:
+                files[line[3:]] = handle.read()
+    return status, files
+
+
+def invoke(repo, path, cwd=None, env=None):
+    return subprocess.run(
+        [sys.executable, SCRIPT, path], cwd=cwd or repo, env={**ENV, **(env or {})}, capture_output=True, text=True
+    )
+
+
+def check(name, repo, run, outcome, expect_head=None):
+    """Run; assert the last line and outcome, then the invariants for that outcome."""
+    before_head, before = git(repo, "rev-parse", "HEAD"), snapshot(repo)
+    done = run()
+    lines = done.stdout.strip().splitlines()
+    last = lines[-1] if lines else ""
+    failed = []
+    if not LAST_LINE.match(last):
+        failed.append(f"last line {last!r}")
+    if not last.startswith(f"HISTORY: {outcome}"):
+        failed.append(f"wanted {outcome}, got {last!r}")
+    if len(git(repo, "worktree", "list").splitlines()) != 1:
+        failed.append("worktree left behind")
+    if snapshot(repo) != before:
+        failed.append("status, untracked or ignored files changed")
+    head = git(repo, "rev-parse", "HEAD")
+    if outcome == "SHAPED":
+        if git(repo, "diff", before_head, "HEAD"):
+            failed.append("the tree changed")
+    elif head != (expect_head or before_head):
+        failed.append("HEAD moved")
+    if failed:
+        bad(f"{name}: " + "; ".join(failed) + f"\n{done.stdout}{done.stderr}")
+    else:
+        ok(name)
+    return done
+
+
+def subjects(repo):
+    return git(repo, "log", "--reverse", "--format=%s", "main..HEAD").splitlines()
+
+
+def expect(name, actual, wanted):
+    if actual == wanted:
+        ok(name)
+    else:
+        bad(f"{name}: wanted {wanted!r}, got {actual!r}")
+
+
+def two_commits():
+    repo = new_repo()
+    first = save(repo, "feat: one", {"code/one.py": "1\n"})
+    second = save(repo, "feat: two", {"code/two.py": "2\n"})
+    return repo, first, second
+
+
+def aborts():
+    repo, a, b = two_commits()
+    path = manifest(repo, [(a, "purpose"), (b, "purpose")], base="nope")
+    check("base missing", repo, lambda: invoke(repo, path), "ABORTED")
+
+    repo, a, b = two_commits()
+    path = manifest(repo, [(a, "purpose"), (b, "purpose")])
+    git(repo, "checkout", "-q", "--detach")
+    check("detached HEAD", repo, lambda: invoke(repo, path), "ABORTED")
+
+    repo, a, b = two_commits()
+    write(repo, "code/a.py", "dirty\n")
+    path = manifest(repo, [(a, "purpose"), (b, "purpose")])
+    check(
+        "tracked change from a subdirectory",
+        repo,
+        lambda: invoke(repo, path, cwd=os.path.join(repo, "code")),
+        "ABORTED",
+    )
+
+    repo, a, b = two_commits()
+    path = manifest(repo, [(a, "purpose"), (b, "purpose")], start=a)
+    check("stale start", repo, lambda: invoke(repo, path), "ABORTED")
+
+    repo, a, b = two_commits()
+    path = manifest(repo, [(b, "purpose")])
+    check("missing sha", repo, lambda: invoke(repo, path), "ABORTED")
+
+    repo, a, b = two_commits()
+    path = manifest(repo, [(a, "purpose"), (b, "purpose"), (git(repo, "rev-parse", "main"), "purpose")])
+    check("extra sha", repo, lambda: invoke(repo, path), "ABORTED")
+
+    repo, a, b = two_commits()
+    path = manifest(repo, [(a, "purpose"), (b, "docs")])
+    done = check("tree differs", repo, lambda: invoke(repo, path), "ABORTED")
+    expect("tree differs names the cause", "tree differs" in done.stdout, True)
+
+    repo = new_repo()
+    a = save(repo, "feat: one\n\nRefs: #1", {"code/one.py": "1\n"})
+    b = save(repo, "feat: two", {"code/two.py": "2\n"})
+    hook(repo, "commit-msg", "sed -i.bak '/^Refs/d' \"$1\"; rm -f \"$1.bak\"")
+    path = manifest(repo, [(a, "purpose"), (b, "purpose")])
+    done = check("Refs/Closes set differs", repo, lambda: invoke(repo, path), "ABORTED")
+    expect("footers differ names the cause", "footers differ" in done.stdout, True)
+
+    # A same-tree commit, so the moved checkout stays clean and only HEAD differs.
+    repo = new_repo()
+    a = save(repo, "feat: one", {"code/one.py": "1\n"})
+    b = save(repo, "docs: readme", {"README.md": "new\n"})
+    moved = git(repo, "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "elsewhere")
+    common = os.path.join(repo, ".git")
+    hook(repo, "pre-commit", f"git --git-dir='{common}' update-ref refs/heads/feat {moved}")
+    path = manifest(repo, [(a, "purpose"), (b, "docs")], docs=["README.md"])
+    done = check("HEAD moved before reset", repo, lambda: invoke(repo, path), "ABORTED", expect_head=moved)
+    expect("HEAD moved names the cause", "HEAD moved" in done.stdout, True)
+
+    repo, a, b = two_commits()
+    hook(repo, "pre-commit", "echo no; exit 1")
+    path = manifest(repo, [(a, "purpose"), (b, "purpose")])
+    check("hook failure", repo, lambda: invoke(repo, path), "ABORTED")
+
+    repo = new_repo()
+    a = save(repo, "docs: one", {"README.md": "one\n"})
+    b = save(repo, "docs: two", {"GUIDE.md": "two\n"})
+    hook(repo, "pre-commit", "echo 'README.md rejected'; exit 1")
+    path = manifest(repo, [(a, "docs"), (b, "docs")], docs=["README.md", "GUIDE.md"])
+    check("docs rejected with no purpose commit", repo, lambda: invoke(repo, path), "ABORTED")
+
+    # README.md is named and moved, but the retry still holds GUIDE.md, which is rejected too.
+    repo = new_repo()
+    a = save(repo, "docs: both", {"README.md": "one\n", "GUIDE.md": "two\n"})
+    b = save(repo, "feat: code", {"code/one.py": "1\n"})
+    hook(repo, "pre-commit", REJECT_DOCS)
+    path = manifest(repo, [(a, "docs"), (b, "purpose")], docs=["README.md", "GUIDE.md"])
+    done = check("failed docs retry", repo, lambda: invoke(repo, path), "ABORTED")
+    expect("failed docs retry names the cause", "docs retry" in done.stdout, True)
+
+    # The first docs commit uses the one move, so the next rejection has none left.
+    repo = new_repo()
+    a = save(repo, "docs: one", {"README.md": "one\n"})
+    b = save(repo, "docs: two", {"GUIDE.md": "two\n"})
+    c = save(repo, "feat: code", {"code/one.py": "1\n"})
+    hook(repo, "pre-commit", REJECT_DOCS)
+    path = manifest(repo, [(a, "docs"), (b, "docs"), (c, "purpose")], docs=["README.md", "GUIDE.md"])
+    done = check("second docs rejection", repo, lambda: invoke(repo, path), "ABORTED")
+    expect("second docs rejection names the cause", "the docs commit" in done.stdout, True)
+
+    # Past the worktree add, so this also proves the exception path removes it.
+    repo, a, b = two_commits()
+    path = manifest(repo, [(a, "purpose"), (b, "purpose")])
+    code = (
+        "import importlib.util, sys\n"
+        "spec = importlib.util.spec_from_file_location('reshape', sys.argv[1])\n"
+        "reshape = importlib.util.module_from_spec(spec)\n"
+        "spec.loader.exec_module(reshape)\n"
+        "def boom(*_):\n"
+        "    raise RuntimeError('boom')\n"
+        "reshape.commit = boom\n"
+        "sys.exit(reshape.main([sys.argv[2]]))\n"
+    )
+    check(
+        "unexpected exception",
+        repo,
+        lambda: subprocess.run(
+            [sys.executable, "-c", code, SCRIPT, path], cwd=repo, env=ENV, capture_output=True, text=True
+        ),
+        "ABORTED",
+    )
+
+    repo, a, b = two_commits()
+    path = os.path.join(work, "broken.json")
+    with open(path, "w") as handle:
+        handle.write("{not json")
+    check("malformed manifest", repo, lambda: invoke(repo, path), "ABORTED")
+
+
+def unchanged():
+    repo, a, b = two_commits()
+    git(repo, "update-ref", "refs/remotes/origin/feat", a)
+    path = manifest(repo, [(a, "purpose"), (b, "purpose")])
+    check("pushed commit", repo, lambda: invoke(repo, path), "UNCHANGED")
+
+    repo = new_repo()
+    a = save(repo, "feat: one", {"code/one.py": "1\n"})
+    path = manifest(repo, [(a, "purpose")])
+    check("one commit", repo, lambda: invoke(repo, path), "UNCHANGED")
+
+    repo = new_repo()
+    a = save(repo, "chore: bump", {"VERSION": "2\n"})
+    b = save(repo, "docs: readme", {"README.md": "new\n"})
+    c = save(repo, "feat: one", {"code/one.py": "1\n"})
+    d = save(repo, "test: one", {"tests/test_one.py": "t\n"})
+    start = git(repo, "rev-parse", "HEAD")
+    path = manifest(repo, [(a, "bump"), (b, "docs"), (c, "purpose"), (d, "test")], ["README.md"], ["tests/test_one.py"])
+    check("already shaped", repo, lambda: invoke(repo, path), "UNCHANGED")
+    expect("already shaped keeps its commits", git(repo, "rev-parse", "HEAD"), start)
+
+
+def shaped():
+    # The stub stands in for a per-commit version check: code before the bump fails.
+    repo = new_repo()
+    a = save(repo, "feat: one", {"code/one.py": "1\n"})
+    b = save(repo, "chore: bump", {"VERSION": "2\n"})
+    hook(
+        repo,
+        "pre-commit",
+        "if git diff --cached --name-only | grep -q '^code/' && [ \"$(git show :VERSION)\" = 1 ]; then\n"
+        "  echo unbumped; exit 1\nfi",
+    )
+    path = manifest(repo, [(a, "purpose"), (b, "bump")])
+    check("bump first under a per-commit hook", repo, lambda: invoke(repo, path), "SHAPED")
+    expect("bump comes first", subjects(repo), ["chore: bump", "feat: one"])
+
+    # The stub ties a README row to the skill: README before code/new.py fails, once moved it passes.
+    repo = new_repo()
+    a = save(repo, "feat: new", {"code/new.py": "1\n"})
+    b = save(repo, "docs: row\n\nRefs: #7", {"README.md": "row\n"})
+    hook(
+        repo,
+        "pre-commit",
+        "if git diff --cached --name-only | grep -q '^README.md$' && ! git cat-file -e :code/new.py 2>/dev/null; then\n"
+        "  echo 'README.md names a skill that is not there'; exit 1\nfi",
+    )
+    path = manifest(repo, [(a, "purpose"), (b, "docs")], docs=["README.md"])
+    check("docs retry under a per-commit hook", repo, lambda: invoke(repo, path), "SHAPED")
+    expect("docs retry drops the empty docs commit", subjects(repo), ["feat: new"])
+    expect("docs retry moves the README", "README.md" in git(repo, "show", "--name-only", "--format=", "HEAD"), True)
+    expect("docs retry moves its footer", "Refs: #7" in git(repo, "log", "-1", "--format=%B"), True)
+
+    # Everything at once, in the worst order: this is the port of the rebuild rules.
+    repo = new_repo()
+    t1 = save(repo, "test: first", {"tests/test_a.py": "t1\n"})
+    p1 = save(repo, "feat: a\n\nRefs: #1", {"code/a.py": "a1\n", "docs/odd name.md": "d\n"})
+    f1 = save(repo, "fix: a\n\nCloses #2", {"code/a.py": "a2\n"})
+    p2 = save(repo, "refactor: b", {"code/b.py": "b1\n", "tests/test_b.py": "t2\n"})
+    p3 = save(repo, "feat: c", {"code/c.py": "c1\n"})
+    f2 = save(repo, "fix: b and c\n\nRefs: #3", {"code/b.py": "b2\n", "code/c.py": "c2\n"})
+    gone = save(repo, "fix: drop\n\nRefs: #4", {"code/c.py": None})
+    d1 = save(repo, "docs: readme\n\nRefs: #5", {"README.md": "docs\n"})
+    t2 = save(repo, "test: second\n\nRefs: #6", {"tests/test_a.py": "t3\n"})
+    bump = save(repo, "chore: bump", {"VERSION": "2\n"})
+    path = manifest(
+        repo,
+        [
+            (t1, "test"),
+            (p1, "purpose"),
+            (f1, "fix", p1),
+            (p2, "purpose"),
+            (p3, "purpose"),
+            (f2, "fix"),
+            (gone, "fix"),
+            (d1, "docs"),
+            (t2, "test"),
+            (bump, "bump"),
+        ],
+        docs=["README.md", "docs/odd name.md"],
+        tests=["tests/test_a.py", "tests/test_b.py"],
+    )
+    check("full reshape", repo, lambda: invoke(repo, path), "SHAPED")
+    expect(
+        "full reshape order",
+        subjects(repo),
+        ["chore: bump", "docs: readme", "feat: a", "refactor: b", "feat: c", "fix: b and c", "fix: drop", "test: add tests"],
+    )
+    expect(
+        "footers survive",
+        sorted(l for l in git(repo, "log", "--format=%B", "main..HEAD").splitlines() if re.match(r"(Refs|Closes)", l)),
+        ["Closes #2", "Refs: #1", "Refs: #3", "Refs: #4", "Refs: #5", "Refs: #6"],
+    )
+    expect("the fix folds into its commit", "Closes #2" in git(repo, "log", "--format=%B", "-1", "--grep=^feat: a"), True)
+    source = {
+        git(repo, "log", "-1", "--format=%s", sha): git(repo, "log", "-1", "--format=%an|%ae|%aI", sha)
+        for sha in (bump, d1, p1, p2, p3, f2, gone, t2)
+    }
+    rebuilt = dict(
+        line.split("\t", 1) for line in git(repo, "log", "--format=%s\t%an|%ae|%aI", "main..HEAD").splitlines()
+    )
+    rebuilt["test: second"] = rebuilt.pop("test: add tests")
+    expect("author and date match the source", rebuilt, source)
+
+    # A git that warns on every call: stderr must not read as tracked changes or as a message.
+    stub = os.path.join(work, "stub")
+    os.mkdir(stub)
+    with open(os.path.join(stub, "git"), "w") as handle:
+        handle.write(f"#!/bin/sh\necho 'warning: harmless' >&2\nexec '{shutil.which('git')}' \"$@\"\n")
+    os.chmod(os.path.join(stub, "git"), 0o755)
+    repo = new_repo()
+    a = save(repo, "feat: one\n\nRefs: #1", {"code/one.py": "1\n"})
+    b = save(repo, "docs: readme", {"README.md": "new\n"})
+    path = manifest(repo, [(a, "purpose"), (b, "docs")], docs=["README.md"])
+    warned = {"PATH": stub + os.pathsep + ENV["PATH"]}
+    done = check("a git warning changes nothing", repo, lambda: invoke(repo, path, env=warned), "SHAPED")
+    expect("a git warning stays out of the output", "warning" in done.stdout, False)
+
+    # A merge disappears, its footer handed to the last commit built.
+    repo = new_repo()
+    a = save(repo, "feat: one", {"code/one.py": "1\n"})
+    git(repo, "checkout", "-q", "-b", "side", "main")
+    b = save(repo, "feat: side", {"code/side.py": "s\n"})
+    git(repo, "checkout", "-q", "feat")
+    git(repo, "merge", "-q", "--no-ff", "side", "-m", "merge side\n\nRefs: #9")
+    path = manifest(repo, [(a, "purpose"), (b, "purpose")])
+    check("merge commit disappears", repo, lambda: invoke(repo, path), "SHAPED")
+    expect("history is linear", git(repo, "rev-list", "--merges", "main..HEAD"), "")
+    expect("the merge footer survives", "Refs: #9" in git(repo, "log", "--format=%B", "main..HEAD"), True)
+
+
+def guards():
+    with open(SCRIPT, encoding="utf-8") as handle:
+        source = handle.read()
+    found = re.findall(r"--no-verify|\bpush\b|\bstash\b", source)
+    expect("reshape.py never bypasses hooks, pushes or stashes", found, [])
+
+
+print("==> Checking the history rebuild")
+try:
+    aborts()
+    unchanged()
+    shaped()
+    guards()
+finally:
+    shutil.rmtree(work, ignore_errors=True)
+
+if error_count():
+    print(f"==> {error_count()} error(s) found")
+    sys.exit(1)
+print("==> All checks passed")
+PY
