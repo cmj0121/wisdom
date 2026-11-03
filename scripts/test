@@ -13,6 +13,7 @@
 #   version agreement and bumps                            -> check-version-sync
 #   magic words, README tables and presence, references    -> validate
 #   SKILL.md against the Agent Skills standard             -> check-skill-spec
+#   what the hooks print for a prompt                      -> test-hooks
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -124,6 +125,12 @@ for entry in plugins:
         else:
             bad(f"plugin.json name '{pj.get('name', '')}' != marketplace.json name '{name}'")
 
+    # The hooks swallow a missing helper by design, so only this notices it gone.
+    if os.path.isfile(os.path.join(plugin_dir, "hooks", "_lingua.py")):
+        ok("hooks/_lingua.py exists")
+    else:
+        bad("missing hooks/_lingua.py")
+
     if os.path.isfile(os.path.join(plugin_dir, "LICENSE")):
         ok("LICENSE exists")
     else:
@@ -166,6 +173,7 @@ for script in (
     "validate",
     "check-skill-spec",
     "validate-fixtures",
+    "test-hooks",
     "check-install-drift",
 ):
     path = os.path.join(root, "scripts", script)

@@ -30,8 +30,8 @@ repos:
       - id: shfmt
 
   # -------- marketplace integrity --------
-  # These five are the repo's own checks. Four run unconditionally; the fifth
-  # stays gated on scripts/. See each comment for why.
+  # These six are the repo's own checks. Four run unconditionally; two are gated
+  # on the paths they read. See each comment for why.
   - repo: local
     hooks:
       # This one cannot be gated by `files:`. pre-commit builds its candidate
@@ -75,7 +75,16 @@ repos:
         language: script
         pass_filenames: false
         always_run: true
-      # The one hook that stays gated: it is the slowest, and it only says
+      # Gated: only these paths change what the hooks print. A deleted hook is
+      # caught by scripts/test, which checks every path hooks.json runs.
+      - id: hook-output
+        name: hook output
+        description: Fail if a prompt or SessionStart hook prints the wrong context, exits non-zero, or writes to stderr.
+        entry: scripts/test-hooks
+        language: script
+        pass_filenames: false
+        files: '^(plugins/wisdom/hooks/|plugins/wisdom/skills/.*/SKILL\.md|scripts/test-hooks)'
+      # Gated too: it is the slowest, and it only says
       # anything new when scripts/ changes. A deletion-only commit presents it
       # no file, but scripts/test already fails when a check script is gone.
       - id: marketplace-validator-fixtures

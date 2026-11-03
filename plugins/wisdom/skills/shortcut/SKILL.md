@@ -12,7 +12,8 @@ allowed-tools:
 The plugin's `UserPromptSubmit` hook (`hooks/shortcut-prompt.py`) matches every prompt
 against the magic words and names the skill to run, so a word normally dispatches before
 this skill is read. This skill lists the words, and dispatches by hand when the hook did
-not fire — hooks disabled, or a word handed over as an argument.
+not fire — hooks disabled, a skill's frontmatter over 1KB, or a word handed over as an
+argument.
 
 ## Sources
 
