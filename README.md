@@ -55,13 +55,13 @@ other skills in turn. Every skill also works on its own.
 
 ### Ship
 
-| Skill       | Purpose                                                 | Magic word      |
-| ----------- | ------------------------------------------------------- | --------------- |
-| `commit`    | Write a commit message for the staged change and commit | `commit it`     |
-| `history`   | Reshape a branch into docs, feats and one test commit   | —               |
-| `changelog` | Generate changelog entries from git history             | `gen changelog` |
-| `release`   | Bump the version and tag a release — only when asked    | `release it`    |
-| `resolve`   | Work a pull request's review comments, test first       | `resolve pr`    |
+| Skill       | Purpose                                                           | Magic word      |
+| ----------- | ----------------------------------------------------------------- | --------------- |
+| `commit`    | Commit what is staged, with a written message; fail if nothing is | `commit it`     |
+| `history`   | Classify a branch, then reshape it: bump, docs, feats, one test   | —               |
+| `changelog` | Generate changelog entries from git history                       | `gen changelog` |
+| `release`   | Bump the version and tag a release — only when asked              | `release it`    |
+| `resolve`   | Work a pull request's review comments, test first                 | `resolve pr`    |
 
 ### Check
 
@@ -136,19 +136,17 @@ A boxed step runs in its own subagent; a `smith ─` step is Smith itself; `★`
                          │ PASS
                          ▼
   ┌──────────────────────────────────────────────┐
-  │ same code agent · wisdom:commit in worktree  │   resumed via SendMessage
+  │ same code agent · git add + wisdom:commit    │   resumed via SendMessage
   └──────────────────────────────────────────────┘
                          │
                          ▼
   smith ─ merges each branch into feat/<slug>
                          │
                          ▼
-  ┌──────────────────────────────────────────────┐
-  │ wisdom:test · full suite on feat/<slug>      │   once per batch, unless reused
-  └──────────────────────────────────────────────┘
+  smith ─ runs the full suite on feat/<slug>   once per batch, unless reused
                          │
-                         ├──FAIL──> new wisdom:code agent ──> review, commit, test
-                         │ PASS
+                         ├──non-zero──> wisdom:test names failures ──> new wisdom:code agent ──> review, commit, suite
+                         │ exit 0
                          ▼
   smith ─ Baseline = PASS at <sha> ──> next batch, or ③
 
@@ -159,13 +157,17 @@ A boxed step runs in its own subagent; a `smith ─` step is Smith itself; `★`
   └─────────────┘ └───────────────┘ └──────────────┘ └────────────┘
          └────────────────┴────────┬───────┴───────────────┘
                                    │
-                                   ├──FAIL──> new wisdom:code agent ──> review, commit
+                                   ├──BLOCKED, FINDINGS, BLOCK──> new wisdom:code agent ──> review, commit
                                    ▼
            ┌──────────────────────────────────────────────┐
-           │ wisdom:history · reshape feat/<slug>         │   bump, docs, feats, one test
+           │ wisdom:history · classify, then reshape.py   │   bump, docs, feats, one test
            └──────────────────────────────────────────────┘
                                    │
-                                   ├──ABORTED──> branch unmoved, shown at Checkpoint 2
+                                   │ any result · ABORTED: branch unmoved, shown at Checkpoint 2
+                                   ▼
+           smith ─ runs the full suite, whatever history returned
+                                   │
+                                   ├──FAIL──> fix, commit ──> back to wisdom:history
                                    ▼
                ★ Checkpoint 2 · user approves merge
                                    │
@@ -179,13 +181,18 @@ A boxed step runs in its own subagent; a `smith ─` step is Smith itself; `★`
   files and acceptance, each decision's interface.
 - Every step on a unit runs in a subagent; `smith` reads result lines, never diffs.
 - Independent units run in parallel, each `code` in its own git worktree, running only its
-  own tests; the full suite runs once per merged batch.
+  own tests; the full suite runs once per merged batch. `smith` runs it itself and delegates
+  only a failure.
 - `review` returns a one-line verdict; `smith` routes a failure back to the same `code`
   subagent (or to `design` when the design is at fault), which commits once it passes.
-- Before the merge, `history` rebuilds the unpushed branch as linear history in a temporary
-  worktree; its empty diff against the start is why reviews and the suite are not run again.
-- `smith` stops for you twice: to approve the plan, and to approve the merge. It never tags
-  or releases unless you ask.
+- Before the merge, `history` classifies the unpushed branch's files and commits, then calls
+  `reshape.py`, which rebuilds it as linear history in a temporary worktree; its empty diff
+  against the start is why reviews are not run again. `smith` then re-runs the suite whatever
+  `history` returned, since the commits from the check step have not been tested.
+- `smith` stops at two checkpoints, to approve the plan and the merge, and also when it needs
+  your answer or a hard-to-undo choice, when work is left unreviewed or untested, or after two
+  failed fix rounds; [its skill](plugins/wisdom/skills/smith/SKILL.md) has the full routing. It
+  never tags, releases or pushes unless you ask.
 
 ## Token budget
 
@@ -203,14 +210,18 @@ Skills are Markdown with YAML frontmatter following the
 ```text
 plugins/wisdom/
 ├── .claude-plugin/plugin.json
+├── evals/<case>/        # what `make eval` runs
 ├── hooks/               # hooks.json and the scripts it runs
 └── skills/<name>/
     ├── SKILL.md
-    └── references/      # optional
+    ├── references/      # optional
+    └── scripts/         # optional
 ```
 
-Run `make test` before a commit — it checks the layout, the version sync, frontmatter against
-the standard, and that magic words are unique.
+Run `make test` before a commit — it checks the layout, the version sync, magic words and
+README tables, frontmatter against the standard, hook output, and `history`'s `reshape.py`.
+`make eval` runs the skill evals with real, billed model runs, capped at $5 a run; CI does not
+run it.
 
 ## DDD (Dream-Driven Development)
 
