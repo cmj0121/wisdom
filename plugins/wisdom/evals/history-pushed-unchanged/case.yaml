@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: history-pushed-unchanged
+expected_outcome: |
+  A branch with a commit already on a remote is left alone, and the run ends in HISTORY: UNCHANGED.
+context:
+  scaffold_script: scaffold

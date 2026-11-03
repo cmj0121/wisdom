@@ -30,8 +30,8 @@ repos:
       - id: shfmt
 
   # -------- marketplace integrity --------
-  # These five are the repo's own checks. Four run unconditionally; see each
-  # comment for why, and read them together — the reasoning is one argument.
+  # These six are the repo's own checks. Four run unconditionally; two are gated
+  # on the paths they read. See each comment for why.
   - repo: local
     hooks:
       # This one cannot be gated by `files:`. pre-commit builds its candidate
@@ -41,40 +41,33 @@ repos:
       # check exists to catch, so it runs unconditionally (~2.5s).
       - id: marketplace-structure
         name: marketplace structure
-        description: Fail if a plugin is missing plugin.json, SKILL.md, README.md or LICENSE, or a manifest name drifts.
+        description: Fail if a plugin is missing plugin.json or LICENSE, a manifest name drifts, a hook path dangles, or a check script is gone.
         entry: scripts/test
         language: script
         pass_filenames: false
         always_run: true
-      # Same reason, and both are cheap (~0.04s each). check-version-sync is
-      # the only check that reads plugin.json, and validate the only one that
-      # reads the top-level README.md and can report it missing at all —
-      # gated, both disarmed on a deletion-only commit, so `git rm README.md`
-      # and even `git rm scripts/validate` committed green.
+      # Same reason. Gated, this one and validate below would be disarmed on a
+      # deletion-only commit, so `git rm` of a plugin.json, of README.md or of
+      # scripts/validate would commit green.
       - id: marketplace-version-sync
         name: marketplace version sync
-        description: Fail if marketplace versions drift from plugin.json or SKILL.md, or lag the latest git tag.
+        description: Fail if marketplace versions drift from plugin.json, lag the latest git tag, or a changed plugin is unbumped.
         entry: scripts/check-version-sync
         language: script
         pass_filenames: false
         always_run: true
+      # --per-commit lets a README row land in an earlier commit than its skill.
+      # `make test` and CI run the full form, which still catches the gap.
       - id: marketplace-semantic-validate
         name: marketplace semantic validation
-        description: Fail if skill references, model tiers, magic words or README sections are inconsistent.
-        entry: scripts/validate
+        description: Fail if plugin descriptions, magic words, README skill tables, skill references or code fences are inconsistent.
+        entry: scripts/validate --per-commit
         language: script
         pass_filenames: false
         always_run: true
-      # The one hook that stays gated: ~4s, and it only says anything new when
-      # scripts/ changes. Deleting scripts/validate does NOT present a scripts/
-      # file to it — measured; a deletion-only commit presents nothing at all —
-      # so `always_run` here would be the only way it could catch that. The
-      # unconditional marketplace-semantic-validate above already fails on a
-      # missing entry, and scripts/test checks the scripts exist. It now covers
-      # the fixtures for check-skill-spec too, which live in the same file.
-      # Same again. It reads only SKILL.md files, but a commit that deletes one
-      # is exactly when "does every skill still follow the standard" has a new
-      # answer, and a gated hook would see nothing on such a commit (~0.05s).
+      # It reads only SKILL.md files, but a commit that deletes one is exactly
+      # when "does every skill still follow the standard" has a new answer, and
+      # a gated hook would see nothing on such a commit.
       - id: skill-spec
         name: agent skills standard
         description: Fail if a SKILL.md carries an unknown frontmatter field, or breaks the Agent Skills naming, description, shape or progressive-disclosure rules.
@@ -82,6 +75,18 @@ repos:
         language: script
         pass_filenames: false
         always_run: true
+      # Gated: only these paths change what the hooks print. A deleted hook is
+      # caught by scripts/test, which checks every path hooks.json runs.
+      - id: hook-output
+        name: hook output
+        description: Fail if a prompt or SessionStart hook prints the wrong context, exits non-zero, or writes to stderr.
+        entry: scripts/test-hooks
+        language: script
+        pass_filenames: false
+        files: '^(plugins/wisdom/hooks/|plugins/wisdom/skills/.*/SKILL\.md|scripts/test-hooks)'
+      # Gated too: it is the slowest, and it only says
+      # anything new when scripts/ changes. A deletion-only commit presents it
+      # no file, but scripts/test already fails when a check script is gone.
       - id: marketplace-validator-fixtures
         name: marketplace validator fixtures
         description: Fail if a semantic or standard check can no longer be made to fail. Runs only when scripts/ changes.

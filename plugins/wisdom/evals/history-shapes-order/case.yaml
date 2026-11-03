@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: history-shapes-order
+expected_outcome: |
+  The branch is rebuilt as bump, docs, purposes with the fix folded in, then one test commit, and the run ends in HISTORY: SHAPED 5 commits.
+context:
+  scaffold_script: scaffold

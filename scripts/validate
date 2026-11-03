@@ -10,47 +10,45 @@
 #   4. A '<plugin>:<skill>' reference to a plugin this marketplace ships
 #      resolves to one of its skills.
 #   5. Code fences in skills and READMEs are balanced.
+#   6. Every route smith writes as `<skill>: <TOKEN>` names a skill, and a token
+#      that skill's fenced fixed result line states.
 #
-# An optional first argument overrides the repo root, so the fixture harness
-# can point the validator at a mutated copy of the repo. Quiet by default;
-# WISDOM_VERBOSE=1 restores the per-item PASS lines.
+# An optional positional argument overrides the repo root, so the fixture
+# harness can point the validator at a mutated copy of the repo. --per-commit,
+# before or after it, skips only the table comparison in check 3, so a README
+# row can land in an earlier commit than its skill; `make test` and CI run the
+# full form. Quiet by default; WISDOM_VERBOSE=1 restores the per-item PASS lines.
 set -euo pipefail
 
-if [ $# -ge 1 ]; then
-	REPO_ROOT="$(cd "$1" && pwd)"
-else
-	REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-fi
+PER_COMMIT=0
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+for arg in "$@"; do
+	case "$arg" in
+	--per-commit) PER_COMMIT=1 ;;
+	*) REPO_ROOT="$(cd "$arg" && pwd)" ;;
+	esac
+done
 
-python3 - "$REPO_ROOT" <<'PY'
+PYTHONDONTWRITEBYTECODE=1 PYTHONSAFEPATH=1 PYTHONPATH="$(cd "$(dirname "$0")" && pwd)" python3 - "$REPO_ROOT" "$PER_COMMIT" <<'PY'
 import glob
 import json
 import os
 import re
 import sys
 
-root = sys.argv[1]
+from _common import bad, error_count, ok, parse_frontmatter, shipped_skills, source_path, split_frontmatter
 
-GREEN, RED, RESET = "\033[32m", "\033[31m", "\033[0m"
-WISDOM_VERBOSE = os.environ.get("WISDOM_VERBOSE", "") not in ("", "0")
-errors = 0
+root = sys.argv[1]
+per_commit = sys.argv[2] == "1"
 
 READMES = ("README.md", "README.zh-TW.md")
 
 FENCE_RE = re.compile(r"^\s*(```|~~~)")
 TICK_RE = re.compile(r"`([^`]+)`")
 REF_RE = re.compile(r"`([a-z0-9-]+):([a-z0-9-]+)`")
-
-
-def ok(msg):
-    if WISDOM_VERBOSE:
-        print(f"  {GREEN}PASS{RESET} {msg}")
-
-
-def bad(msg):
-    global errors
-    print(f"  {RED}FAIL{RESET} {msg}")
-    errors += 1
+ROUTE_RE = re.compile(r"`([a-z0-9-]+): ([A-Z][A-Z_]*)`")
+FIXED_LINE_RE = re.compile(r"^\s*[A-Z]+: (.+)$")
+TOKEN_RE = re.compile(r"[A-Z][A-Z_]*\b")
 
 
 def rel(path):
@@ -73,12 +71,25 @@ def unfenced(text):
     return None if inside else out
 
 
+def fixed_tokens(text):
+    """Tokens of the fixed result lines in a skill's code fences, so `AFK: ASK — ...` gives ASK."""
+    tokens, inside = set(), False
+    for line in text.splitlines():
+        if FENCE_RE.match(line):
+            inside = not inside
+        elif inside and (m := FIXED_LINE_RE.match(line)):
+            for alternative in m.group(1).split(" — ")[0].split("|"):
+                if t := TOKEN_RE.match(alternative.strip()):
+                    tokens.add(t.group())
+    return tokens
+
+
 def shortcut_of(path):
     """The comma-separated metadata.shortcut words of a SKILL.md."""
-    text = read(path)
-    head = text.split("\n---", 1)[0] if text.startswith("---") else ""
-    m = re.search(r"^\s+shortcut:\s*[\"']?([^\"'\n]*)", head, re.M)
-    return [w.strip() for w in m.group(1).split(",") if w.strip()] if m else []
+    front, _ = split_frontmatter(path)
+    meta = parse_frontmatter(front).get("metadata") if front else None
+    words = meta.get("shortcut") if isinstance(meta, dict) else None
+    return [w.strip() for w in (words or "").split(",") if w.strip()]
 
 
 mk = json.load(open(os.path.join(root, ".claude-plugin", "marketplace.json")))
@@ -88,7 +99,7 @@ readme_prose = "\n".join(unfenced(read(os.path.join(root, "README.md"))) or [])
 skills = {}  # name -> SKILL.md path
 for entry in mk["plugins"]:
     name = entry["name"]
-    src = entry["source"][2:] if entry["source"].startswith("./") else entry["source"]
+    src = source_path(entry)
     pj = json.load(open(os.path.join(root, src, ".claude-plugin", "plugin.json")))
     if pj.get("description") == entry.get("description"):
         ok(f"{name}: description agrees")
@@ -98,11 +109,10 @@ for entry in mk["plugins"]:
         ok(f"{name}: named in README.md")
     else:
         bad(f"{name}: registered in marketplace.json but never named in README.md prose")
-    for path in sorted(glob.glob(os.path.join(root, src, "skills", "*", "SKILL.md"))):
-        skill = os.path.basename(os.path.dirname(path))
-        if skill in skills:
-            bad(f"{skill}: shipped by two plugins")
-        skills[skill] = path
+for skill, path in shipped_skills(root, mk["plugins"]):
+    if skill in skills:
+        bad(f"{skill}: shipped by two plugins")
+    skills[skill] = path
 
 print("==> Checking magic words are unique")
 owner = {}
@@ -123,6 +133,8 @@ for readme in READMES:
     lines = unfenced(read(path))
     if lines is None:
         bad(f"{readme}: unterminated code fence")
+        continue
+    if per_commit:
         continue
     listed, in_skills = {}, False
     for line in lines:
@@ -164,9 +176,22 @@ for skill, path in skills.items():
             else:
                 bad(f"{rel(doc)}: reference '{plugin}:{target}' resolves to no skill")
 
+print("==> Checking smith's routes against the skills' fixed lines")
+if "smith" in skills:
+    routes = ROUTE_RE.findall("\n".join(unfenced(read(skills["smith"])) or []))
+    if not routes:
+        bad("smith states no routes in the `<skill>: <TOKEN>` form")
+    for skill, token in routes:
+        if skill not in skills:
+            bad(f"smith route '{skill}: {token}': no skill '{skill}'")
+        elif token in fixed_tokens(read(skills[skill])):
+            ok(f"smith route '{skill}: {token}'")
+        else:
+            bad(f"smith route '{skill}: {token}': {skill} states no such token in a fixed line")
+
 print("")
-if errors:
-    print(f"==> {errors} error(s) found")
+if error_count():
+    print(f"==> {error_count()} error(s) found")
     sys.exit(1)
 print(f"==> All semantic checks passed ({len(skills)} skills)")
 PY

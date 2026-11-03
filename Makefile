@@ -1,6 +1,6 @@
 SUBDIR :=
 
-.PHONY: all clean test doctor run build upgrade install help $(SUBDIR)
+.PHONY: all clean test eval doctor upgrade install help $(SUBDIR)
 
 all: $(SUBDIR) 		# default action
 	@[ -f .git/hooks/pre-commit ] || pre-commit install --install-hooks
@@ -13,14 +13,14 @@ clean: $(SUBDIR)	# clean-up environment
 # self-test rather than a check on this repo's contents, and it costs ~2.8s.
 # pre-commit runs it whenever scripts/ changes.
 #
-# All four run even after one fails -- a run that stops at the first failure
+# All six run even after one fails -- a run that stops at the first failure
 # hides the rest -- so the loop must say so itself: the last line of a failing
 # run used to be the LAST script's success sentence. The count is derived from
-# the loop rather than written twice, so adding a fifth check cannot leave the
-# summary claiming four.
-test:				# run the four repo checks (not the validator self-test)
+# the loop rather than written twice, so adding a check cannot leave the summary
+# claiming the old number.
+test:				# run the six repo checks (not the validator self-test)
 	@failed=0; total=0; summary=""; \
-	for script in test check-version-sync validate check-skill-spec; do \
+	for script in test check-version-sync validate check-skill-spec test-hooks test-history; do \
 		total=$$((total + 1)); \
 		if bash "scripts/$$script"; then \
 			summary="$$summary  \033[32mPASS\033[0m scripts/$$script\n"; \
@@ -38,15 +38,19 @@ test:				# run the four repo checks (not the validator self-test)
 	printf '==> %d of %d checks FAILED -- re-run with WISDOM_VERBOSE=1 for per-item detail\n' "$$failed" "$$total"; \
 	exit 1
 
+# Deliberately NOT part of `test` or CI: it runs paid model calls. make's "Error 1"
+# (a case scored low) and "Error 2" (the cost cap was hit) are results to read, not
+# broken runs; make itself exits 2 for either.
+# Add flags through EVAL_ARGS, e.g. make eval EVAL_ARGS="--json /tmp/eval.json".
+eval:				# run the skill evals with real, billed model runs (cap $5)
+	claude plugin eval plugins/wisdom --trust-plugin --scaffold --no-publish \
+		--ablation none --runs 1 --max-cost-usd 5 --allow-tools Bash Edit $(EVAL_ARGS)
+
 # Deliberately NOT part of `test`: this one asserts on the machine, not on the
 # repo. There is no $$HOME/.claude in CI, where it would pass for the wrong
 # reason, and a contributor's own skills are not this repo's business.
 doctor:				# check the local machine for skills shadowing this marketplace
 	@bash scripts/check-install-drift
-
-run:				# run in the local environment
-
-build:				# build the binary/library
 
 install:			# symlink marketplace for /plugin usage
 	@DEST="$$HOME/.claude/plugins/marketplaces/wisdom"; \

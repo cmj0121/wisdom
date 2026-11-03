@@ -10,9 +10,11 @@
 #
 # Deliberately NOT checked here — each is covered by a sibling script, and
 # duplicating it would only make one more place to keep in step:
-#   plugin.json / SKILL.md presence and version agreement  -> check-version-sync
-#   SKILL.md frontmatter, README.md presence               -> validate
+#   version agreement and bumps                            -> check-version-sync
+#   magic words, README tables and presence, references    -> validate
 #   SKILL.md against the Agent Skills standard             -> check-skill-spec
+#   what the hooks print for a prompt                      -> test-hooks
+#   what the history skill's rebuild does to a branch      -> test-history
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -30,10 +32,8 @@ GREEN, RED, RESET = "\033[32m", "\033[31m", "\033[0m"
 # Quiet by default: one PASS line per item per check buried the single FAIL
 # line that mattered, and left a success sentence as the last thing on screen.
 # WISDOM_VERBOSE=1 restores the full listing. An environment variable rather
-# than a flag because scripts/validate already spends its only positional
-# argument on the repo-root override, and because one variable covers all of
-# scripts/ however they are invoked — directly, through make, or by a
-# pre-commit hook.
+# than a flag because one variable covers all of scripts/ however they are
+# invoked — directly, through make, or by a pre-commit hook.
 #
 # Prefixed, and NOT the conventional bare VERBOSE: that name is already
 # exported globally in plenty of shells for other build systems, and inheriting
@@ -126,6 +126,12 @@ for entry in plugins:
         else:
             bad(f"plugin.json name '{pj.get('name', '')}' != marketplace.json name '{name}'")
 
+    # The hooks swallow a missing helper by design, so only this notices it gone.
+    if os.path.isfile(os.path.join(plugin_dir, "hooks", "_lingua.py")):
+        ok("hooks/_lingua.py exists")
+    else:
+        bad("missing hooks/_lingua.py")
+
     if os.path.isfile(os.path.join(plugin_dir, "LICENSE")):
         ok("LICENSE exists")
     else:
@@ -163,10 +169,13 @@ for entry in plugins:
 print("==> Checking the check scripts")
 for script in (
     "test",
+    "_common.py",
     "check-version-sync",
     "validate",
     "check-skill-spec",
     "validate-fixtures",
+    "test-hooks",
+    "test-history",
     "check-install-drift",
 ):
     path = os.path.join(root, "scripts", script)

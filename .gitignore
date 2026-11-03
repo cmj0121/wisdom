@@ -9,3 +9,5 @@ PLAN_DETAILS.md
 # plugin it evaluated. They are run artefacts of a paid, machine-local check,
 # not repo contents.
 plugins/*/evals/results/
+
+__pycache__/

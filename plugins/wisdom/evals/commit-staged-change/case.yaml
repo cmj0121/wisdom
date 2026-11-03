@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: commit-staged-change
+expected_outcome: |
+  The staged change is committed and the run ends in COMMIT: <hash>.
+context:
+  scaffold_script: scaffold

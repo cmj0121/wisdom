@@ -1,6 +1,6 @@
 ---
 name: secure
-description: Reviews source code for security vulnerabilities and maps each finding to a CWE. Use when security is the question — the whole project, or the scope given.
+description: Reviews source code for security vulnerabilities, each mapped to a CWE. Use when security is the question, for a project or scope; dependencies go to audit.
 license: MIT
 metadata:
   shortcut: "sec review"

@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+set -eu
+git init -q -b main
+git config user.name Eval
+git config user.email eval@example.com
+git config commit.gpgsign false
+save() {
+	git add -A
+	git commit -qm "$1"
+}
+echo "# demo" >README.md
+save "chore: start"
+git checkout -qb feat/work
+cat >PLAN.md <<'MD'
+# Plan
+
+Decision: Tests deferred.
+
+| Unit | Status  |
+| ---- | ------- |
+| U1   | pending |
+| U2   | pending |
+MD
+cat >PLAN_DETAILS.md <<'MD'
+# Details
+
+## Setup
+
+Test: `python3 -m unittest`
+
+## Decisions
+
+Tests deferred: the plan is large enough for tests to wait.
+
+## Units
+
+### U1
+
+- Files: `alpha.py`
+- Acceptance: `alpha()` returns 1.
+
+### U2
+
+- Files: `beta.py`
+- Acceptance: `beta()` returns 2.
+- Depends on: U1
+MD

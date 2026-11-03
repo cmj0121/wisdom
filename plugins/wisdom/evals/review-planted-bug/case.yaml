@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: review-planted-bug
+expected_outcome: |
+  A total that skips the first item is a correctness bug, so the review ends in VERDICT: FAIL and points at cart.py.
+context:
+  scaffold_script: scaffold

@@ -11,37 +11,20 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 LATEST_TAG="$(git -C "$REPO_ROOT" tag --sort=-v:refname --list 'v*' 2>/dev/null | head -n1 || true)"
 
-python3 - "$REPO_ROOT" "$LATEST_TAG" <<'PY'
-import json, os, re, subprocess, sys
+PYTHONDONTWRITEBYTECODE=1 PYTHONSAFEPATH=1 PYTHONPATH="$(cd "$(dirname "$0")" && pwd)" python3 - "$REPO_ROOT" "$LATEST_TAG" <<'PY'
+import json, os, subprocess, sys
+
+from _common import bad, error_count, ok, source_path
 
 root = sys.argv[1]
 latest_tag = sys.argv[2] if len(sys.argv) > 2 else ""
 mk = json.load(open(os.path.join(root, ".claude-plugin", "marketplace.json")))
 
-GREEN, RED, RESET = "\033[32m", "\033[31m", "\033[0m"
-# Quiet by default; WISDOM_VERBOSE=1 restores the per-item PASS lines. See the same
-# comment in scripts/test for why an environment variable and not a flag.
-WISDOM_VERBOSE = os.environ.get("WISDOM_VERBOSE", "") not in ("", "0")
-errors = 0
-
-
-def ok(msg):
-    if WISDOM_VERBOSE:
-        print(f"  {GREEN}PASS{RESET} {msg}")
-
-
-def bad(msg):
-    global errors
-    print(f"  {RED}FAIL{RESET} {msg}")
-    errors += 1
-
-
-
 print("==> Checking marketplace.json <-> plugin.json version sync")
 for p in mk["plugins"]:
     name = p["name"]
     mk_ver = p.get("version", "")
-    src = p["source"][2:] if p["source"].startswith("./") else p["source"]
+    src = source_path(p)
     pj_path = os.path.join(root, src, ".claude-plugin", "plugin.json")
     if not os.path.isfile(pj_path):
         bad(f"{name}: missing {os.path.relpath(pj_path, root)}")
@@ -88,7 +71,7 @@ if not latest_tag:
 else:
     for p in mk["plugins"]:
         name = p["name"]
-        src = p["source"][2:] if p["source"].startswith("./") else p["source"]
+        src = source_path(p)
         changed = subprocess.run(
             ["git", "-C", root, "diff", "--quiet", latest_tag, "--", src],
         ).returncode != 0
@@ -111,8 +94,8 @@ else:
         else:
             bad(f"{name}: files changed since {latest_tag} but the version is still {now}")
 
-if errors:
-    print(f"==> {errors} version problem(s) found")
+if error_count():
+    print(f"==> {error_count()} version problem(s) found")
     sys.exit(1)
 print("==> All version checks passed")
 PY

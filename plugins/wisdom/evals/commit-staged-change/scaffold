@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -eu
+git init -q -b main
+git config user.name Eval
+git config user.email eval@example.com
+git config commit.gpgsign false
+save() {
+	git add -A
+	git commit -qm "$1"
+}
+echo "# demo" >README.md
+save "chore: start"
+git checkout -qb feat/work
+echo "def alpha(): return 1" >alpha.py
+git add alpha.py

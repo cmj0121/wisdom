@@ -1,6 +1,6 @@
 ---
 name: plan
-description: Turns an idea into PLAN.md and PLAN_DETAILS.md — units, decisions and the context to build them — for later skills. Use before non-trivial work starts.
+description: Turns an idea into PLAN.md and PLAN_DETAILS.md for later skills, and stops there; smith builds it through to merge. Use before non-trivial work starts.
 license: MIT
 metadata:
   shortcut: "plan it"

@@ -29,56 +29,26 @@ else
 fi
 HOME_DIR="${2:-$HOME}"
 
-python3 - "$REPO_ROOT" "$HOME_DIR" <<'PY'
+PYTHONDONTWRITEBYTECODE=1 PYTHONSAFEPATH=1 PYTHONPATH="$(cd "$(dirname "$0")" && pwd)" python3 - "$REPO_ROOT" "$HOME_DIR" <<'PY'
 import glob
 import json
 import os
-import re
 import sys
+
+from _common import RESET, bad, error_count, ok, shipped_skills
 
 root, home = sys.argv[1], sys.argv[2]
 
-GREEN, RED, YELLOW, RESET = "\033[32m", "\033[31m", "\033[33m", "\033[0m"
-WISDOM_VERBOSE = os.environ.get("WISDOM_VERBOSE", "") not in ("", "0")
-errors = 0
-
-
-def ok(msg):
-    if WISDOM_VERBOSE:
-        print(f"  {GREEN}PASS{RESET} {msg}")
-
-
-def bad(msg):
-    global errors
-    print(f"  {RED}FAIL{RESET} {msg}")
-    errors += 1
+YELLOW = "\033[33m"
 
 
 def warn(msg):
     print(f"  {YELLOW}WARN{RESET} {msg}")
 
 
-VERSION_RE = re.compile(r'^\s*version:\s*["\']?([^"\'\s]+)', re.M)
-
-
-def version_of(path):
-    """A SKILL.md's version (a v3 skill carries none, so its plugin's), or '?'."""
-    try:
-        text = open(path, encoding="utf-8").read()
-    except OSError:
-        return "?"
-    head = text.split("\n---", 1)[0]
-    m = VERSION_RE.search(head)
-    return m.group(1) if m else "?"
-
-
 mk = json.load(open(os.path.join(root, ".claude-plugin", "marketplace.json")))
 # v3 ships many skills per plugin, so the roster is the skill directories.
-shipped = {}
-for p in mk["plugins"]:
-    src = p["source"][2:] if p["source"].startswith("./") else p["source"]
-    for path in glob.glob(os.path.join(root, src, "skills", "*", "SKILL.md")):
-        shipped[os.path.basename(os.path.dirname(path))] = path
+shipped = {skill for skill, _ in shipped_skills(root, mk["plugins"])}
 
 # The tiers that outrank an installed plugin, nearest first. Both may be absent
 # -- on a machine that never installed the marketplace, or in CI -- and an
@@ -99,18 +69,13 @@ for tier, base in TIERS:
         if name not in shipped:
             continue  # somebody else's skill; not this marketplace's business
         found = True
-        ours = shipped[name]
-        bad(
-            f"{name}: also served from the {tier} tier at {path}"
-            f" (that copy says version {version_of(path)},"
-            f" this repo ships {version_of(ours)})"
-        )
+        bad(f"{name}: also served from the {tier} tier at {path}")
 
 if not found:
     print(f"==> No drift: none of the {len(shipped)} shipped skills is shadowed")
     sys.exit(0)
 
-print(f"==> {errors} shadowed skill(s) found")
+print(f"==> {error_count()} shadowed skill(s) found")
 warn(
     "the plugin is still installed; the copy above merely outranks it."
     " Move the listed directories aside (they are not tracked here) and"

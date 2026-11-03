@@ -18,7 +18,7 @@ never changes what is answered.
 ## Config
 
 `~/.claude/projects/<project-path>/memory/lingua.md`, where `<project-path>` is the working
-directory with `/` replaced by `-`. Never committed.
+directory with `/` and `.` replaced by `-`. Never committed.
 
 ```yaml
 ---

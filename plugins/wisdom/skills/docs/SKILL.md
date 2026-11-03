@@ -21,7 +21,15 @@ the one who built it.
    project ships the same doc in more than one language, update every copy.
 4. **Verify** each example and command against the code: flags exist, outputs match, paths
    resolve. Run a command when running it is safe and cheap.
-5. **Report** the files changed, one line each, and anything you could not verify.
+5. **Report** the files changed, one line each, and anything you could not verify. End in
+   one line, always emitted:
+
+   ```text
+   DOCS: DONE|SKIP|BLOCKED <reason>
+   ```
+
+   `SKIP`: nothing user-visible changed. `BLOCKED`: the code contradicts what the docs must
+   say, or an example cannot be made to work, so the code has to change first.
 
 ## Writing rules
 

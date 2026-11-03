@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: commit-nothing-staged
+expected_outcome: |
+  With only an unstaged change, nothing is staged or committed and the run ends in COMMIT: FAILED nothing staged.
+context:
+  scaffold_script: scaffold

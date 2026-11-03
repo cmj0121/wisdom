@@ -1,6 +1,6 @@
 ---
 name: compact
-description: Re-renders the previous answer as a dense, scannable table, dropping prose but keeping every data point. Use when an answer ran longer than it needed to.
+description: Re-renders the previous answer once as a dense table or list, keeping every data point. Use when one answer ran long; for a standing shorter style, use brief.
 license: MIT
 metadata:
   shortcut: "compact it"

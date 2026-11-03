@@ -18,7 +18,8 @@ before anything else, quietly — keep only a failure's output.
 1. **Understand.** Read the unit's `Files` in full. Take interfaces from the decisions it
    follows — do not open files to confirm what an Interface already defines. Read anything
    else by declaration lines, and only where the Interface is silent. Never re-read a file
-   already in context. If the unit is ambiguous, ask — do not guess an interface.
+   already in context. If the unit is ambiguous, ask, ending in `CODE: BLOCKED <question>` — do not
+   guess an interface.
 2. **Baseline.** Skip when Setup records one. Otherwise run the project's tests once (the
    `test` skill, or Setup's command) so a failure afterwards is attributable.
 3. **Build, test first**, running only the unit's tests through Setup's `Subset` template
@@ -40,7 +41,7 @@ before anything else, quietly — keep only a failure's output.
 - Follow the project's existing conventions over general best practice.
 - Validate at system boundaries only; trust internal invariants.
 - No comments that restate the code; no `TODO`s or dead fallbacks left behind.
-- Stuck after two attempts at the same failure: stop and report what was tried.
+- Stuck after two attempts at the same failure: stop, report what was tried, end in `BLOCKED`.
 
 ## Report
 
@@ -50,6 +51,9 @@ Files:    <path> — <why>, one per line
 Tests:    <added/changed>; <pass>/<total> via <command>, baseline <pass>/<total> or recorded
 Verified: <what was exercised beyond tests, or "tests only">
 Open:     <deferred items and why, or none>
+CODE: DONE|BLOCKED <reason>
 ```
+
+The `CODE:` line is always the last line of the report.
 
 Do not commit unless asked to run `wisdom:commit` — committing is that skill's job.

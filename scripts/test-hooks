@@ -1,0 +1,300 @@
+#!/usr/bin/env bash
+# Pipes sample events through the prompt and SessionStart hooks and asserts exact
+# stdout, a zero exit and empty stderr: these hooks run on every prompt in every
+# session, and a missing script or a crash there is the user's next prompt failing.
+#
+# HOME and the plugin root point at temp copies, so nothing here reads the machine's
+# skills or language preference.
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+PYTHONDONTWRITEBYTECODE=1 PYTHONSAFEPATH=1 PYTHONPATH="$(cd "$(dirname "$0")" && pwd)" python3 - "$REPO_ROOT" <<'PY'
+import glob
+import json
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+
+from _common import bad, error_count, ok
+
+root = sys.argv[1]
+plugin = os.path.join(root, "plugins", "wisdom")
+hooks = os.path.join(plugin, "hooks")
+PROMPT, SESSION = "shortcut-prompt.py", "lingua-session-start.py"
+
+# Written out rather than imported: dropping a prefix from the hook must fail here.
+NOT_USER = (
+    "Another Claude session sent a message:",
+    "<agent-message",
+    "[Subagent hand-back]",
+    "<cross-session-message",
+    "<task-notification",
+    "[SYSTEM NOTIFICATION",
+)
+RULE = (
+    "lingua: reply in zh-TW; keep code, identifiers, commands and paths in en. "
+    "Skip if the user said `lingua off` this session."
+)
+CONFIG = "---\nrespond_in: zh-TW # reply language\nkeep_terms_in: en\n---\n"
+
+
+def dispatched(word, skill):
+    return (
+        f"The prompt contains the magic word `{word}`. Run the `{skill}` skill now with the "
+        "rest of the prompt as its arguments, and say in one line which word triggered it."
+    )
+
+
+def wrapped(event, context):
+    return json.dumps(
+        {"hookSpecificOutput": {"hookEventName": event, "additionalContext": context}}
+    )
+
+
+def write(path, content):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    mode = "wb" if isinstance(content, bytes) else "w"
+    with open(path, mode) as handle:
+        handle.write(content)
+    return path
+
+
+def run(script, event, home, plugin_root=plugin, hooks=hooks, **env):
+    stdin = event if isinstance(event, bytes) else json.dumps(event).encode()
+    clean = {
+        k: v for k, v in os.environ.items() if not k.startswith(("CLAUDE", "PYTHON"))
+    }
+    clean.update(HOME=home, CLAUDE_PLUGIN_ROOT=plugin_root, **env)
+    done = subprocess.run(
+        [sys.executable, os.path.join(hooks, script)],
+        input=stdin,
+        capture_output=True,
+        env=clean,
+        cwd=home,
+    )
+    return done.returncode, done.stdout.decode().strip(), done.stderr.decode()
+
+
+def expect(name, script, event, stdout, home, **kwargs):
+    code, out, err = run(script, event, home, **kwargs)
+    if (code, out, err) == (0, stdout, ""):
+        ok(name)
+    else:
+        bad(f"{name}: exit {code}, stdout {out!r}, stderr {err!r}, wanted stdout {stdout!r}")
+
+
+work = tempfile.mkdtemp()
+home = os.path.join(work, "home")
+project = os.path.join(work, "project")
+os.makedirs(home)
+os.makedirs(project)
+
+
+
+def prompt(text, **rest):
+    return {"prompt": text, "cwd": project, **rest}
+
+
+print("==> Testing the prompt hook")
+
+expect("plain prompt is silent", PROMPT, prompt("hello there"), "", home)
+expect("whitespace prompt is silent", PROMPT, prompt("  \n"), "", home)
+expect(
+    "a magic word gives its skill", PROMPT, prompt("please review it now"),
+    wrapped("UserPromptSubmit", dispatched("review it", "wisdom:review")), home,
+)
+expect(
+    '"Hi, Smith" dispatches', PROMPT, prompt("Hi, Smith"),
+    wrapped("UserPromptSubmit", dispatched("smith", "wisdom:smith")), home,
+)
+expect("a word inside a word is silent", PROMPT, prompt("Blacksmiths"), "", home)
+expect("a slash prompt gives nothing", PROMPT, prompt("/wisdom:smith smith"), "", home)
+for prefix in NOT_USER:
+    expect(f"{prefix} does not dispatch", PROMPT, prompt(f"{prefix} smith"), "", home)
+
+for raw in (b"{not json", b"", b"[1, 2]", b"\xff\xfe", b'{"prompt": 7}', b'{"prompt": "smith", "cwd": 7}'):
+    expect(f"malformed event {raw!r} is silent", PROMPT, raw, "", home)
+    expect(f"malformed event {raw!r} is silent at session start", SESSION, raw, "", home)
+
+# The prompt hook's two jobs together, from each place the config can live.
+lingua_home = os.path.join(work, "lingua-home")
+cwd_with_dot = "/tmp/some.project"
+write(os.path.join(lingua_home, ".claude", "projects", "-tmp-some-project", "memory", "lingua.md"), CONFIG)
+transcript_config = write(os.path.join(work, "t", "memory", "lingua.md"), CONFIG)
+expect(
+    "the slug replaces . as well as /", PROMPT, {"prompt": "hello", "cwd": cwd_with_dot},
+    wrapped("UserPromptSubmit", RULE), lingua_home,
+)
+expect(
+    "the transcript's directory locates the config", PROMPT,
+    prompt("hello", transcript_path=os.path.join(work, "t", "s.jsonl")),
+    wrapped("UserPromptSubmit", RULE), home,
+)
+expect(
+    "word and rule share one JSON object", PROMPT, {"prompt": "smith", "cwd": cwd_with_dot},
+    wrapped("UserPromptSubmit", dispatched("smith", "wisdom:smith") + "\n" + RULE), lingua_home,
+)
+expect(
+    "a slash prompt keeps the rule and does not dispatch", PROMPT,
+    {"prompt": "/wisdom:smith smith", "cwd": cwd_with_dot},
+    wrapped("UserPromptSubmit", RULE), lingua_home,
+)
+for prefix in NOT_USER:
+    expect(
+        f"{prefix} gives no lingua line", PROMPT,
+        {"prompt": f"{prefix} smith", "cwd": cwd_with_dot}, "", lingua_home,
+    )
+write(os.path.join(work, "r", "memory", "lingua.md"), CONFIG.replace("keep_terms_in", "refine_question: true\nkeep_terms_in"))
+expect(
+    "the rule restates when asked", PROMPT,
+    prompt("hello", transcript_path=os.path.join(work, "r", "s.jsonl")),
+    wrapped("UserPromptSubmit", RULE.replace(" in en.", " in en; restate the question in one line first.")),
+    home,
+)
+write(os.path.join(work, "bad", "memory", "lingua.md"), b"---\nrespond_in: \xff\n---\n")
+expect(
+    "a config that is not UTF-8 is silent", PROMPT,
+    prompt("hello", transcript_path=os.path.join(work, "bad", "s.jsonl")), "", home,
+)
+expect(
+    "a config that is not UTF-8 is silent at session start", SESSION,
+    {"transcript_path": os.path.join(work, "bad", "s.jsonl"), "cwd": project}, "", home,
+)
+
+print("==> Testing the skill-file reads")
+fake = os.path.join(work, "plugin")
+head = '---\nname: {0}\nmetadata:\n  shortcut: "{0} word"\n'
+
+
+def skill(name, content):
+    return write(os.path.join(fake, "skills", name, "SKILL.md"), content)
+
+
+skill("good", head.format("good") + "---\n")
+expect(
+    "the fixture plugin dispatches", PROMPT, prompt("good word"),
+    wrapped("UserPromptSubmit", dispatched("good word", "wisdom:good")), home, plugin_root=fake,
+)
+
+locked = skill("locked", head.format("locked") + "---\n")
+os.chmod(locked, 0)
+expect("an unreadable SKILL.md is silent", PROMPT, prompt("locked word"), "", home, plugin_root=fake)
+os.chmod(locked, 0o644)
+os.remove(locked)
+os.makedirs(locked)
+expect("a directory named SKILL.md is silent", PROMPT, prompt("locked word"), "", home, plugin_root=fake)
+
+skill("binary", (head.format("binary") + "---\n").encode() + b"\xff")
+expect("a SKILL.md that is not UTF-8 is silent", PROMPT, prompt("binary word"), "", home, plugin_root=fake)
+
+skill("long", head.format("long") + "description: " + "x" * 1100 + "\n---\n")
+expect("frontmatter over 1KB does not dispatch", PROMPT, prompt("long word"), "", home, plugin_root=fake)
+
+# The bound can fall inside a multi-byte character of the body at either offset.
+for pad in (0, 1):
+    fence = head.format("wide") + "x" * pad + "\n---\n"
+    skill("wide", (fence + "é" * 1024).encode())
+    expect(
+        f"the 1KB bound may split a character (offset {pad})", PROMPT, prompt("wide word"),
+        wrapped("UserPromptSubmit", dispatched("wide word", "wisdom:wide")), home, plugin_root=fake,
+    )
+
+write(os.path.join(home, ".claude", "skills", "mine", "SKILL.md"), '---\nmetadata:\n  shortcut: "smith"\n---\n')
+expect(
+    "a user skill outranks the plugin", PROMPT, prompt("smith"),
+    wrapped("UserPromptSubmit", dispatched("smith", "mine")), home,
+)
+os.remove(os.path.join(home, ".claude", "skills", "mine", "SKILL.md"))
+
+for path in sorted(glob.glob(os.path.join(plugin, "skills", "*", "SKILL.md"))):
+    with open(path, "rb") as handle:
+        if handle.read(1024).find(b"\n---", 4) == -1:
+            bad(f"{path}: frontmatter passes the hook's 1KB bound, so its magic word is dead")
+
+print("==> Testing the SessionStart entries")
+session_context = (
+    "A `lingua` language preference is configured for this project (from {}). "
+    "Follow it for the rest of this session:\n\n{}\n\n{}"
+)
+expect("no preference is silent", SESSION, {"cwd": project}, "", home)
+expect(
+    "a preference is injected with its rule", SESSION,
+    {"transcript_path": os.path.join(work, "t", "s.jsonl"), "cwd": project},
+    wrapped("SessionStart", session_context.format(transcript_config, CONFIG.strip(), RULE)), home,
+)
+no_rule = write(os.path.join(work, "n", "memory", "lingua.md"), "just notes\n")
+expect(
+    "a config without respond_in is still injected", SESSION,
+    {"transcript_path": os.path.join(work, "n", "s.jsonl"), "cwd": project},
+    wrapped(
+        "SessionStart",
+        f"A `lingua` language preference is configured for this project (from {no_rule}). "
+        "Follow it for the rest of this session:\n\njust notes",
+    ),
+    home,
+)
+
+plan_body = "## Units\n\n| Id | Status |\n| -- | ------ |\n| U1 | todo |\n"
+plan = write(os.path.join(project, "PLAN.md"), plan_body)
+expect(
+    "compact restores an open plan", "plan-restore.py", {"source": "compact", "cwd": project},
+    wrapped(
+        "SessionStart",
+        f"Context was compacted. If you are running wisdom:smith, its state is below "
+        f"(from {plan}); builders' details are in {os.path.join(project, 'PLAN_DETAILS.md')}. "
+        f"Otherwise ignore it.\n\n{plan_body}",
+    ),
+    home,
+)
+expect("startup does not restore a plan", "plan-restore.py", {"source": "startup", "cwd": project}, "", home)
+
+print("==> Testing the hook wiring")
+config = json.load(open(os.path.join(hooks, "hooks.json")))["hooks"]
+commands = [h["command"] for group in config["UserPromptSubmit"] for h in group["hooks"]]
+if commands == [f"python3 ${{CLAUDE_PLUGIN_ROOT}}/hooks/{PROMPT}"]:
+    ok("one process per prompt")
+else:
+    bad(f"UserPromptSubmit runs {commands}, wanted only {PROMPT}")
+starts = {
+    group["matcher"]: [h["command"].rsplit("/", 1)[-1] for h in group["hooks"]]
+    for group in config["SessionStart"]
+}
+if starts == {"*": [SESSION], "compact": ["plan-restore.py"]}:
+    ok("SessionStart runs lingua, and the plan restore on compact")
+else:
+    bad(f"SessionStart runs {starts}")
+
+# A session that loaded the previous hooks.json still runs this path.
+expect("the retired prompt path is silent", "lingua-prompt.py", prompt("smith"), "", lingua_home)
+expect("the hook survives PYTHONSAFEPATH", PROMPT, prompt("smith"),
+       wrapped("UserPromptSubmit", dispatched("smith", "wisdom:smith")), home, PYTHONSAFEPATH="1")
+
+# The prompt hook runs on every prompt, so a broken helper must not surface there.
+broken = {
+    "missing": None,
+    "broken": "def rule(:\n",
+    "incomplete": "",
+}
+for name, helper in broken.items():
+    copy = os.path.join(work, f"hooks-{name}")
+    shutil.copytree(hooks, copy, ignore=shutil.ignore_patterns("_lingua.py", "__pycache__"))
+    if helper is not None:
+        write(os.path.join(copy, "_lingua.py"), helper)
+    for script, event in ((PROMPT, prompt("smith")), (SESSION, {"cwd": project})):
+        expect(f"{script} with a {name} helper is silent", script, event, "", home, hooks=copy)
+
+if os.path.exists(os.path.join(hooks, "__pycache__")):
+    bad("the hooks left a __pycache__ in the plugin")
+
+subprocess.run(["chmod", "-R", "u+rwx", work])
+subprocess.run(["rm", "-rf", work])
+
+print("")
+if error_count():
+    print(f"==> {error_count()} error(s) found")
+    sys.exit(1)
+print("==> All checks passed")
+PY

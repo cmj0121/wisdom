@@ -21,6 +21,7 @@ ERRORS=0
 
 SKILLS="plugins/wisdom/skills"
 TARGET="$SKILLS/shortcut/SKILL.md"
+SMITH="$SKILLS/smith/SKILL.md"
 
 pass() { printf "  \033[32mPASS\033[0m %s\n" "$1"; }
 fail() {
@@ -45,10 +46,16 @@ ghost() {
 	} >"$TMP_DIR/repo/$SKILLS/$1/SKILL.md"
 }
 
-# expect <script> <pass|substring> <label>
+# ghost_row -- a README row for a skill nothing ships, in both READMEs.
+ghost_row() {
+	sed -i.bak 's/^| `compact` .*/&\n| `ghost` | Does one thing. | |/' \
+		"$TMP_DIR/repo/README.md" "$TMP_DIR/repo/README.zh-TW.md"
+}
+
+# expect <script> <pass|substring> <label> [flag]
 expect() {
 	local out="$TMP_DIR/out"
-	if bash "$REPO_ROOT/scripts/$1" "$TMP_DIR/repo" >"$out" 2>&1; then
+	if bash "$REPO_ROOT/scripts/$1" ${4:+"$4"} "$TMP_DIR/repo" >"$out" 2>&1; then
 		if [ "$2" = pass ]; then pass "$3"; else fail "$3: $1 passed but should have failed"; fi
 	elif [ "$2" = pass ]; then
 		fail "$3: $1 failed on a copy it should accept"
@@ -64,8 +71,6 @@ expect() {
 
 fresh_copy
 echo "==> scripts/validate"
-expect validate pass "the repo as it stands is accepted"
-
 sed -i.bak 's/"description": "/"description": "Changed. /' "$TMP_DIR/repo/plugins/wisdom/.claude-plugin/plugin.json"
 expect validate "description differs" "a plugin.json description drifting from marketplace.json is caught"
 
@@ -94,11 +99,71 @@ expect validate "unterminated code fence" "an unclosed fence in a skill is caugh
 printf '\n```text\nopen\n' >>"$TMP_DIR/repo/README.zh-TW.md"
 expect validate "README.zh-TW.md: unterminated code fence" "an unclosed fence in a README is caught"
 
+echo '- `audit: NOPE` -> stop.' >>"$TMP_DIR/repo/$SMITH"
+expect validate "smith route 'audit: NOPE': audit states no such token" "a route naming a token its skill lacks is caught"
+
+sed -i.bak 's/^VERDICT: PASS|WARN|FAIL|SKIP/VERDICT: PASS|WARN|FAIL/' "$TMP_DIR/repo/$SKILLS/review/SKILL.md"
+expect validate "smith route 'review: SKIP': review states no such token" "a token dropped from its skill is caught"
+
+echo '- `nope: PASS` -> stop.' >>"$TMP_DIR/repo/$SMITH"
+expect validate "smith route 'nope: PASS': no skill 'nope'" "a route naming no skill is caught"
+
+sed -i.bak -E 's/`[a-z]+: ([A-Z]+)`/\1/g' "$TMP_DIR/repo/$SMITH"
+expect validate "smith states no routes" "a smith with no parsed routes is caught"
+
+echo '- `afk: ASK`, `history: ABORTED`, `commit: FAILED`, `code: BLOCKED`, `docs: SKIP` -> go on.' >>"$TMP_DIR/repo/$SMITH"
+expect validate pass "indented, spaced and FAILED-form fixed lines are read"
+
+echo "==> scripts/validate --per-commit"
+expect validate pass "the repo as it stands is accepted" --per-commit
+
+ghost_row
+expect validate pass "a README row ahead of its skill is accepted" --per-commit
+
+ghost_row
+if bash "$REPO_ROOT/scripts/validate" "$TMP_DIR/repo" --per-commit >/dev/null 2>&1; then
+	pass "the flag is read after the root too"
+else
+	fail "the flag is read after the root too: validate rejected the row"
+fi
+expect validate "lists 'ghost', which no plugin ships" "the full form catches that same row"
+
+ghost ghost
+expect validate pass "a skill ahead of its README row is accepted" --per-commit
+
+sed -i.bak 's/^description: .*/&\nmetadata:\n  shortcut: "dispatch it"/' "$TMP_DIR/repo/$TARGET"
+expect validate pass "a magic word ahead of its README cell is accepted" --per-commit
+
+rm "$TMP_DIR/repo/README.zh-TW.md"
+expect validate "README.zh-TW.md is missing" "a missing README still fails" --per-commit
+
+printf '\n```text\nopen\n' >>"$TMP_DIR/repo/README.zh-TW.md"
+expect validate "README.zh-TW.md: unterminated code fence" "an unclosed README fence still fails" --per-commit
+
+sed -i.bak 's/wisdom/sagesse/g' "$TMP_DIR/repo/README.md"
+expect validate "never named in README.md prose" "a plugin missing from the prose still fails" --per-commit
+
+sed -i.bak 's/"description": "/"description": "Changed. /' "$TMP_DIR/repo/plugins/wisdom/.claude-plugin/plugin.json"
+expect validate "description differs" "a drifting description still fails" --per-commit
+
+ghost ghost-a "boo"
+ghost ghost-b "boo"
+expect validate "magic word 'boo' is claimed by both" "a repeated magic word still fails" --per-commit
+
+echo 'Hand off to `wisdom:nope`.' >>"$TMP_DIR/repo/$TARGET"
+expect validate "reference 'wisdom:nope' resolves to no skill" "an unresolved reference still fails" --per-commit
+
+printf '\n```text\nopen\n' >>"$TMP_DIR/repo/$TARGET"
+expect validate "unterminated code fence" "an unclosed skill fence still fails" --per-commit
+
 echo "==> scripts/check-skill-spec"
 expect check-skill-spec pass "the repo as it stands is accepted"
 
 sed -i.bak 's/^license: MIT$/license: MIT\nversion: 1/' "$TMP_DIR/repo/$TARGET"
 expect check-skill-spec "unknown frontmatter key 'version'" "an unknown frontmatter key is caught"
+
+sed -i.bak 's/^license: MIT$/license: MIT\nmodel: haiku/' "$TMP_DIR/repo/$TARGET"
+expect check-skill-spec "unknown frontmatter key 'model'" "a model pin is caught"
 
 sed -i.bak "s/^description: .*/description: $(printf 'x%.0s' $(seq 1 161))/" "$TMP_DIR/repo/$TARGET"
 expect check-skill-spec "over this repo's 160 limit" "a description over 160 characters is caught"

@@ -11,7 +11,8 @@ metadata:
 Be the dissenting voice. Unlike every other skill, nothing is out of scope — including
 whether the work should happen at all.
 
-A subject too thin to challenge (no plan, one line of intent) is reported as such. Do not
+A subject too thin to challenge (no plan, one line of intent) ends in
+`VERDICT: PAUSE — subject too thin: <what is missing>`, with no table. Do not
 invent assumptions to have something to attack: manufactured dissent spends the credibility
 real findings need.
 

@@ -52,13 +52,13 @@ v3 從零重寫，圍繞三條規則。
 
 ### 交付
 
-| Skill       | 目的                                        | Magic word      |
-| ----------- | ------------------------------------------- | --------------- |
-| `commit`    | 為已 stage 的變更撰寫 commit message 並提交 | `commit it`     |
-| `history`   | 把分支整理成 docs、feat 與單一 test commit  | —               |
-| `changelog` | 從 git 歷史產生 changelog 條目              | `gen changelog` |
-| `release`   | 升版並打 tag 發佈——只在你要求時執行         | `release it`    |
-| `resolve`   | 以測試先行的方式處理 PR 的 review 意見      | `resolve pr`    |
+| Skill       | 目的                                                 | Magic word      |
+| ----------- | ---------------------------------------------------- | --------------- |
+| `commit`    | 提交已 stage 的變更並撰寫訊息；沒有 stage 內容就失敗 | `commit it`     |
+| `history`   | 分類分支後再整理：bump、docs、feat、單一 test        | —               |
+| `changelog` | 從 git 歷史產生 changelog 條目                       | `gen changelog` |
+| `release`   | 升版並打 tag 發佈——只在你要求時執行                  | `release it`    |
+| `resolve`   | 以測試先行的方式處理 PR 的 review 意見               | `resolve pr`    |
 
 ### 檢查
 
@@ -131,19 +131,17 @@ passthrough，否則只有響鈴會通過。若你設定了 Claude Code 自己�
                          │ PASS
                          ▼
   ┌──────────────────────────────────────────────┐
-  │ same code agent · wisdom:commit in worktree  │   resumed via SendMessage
+  │ same code agent · git add + wisdom:commit    │   resumed via SendMessage
   └──────────────────────────────────────────────┘
                          │
                          ▼
   smith ─ merges each branch into feat/<slug>
                          │
                          ▼
-  ┌──────────────────────────────────────────────┐
-  │ wisdom:test · full suite on feat/<slug>      │   once per batch, unless reused
-  └──────────────────────────────────────────────┘
+  smith ─ runs the full suite on feat/<slug>   once per batch, unless reused
                          │
-                         ├──FAIL──> new wisdom:code agent ──> review, commit, test
-                         │ PASS
+                         ├──non-zero──> wisdom:test names failures ──> new wisdom:code agent ──> review, commit, suite
+                         │ exit 0
                          ▼
   smith ─ Baseline = PASS at <sha> ──> next batch, or ③
 
@@ -154,13 +152,17 @@ passthrough，否則只有響鈴會通過。若你設定了 Claude Code 自己�
   └─────────────┘ └───────────────┘ └──────────────┘ └────────────┘
          └────────────────┴────────┬───────┴───────────────┘
                                    │
-                                   ├──FAIL──> new wisdom:code agent ──> review, commit
+                                   ├──BLOCKED, FINDINGS, BLOCK──> new wisdom:code agent ──> review, commit
                                    ▼
            ┌──────────────────────────────────────────────┐
-           │ wisdom:history · reshape feat/<slug>         │   bump、docs、feats、一個 test
+           │ wisdom:history · classify, then reshape.py   │   bump、docs、feats、一個 test
            └──────────────────────────────────────────────┘
                                    │
-                                   ├──ABORTED──> 分支未移動，於 Checkpoint 2 顯示
+                                   │ 任何結果 · ABORTED：分支未移動，於 Checkpoint 2 顯示
+                                   ▼
+           smith ─ 不論 history 結果為何，都跑完整測試
+                                   │
+                                   ├──FAIL──> 修復、commit ──> 回到 wisdom:history
                                    ▼
                ★ Checkpoint 2 · user approves merge
                                    │
@@ -173,12 +175,15 @@ passthrough，否則只有響鈴會通過。若你設定了 Claude Code 自己�
   baseline、每個單元的檔案與驗收條件、每個決策的介面。
 - 每個單元的每一步都在 subagent 中執行；`smith` 只讀結果行，從不讀 diff。
 - 互相獨立的工作單元平行執行，每個 `code` 各自在獨立的 git worktree 中，只跑自己的測試；
-  每個 batch merge 後才跑一次完整測試。
+  每個 batch merge 後才跑一次完整測試。`smith` 自己執行，只有失敗時才委派出去。
 - `review` 回傳一行 verdict；失敗時 `smith` 把它送回同一個 `code` subagent（設計有問題時則
   送回 `design`），通過後由它 commit。
-- merge 前，`history` 在暫時的 worktree 中把尚未 push 的分支重建成線性歷史；與起點的 diff
-  為空，所以不必重跑 review 與測試。
-- `smith` 只會停下來問你兩次：核准計畫、核准 merge。除非你要求，它不會打 tag 或發佈。
+- merge 前，`history` 先分類尚未 push 分支的檔案與 commit，再呼叫 `reshape.py`，在暫時的
+  worktree 中重建成線性歷史；與起點的 diff 為空，所以不必重跑 review。不論 `history` 結果為何，
+  `smith` 接著都會重跑測試，因為檢查步驟產生的 commit 尚未測試過。
+- `smith` 會在兩個 checkpoint 停下：核准計畫、核准 merge；此外，需要你的回答或難以復原的選擇、
+  有工作未經 review 或未經測試，或修復失敗兩輪時也會停下；完整流程見
+  [它的 skill](plugins/wisdom/skills/smith/SKILL.md)。除非你要求，它不會打 tag、發佈或 push。
 
 ## Token 預算
 
@@ -196,14 +201,17 @@ Skill 是帶有 YAML frontmatter 的 Markdown，遵循
 ```text
 plugins/wisdom/
 ├── .claude-plugin/plugin.json
+├── evals/<case>/        # `make eval` 執行的案例
 ├── hooks/               # hooks.json 與它執行的腳本
 └── skills/<name>/
     ├── SKILL.md
-    └── references/      # optional
+    ├── references/      # optional
+    └── scripts/         # optional
 ```
 
-commit 前請執行 `make test`——它會檢查目錄結構、版本同步、frontmatter 是否符合標準，以及
-magic word 是否重複。
+commit 前請執行 `make test`——它會檢查目錄結構、版本同步、magic word 與 README 表格、
+frontmatter 是否符合標準、hook 輸出，以及 `history` 的 `reshape.py`。`make eval` 以實際計費的
+模型呼叫執行 skill eval，每次上限 $5；CI 不會執行它。
 
 ## DDD（Dream-Driven Development）
 

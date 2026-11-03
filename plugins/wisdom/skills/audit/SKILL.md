@@ -1,6 +1,6 @@
 ---
 name: audit
-description: Audits dependencies for known vulnerabilities and outdated versions across npm, pip, go, cargo and bundler. Use before a release or when a lockfile changes.
+description: Audits npm, pip, go, cargo and bundler dependencies for known vulnerabilities and staleness. Use before a release or on lockfile changes; source goes to secure.
 license: MIT
 metadata:
   shortcut: "audit deps"
@@ -44,4 +44,7 @@ End with one line:
 AUDIT: CLEAN|FINDINGS|INCOMPLETE — <n> vulnerable, <n> outdated, <tools missing>
 ```
 
-`INCOMPLETE` whenever a tool could not run, so a missing scanner never reads as clean.
+`FINDINGS` means at least one vulnerable package; outdated alone stays `CLEAN`, counted in
+the line. `INCOMPLETE` whenever a tool could not run and nothing vulnerable was found, so a
+missing scanner never reads as clean. `FINDINGS` takes precedence over `INCOMPLETE`, and either way
+the line names the missing tools.

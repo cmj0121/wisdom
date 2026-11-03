@@ -22,13 +22,14 @@ Address a PR's open review feedback, item by item. GitHub through `gh`. Never me
    - inline threads: `gh api repos/{owner}/{repo}/pulls/<n>/comments`
      Skip resolved threads, outdated ones already addressed, and approvals with no request.
 3. **For each item, in order,** decide one of:
-   - **Fix** — behaviour changes: failing test first, then the fix, then green.
-     Wording, naming or docs: just change it.
+   - **Fix** — behaviour changes: run `wisdom:code` with the item as its unit, which tests
+     first; on `BLOCKED`, ask the user. Wording, naming or docs: just change it.
    - **Push back** — the request is wrong or out of the PR's scope: draft a reply giving
      the reason, and offer a follow-up issue for out-of-scope work.
    - **Ask** — the request is ambiguous: ask the user, not the reviewer.
      Show the decision and the change for each item before moving on.
-4. **Commit** each fix on its own (`wisdom:commit`), referencing the comment it answers.
+4. **Commit** each fix on its own: `git add` its files, then `wisdom:commit`, referencing the
+   comment it answers.
 5. **Reply and push** only after the user approves: post the replies
    (`gh pr comment` or a thread reply) and push the branch.
 6. **Report** a table: item, decision, commit or reply.
