@@ -1,6 +1,6 @@
 ---
 name: audit
-description: Audits dependencies for known vulnerabilities and outdated versions across npm, pip, go, cargo and bundler. Use before a release or when a lockfile changes.
+description: Audits npm, pip, go, cargo and bundler dependencies for known vulnerabilities and staleness. Use before a release or on lockfile changes; source goes to secure.
 license: MIT
 metadata:
   shortcut: "audit deps"

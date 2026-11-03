@@ -1,6 +1,6 @@
 ---
 name: history
-description: Reshapes a branch's unpushed commits into bump, docs, feats with folded fixes, and one test commit. Use on a finished feature branch before merging.
+description: Reshapes a branch's unpushed commits into bump, docs, feats and one test, instead of a manual squash or rebase. Use on a finished branch before merging.
 license: MIT
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: brief
-description: Sets a standing brief output style — result first, one topic at a time, detail on request. Use when the user asks for shorter answers or one decision at a time.
+description: Sets a standing output style — result first, one topic at a time, detail on request. Use for shorter answers from now on; to condense one answer, use compact.
 license: MIT
 metadata:
   shortcut: "brief me"

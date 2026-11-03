@@ -1,6 +1,6 @@
 ---
 name: smith
-description: Drives a piece of work from idea to merge — plans it, then calls the wisdom skills to design, build, review and commit it. Use for substantial work.
+description: Drives a piece of work from idea to merge, calling plan, then design, build, review and commit. Use for substantial work; plan alone stops at the plan.
 license: MIT
 metadata:
   shortcut: "smith"

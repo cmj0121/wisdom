@@ -1,6 +1,6 @@
 ---
 name: assets
-description: Builds image, video or audio assets one confirmed change per round against locked concepts. Use when a media asset must converge instead of drifting.
+description: Builds media assets — image, video, audio — one confirmed change per round against locked concepts. Use when one must converge; not for UI or diagrams.
 license: MIT
 allowed-tools:
   - Read

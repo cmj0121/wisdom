@@ -1,6 +1,6 @@
 ---
 name: ops
-description: Reviews code and infrastructure for operational readiness — observability, reliability, performance, rollback. Use before a release reaches production.
+description: Reviews code and infrastructure for operational readiness, not vulnerabilities — observability, reliability, performance, rollback. Use before a release.
 license: MIT
 metadata:
   shortcut: "ops review"
