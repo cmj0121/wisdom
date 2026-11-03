@@ -1,6 +1,6 @@
 SUBDIR :=
 
-.PHONY: all clean test doctor upgrade install help $(SUBDIR)
+.PHONY: all clean test eval doctor upgrade install help $(SUBDIR)
 
 all: $(SUBDIR) 		# default action
 	@[ -f .git/hooks/pre-commit ] || pre-commit install --install-hooks
@@ -37,6 +37,14 @@ test:				# run the six repo checks (not the validator self-test)
 	fi; \
 	printf '==> %d of %d checks FAILED -- re-run with WISDOM_VERBOSE=1 for per-item detail\n' "$$failed" "$$total"; \
 	exit 1
+
+# Deliberately NOT part of `test` or CI: it runs paid model calls. make's "Error 1"
+# (a case scored low) and "Error 2" (the cost cap was hit) are results to read, not
+# broken runs; make itself exits 2 for either.
+# Add flags through EVAL_ARGS, e.g. make eval EVAL_ARGS="--json /tmp/eval.json".
+eval:				# run the skill evals with real, billed model runs (cap $5)
+	claude plugin eval plugins/wisdom --trust-plugin --scaffold --no-publish \
+		--ablation none --runs 1 --max-cost-usd 5 --allow-tools Bash Edit $(EVAL_ARGS)
 
 # Deliberately NOT part of `test`: this one asserts on the machine, not on the
 # repo. There is no $$HOME/.claude in CI, where it would pass for the wrong
