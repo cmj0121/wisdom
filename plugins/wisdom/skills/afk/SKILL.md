@@ -48,8 +48,9 @@ will get no ping.
    AFK: ASK — <the question, on one line>
    ```
 
-   Nothing follows it. Without the line the user is pinged with a bare "stopped" and cannot
-   tell which it was.
+   Nothing follows it. `hooks/afk-notify.py` reads this line, not a model, so its spelling is
+   fixed. Without the line the user is pinged with a bare "stopped" and cannot tell which it
+   was.
 
 ## Stop
 

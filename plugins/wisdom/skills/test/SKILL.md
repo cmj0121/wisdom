@@ -16,18 +16,18 @@ Run the test suite and report the result. Never edit code or tests.
    target → the manifest (`package.json` scripts, `pyproject.toml`, `go.mod`, `Cargo.toml`,
    `Gemfile`) → the framework's default runner.
 2. **Run it** once, with any path or filter the caller gave. Do not retry a failing suite.
-3. **Report** in the format below. For each failure give the test, the assertion or error in
-   one line, and `file:line`. Do not guess a fix.
+3. **Report** in the format below, `RESULT:` as the last line. For each failure give the
+   test, the assertion or error in one line, and `file:line`. Do not guess a fix.
 
 ## Report
 
+`ERROR` means the suite could not run (no framework found, command missing, build broke);
+say which. No framework found is `ERROR`, never `PASS`.
+
 ```text
-RESULT: PASS|FAIL|ERROR
 Command: <exact command>
 Counts:  <passed> passed, <failed> failed, <skipped> skipped
 Failures:
 - <test> — <message> (<file:line>)
+RESULT: PASS|FAIL|ERROR
 ```
-
-`ERROR` means the suite could not run (no framework found, command missing, build broke);
-say which. No framework found is `ERROR`, never `PASS`.

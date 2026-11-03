@@ -43,9 +43,9 @@ is to call it with the right input, read its result, and decide what happens nex
 
 Run `wisdom:plan` on the idea. Then have a subagent run `wisdom:challenge` on the plan:
 
-- `GO` → note its top items as risks in `PLAN.md`.
-- `PAUSE` → revise the named items, then `SendMessage` the same challenger to re-check once.
-- `RECONSIDER` → bring the finding to the user before anything else.
+- `challenge: GO` → note its top items as risks in `PLAN.md`.
+- `challenge: PAUSE` → revise the named items, then `SendMessage` the same challenger to re-check once.
+- `challenge: RECONSIDER` → bring the finding to the user before anything else.
 
 **Checkpoint 1:** show the goal, the units and the open risks, plus `Tests deferred`, recorded
 as a decision, when the plan is large enough for tests to wait. Wait for approval.
@@ -72,6 +72,7 @@ are already merged or `done`. For each batch:
    worktree path and branch its result names: the same subagent fixes and commits the
    unit. Tightly coupled units run one at a time, no worktree. With `Tests deferred`, each
    prompt adds "tests deferred", and one final unit writes all the tests like any other.
+   - `code: BLOCKED` → stop and bring its reason to the user.
 2. **Review.** One subagent per unit, the whole batch in parallel, each running
    `wisdom:review` on its unit's diff — in the worktree path, when it has one — with the
    unit's `Acceptance` and the code report's `Tests` line, so the tests are not run again;
@@ -80,29 +81,31 @@ are already merged or `done`. For each batch:
    Only one that cannot be resumed is replaced by a new reviewer with the whole diff.
 3. **Route the verdict**, and write it to the unit's `Verdict` in `PLAN.md`:
 
-   | Verdict | Next                                                                   |
-   | ------- | ---------------------------------------------------------------------- |
-   | `PASS`  | commit                                                                 |
-   | `WARN`  | fix if the finding lines show it is cheap; else accept, note `WARN`    |
-   | `FAIL`  | `SendMessage` the findings to the unit's code subagent, then re-review |
-   | no line | re-run the review once; still none → stop, the unit is unreviewed      |
+   | Verdict        | Next                                                                   |
+   | -------------- | ---------------------------------------------------------------------- |
+   | `review: PASS` | commit                                                                 |
+   | `review: WARN` | fix if the finding lines show it is cheap; else accept, note `WARN`    |
+   | `review: FAIL` | `SendMessage` the findings to the unit's code subagent, then re-review |
+   | `review: SKIP` | the unit left no diff: stop and tell the user; it is not `done`        |
+   | no line        | re-run the review once; still none → stop, the unit is unreviewed      |
 
    A finding that says the design is wrong: run `wisdom:design` inline, then `SendMessage`
    the new Interface to the unit's code subagent. After two failed fix rounds on the same
    unit, stop and bring it to the user.
 
-4. **Commit.** `SendMessage` the unit's code subagent to run `wisdom:commit` in its
-   worktree — an uncommitted branch cannot be merged. If it cannot be resumed, a new
-   subagent commits in that worktree. Mark the unit `done`.
+4. **Commit.** `SendMessage` the unit's code subagent to run `wisdom:commit` in its worktree; a new
+   subagent commits there if it cannot be resumed. Only `COMMIT: <hash>` marks the unit `done`.
+   - `commit: FAILED` → `SendMessage` the reason to its code subagent: fix, re-review if code changed,
+     commit again. Fails twice → stop, tell the user.
 5. **Merge** each committed worktree branch into the feature branch, one at a time; resolve
    a conflict with a `wisdom:code` subagent, then review and commit the result again.
 6. **Test.** Once the batch is merged, a subagent runs `wisdom:test` on the feature branch
-   — the one full-suite run per batch. `PASS` → set `PLAN_DETAILS.md` Baseline to
-   `PASS at <short SHA>` before the next batch. `FAIL` → a new code subagent on the feature
-   branch gets the failures and the units whose `Files` they touch; review, commit and run
-   the suite again. Two failed rounds → stop and bring it to the user. When the batch was
-   one unit built on the feature branch and its `Tests` line is already a full-suite run,
-   take that as this step's result instead of running the suite again.
+   — the one full-suite run per batch. When the batch was one unit built on the feature
+   branch and its `Tests` line is already a full-suite run, take that as this step's result.
+   - `test: PASS` → set `PLAN_DETAILS.md` Baseline to `PASS at <short SHA>` before the next batch.
+   - `test: FAIL` → a new code subagent on the feature branch gets the failures and the units
+     whose `Files` they touch; review, commit, run the suite again. Two failed rounds → stop, tell the user.
+   - `test: ERROR` → the suite could not run, so nothing is proven: stop and tell the user why.
 
 ## 4. Check
 
@@ -113,16 +116,20 @@ Run only the checks the change calls for, each in its own subagent, in parallel:
 - `wisdom:audit` — a manifest or lockfile changed.
 - `wisdom:ops` — it changes how a service runs or deploys.
 
-A `FAIL`, `FINDINGS` or `BLOCK` goes to a new code subagent on the feature branch, then
-review and commit as in step 3. `INCOMPLETE` or `CONCERN` is reported at the checkpoint,
-not silently accepted.
+Then route each result:
+
+- `docs: BLOCKED`, `secure: FINDINGS`, `audit: FINDINGS`, `ops: BLOCK` → a new code subagent
+  on the feature branch, then review and commit as in step 3; after `docs: BLOCKED`, re-run `wisdom:docs`.
+- `audit: INCOMPLETE`, `ops: CONCERN` → report at the checkpoint, never silently accept.
 
 ## 5. Shape
 
 A subagent runs `wisdom:history` on the feature branch, base `main`; take its `HISTORY:` line.
-`SHAPED`: the empty diff proves reviews and the suite still hold; do not re-run them.
-`UNCHANGED`: continue. `ABORTED`: the branch did not move; show the reason at Checkpoint 2.
-No line is a gap: retry once, then stop and tell the user.
+
+- `history: SHAPED` → the empty diff proves reviews and the suite still hold; do not re-run them.
+- `history: UNCHANGED` → continue.
+- `history: ABORTED` → the branch did not move; show the reason at Checkpoint 2.
+- No line → a gap: retry once, then stop and tell the user.
 
 ## 6. Merge
 

@@ -21,6 +21,7 @@ ERRORS=0
 
 SKILLS="plugins/wisdom/skills"
 TARGET="$SKILLS/shortcut/SKILL.md"
+SMITH="$SKILLS/smith/SKILL.md"
 
 pass() { printf "  \033[32mPASS\033[0m %s\n" "$1"; }
 fail() {
@@ -97,6 +98,21 @@ expect validate "unterminated code fence" "an unclosed fence in a skill is caugh
 
 printf '\n```text\nopen\n' >>"$TMP_DIR/repo/README.zh-TW.md"
 expect validate "README.zh-TW.md: unterminated code fence" "an unclosed fence in a README is caught"
+
+echo '- `audit: NOPE` -> stop.' >>"$TMP_DIR/repo/$SMITH"
+expect validate "smith route 'audit: NOPE': audit states no such token" "a route naming a token its skill lacks is caught"
+
+sed -i.bak 's/^VERDICT: PASS|WARN|FAIL|SKIP/VERDICT: PASS|WARN|FAIL/' "$TMP_DIR/repo/$SKILLS/review/SKILL.md"
+expect validate "smith route 'review: SKIP': review states no such token" "a token dropped from its skill is caught"
+
+echo '- `nope: PASS` -> stop.' >>"$TMP_DIR/repo/$SMITH"
+expect validate "smith route 'nope: PASS': no skill 'nope'" "a route naming no skill is caught"
+
+sed -i.bak -E 's/`[a-z]+: ([A-Z]+)`/\1/g' "$TMP_DIR/repo/$SMITH"
+expect validate "smith states no routes" "a smith with no parsed routes is caught"
+
+echo '- `afk: ASK`, `history: ABORTED`, `commit: FAILED`, `code: BLOCKED`, `docs: SKIP` -> go on.' >>"$TMP_DIR/repo/$SMITH"
+expect validate pass "indented, spaced and FAILED-form fixed lines are read"
 
 echo "==> scripts/validate --per-commit"
 expect validate pass "the repo as it stands is accepted" --per-commit

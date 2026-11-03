@@ -10,6 +10,8 @@
 #   4. A '<plugin>:<skill>' reference to a plugin this marketplace ships
 #      resolves to one of its skills.
 #   5. Code fences in skills and READMEs are balanced.
+#   6. Every route smith writes as `<skill>: <TOKEN>` names a skill, and a token
+#      that skill's fenced fixed result line states.
 #
 # An optional positional argument overrides the repo root, so the fixture
 # harness can point the validator at a mutated copy of the repo. --per-commit,
@@ -44,6 +46,9 @@ READMES = ("README.md", "README.zh-TW.md")
 FENCE_RE = re.compile(r"^\s*(```|~~~)")
 TICK_RE = re.compile(r"`([^`]+)`")
 REF_RE = re.compile(r"`([a-z0-9-]+):([a-z0-9-]+)`")
+ROUTE_RE = re.compile(r"`([a-z0-9-]+): ([A-Z][A-Z_]*)`")
+FIXED_LINE_RE = re.compile(r"^\s*[A-Z]+: (.+)$")
+TOKEN_RE = re.compile(r"[A-Z][A-Z_]*\b")
 
 
 def rel(path):
@@ -64,6 +69,19 @@ def unfenced(text):
         elif not inside:
             out.append(line)
     return None if inside else out
+
+
+def fixed_tokens(text):
+    """Tokens of the fixed result lines in a skill's code fences, so `AFK: ASK — ...` gives ASK."""
+    tokens, inside = set(), False
+    for line in text.splitlines():
+        if FENCE_RE.match(line):
+            inside = not inside
+        elif inside and (m := FIXED_LINE_RE.match(line)):
+            for alternative in m.group(1).split(" — ")[0].split("|"):
+                if t := TOKEN_RE.match(alternative.strip()):
+                    tokens.add(t.group())
+    return tokens
 
 
 def shortcut_of(path):
@@ -157,6 +175,19 @@ for skill, path in skills.items():
                 ok(f"{rel(doc)}: {plugin}:{target}")
             else:
                 bad(f"{rel(doc)}: reference '{plugin}:{target}' resolves to no skill")
+
+print("==> Checking smith's routes against the skills' fixed lines")
+if "smith" in skills:
+    routes = ROUTE_RE.findall("\n".join(unfenced(read(skills["smith"])) or []))
+    if not routes:
+        bad("smith states no routes in the `<skill>: <TOKEN>` form")
+    for skill, token in routes:
+        if skill not in skills:
+            bad(f"smith route '{skill}: {token}': no skill '{skill}'")
+        elif token in fixed_tokens(read(skills[skill])):
+            ok(f"smith route '{skill}: {token}'")
+        else:
+            bad(f"smith route '{skill}: {token}': {skill} states no such token in a fixed line")
 
 print("")
 if error_count():
