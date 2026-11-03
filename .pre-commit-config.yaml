@@ -41,7 +41,7 @@ repos:
       # check exists to catch, so it runs unconditionally (~2.5s).
       - id: marketplace-structure
         name: marketplace structure
-        description: Fail if a plugin is missing plugin.json, SKILL.md, README.md or LICENSE, or a manifest name drifts.
+        description: Fail if a plugin is missing plugin.json or LICENSE, a manifest name drifts, a hook path dangles, or a check script is gone.
         entry: scripts/test
         language: script
         pass_filenames: false
@@ -51,7 +51,7 @@ repos:
       # scripts/validate would commit green.
       - id: marketplace-version-sync
         name: marketplace version sync
-        description: Fail if marketplace versions drift from plugin.json or SKILL.md, or lag the latest git tag.
+        description: Fail if marketplace versions drift from plugin.json, lag the latest git tag, or a changed plugin is unbumped.
         entry: scripts/check-version-sync
         language: script
         pass_filenames: false
@@ -60,7 +60,7 @@ repos:
       # `make test` and CI run the full form, which still catches the gap.
       - id: marketplace-semantic-validate
         name: marketplace semantic validation
-        description: Fail if skill references, model tiers, magic words or README sections are inconsistent.
+        description: Fail if plugin descriptions, magic words, README skill tables, skill references or code fences are inconsistent.
         entry: scripts/validate --per-commit
         language: script
         pass_filenames: false

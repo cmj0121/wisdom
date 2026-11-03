@@ -146,6 +146,9 @@ expect check-skill-spec pass "the repo as it stands is accepted"
 sed -i.bak 's/^license: MIT$/license: MIT\nversion: 1/' "$TMP_DIR/repo/$TARGET"
 expect check-skill-spec "unknown frontmatter key 'version'" "an unknown frontmatter key is caught"
 
+sed -i.bak 's/^license: MIT$/license: MIT\nmodel: haiku/' "$TMP_DIR/repo/$TARGET"
+expect check-skill-spec "unknown frontmatter key 'model'" "a model pin is caught"
+
 sed -i.bak "s/^description: .*/description: $(printf 'x%.0s' $(seq 1 161))/" "$TMP_DIR/repo/$TARGET"
 expect check-skill-spec "over this repo's 160 limit" "a description over 160 characters is caught"
 

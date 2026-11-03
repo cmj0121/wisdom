@@ -27,36 +27,23 @@ for arg in "$@"; do
 	esac
 done
 
-python3 - "$REPO_ROOT" "$PER_COMMIT" <<'PY'
+PYTHONDONTWRITEBYTECODE=1 PYTHONSAFEPATH=1 PYTHONPATH="$(cd "$(dirname "$0")" && pwd)" python3 - "$REPO_ROOT" "$PER_COMMIT" <<'PY'
 import glob
 import json
 import os
 import re
 import sys
 
+from _common import bad, error_count, ok, parse_frontmatter, shipped_skills, source_path, split_frontmatter
+
 root = sys.argv[1]
 per_commit = sys.argv[2] == "1"
-
-GREEN, RED, RESET = "\033[32m", "\033[31m", "\033[0m"
-WISDOM_VERBOSE = os.environ.get("WISDOM_VERBOSE", "") not in ("", "0")
-errors = 0
 
 READMES = ("README.md", "README.zh-TW.md")
 
 FENCE_RE = re.compile(r"^\s*(```|~~~)")
 TICK_RE = re.compile(r"`([^`]+)`")
 REF_RE = re.compile(r"`([a-z0-9-]+):([a-z0-9-]+)`")
-
-
-def ok(msg):
-    if WISDOM_VERBOSE:
-        print(f"  {GREEN}PASS{RESET} {msg}")
-
-
-def bad(msg):
-    global errors
-    print(f"  {RED}FAIL{RESET} {msg}")
-    errors += 1
 
 
 def rel(path):
@@ -81,10 +68,10 @@ def unfenced(text):
 
 def shortcut_of(path):
     """The comma-separated metadata.shortcut words of a SKILL.md."""
-    text = read(path)
-    head = text.split("\n---", 1)[0] if text.startswith("---") else ""
-    m = re.search(r"^\s+shortcut:\s*[\"']?([^\"'\n]*)", head, re.M)
-    return [w.strip() for w in m.group(1).split(",") if w.strip()] if m else []
+    front, _ = split_frontmatter(path)
+    meta = parse_frontmatter(front).get("metadata") if front else None
+    words = meta.get("shortcut") if isinstance(meta, dict) else None
+    return [w.strip() for w in (words or "").split(",") if w.strip()]
 
 
 mk = json.load(open(os.path.join(root, ".claude-plugin", "marketplace.json")))
@@ -94,7 +81,7 @@ readme_prose = "\n".join(unfenced(read(os.path.join(root, "README.md"))) or [])
 skills = {}  # name -> SKILL.md path
 for entry in mk["plugins"]:
     name = entry["name"]
-    src = entry["source"][2:] if entry["source"].startswith("./") else entry["source"]
+    src = source_path(entry)
     pj = json.load(open(os.path.join(root, src, ".claude-plugin", "plugin.json")))
     if pj.get("description") == entry.get("description"):
         ok(f"{name}: description agrees")
@@ -104,11 +91,10 @@ for entry in mk["plugins"]:
         ok(f"{name}: named in README.md")
     else:
         bad(f"{name}: registered in marketplace.json but never named in README.md prose")
-    for path in sorted(glob.glob(os.path.join(root, src, "skills", "*", "SKILL.md"))):
-        skill = os.path.basename(os.path.dirname(path))
-        if skill in skills:
-            bad(f"{skill}: shipped by two plugins")
-        skills[skill] = path
+for skill, path in shipped_skills(root, mk["plugins"]):
+    if skill in skills:
+        bad(f"{skill}: shipped by two plugins")
+    skills[skill] = path
 
 print("==> Checking magic words are unique")
 owner = {}
@@ -173,8 +159,8 @@ for skill, path in skills.items():
                 bad(f"{rel(doc)}: reference '{plugin}:{target}' resolves to no skill")
 
 print("")
-if errors:
-    print(f"==> {errors} error(s) found")
+if error_count():
+    print(f"==> {error_count()} error(s) found")
     sys.exit(1)
 print(f"==> All semantic checks passed ({len(skills)} skills)")
 PY

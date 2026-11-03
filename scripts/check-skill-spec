@@ -1,13 +1,10 @@
 #!/usr/bin/env bash
 # Checks every SKILL.md against the Agent Skills standard (agentskills.io).
 #
-# The standard defines six frontmatter fields. Claude Code accepts those plus a
-# set of its own. This repo ships Claude Code plugins, so it may use the
-# extensions -- but only ones it has decided to adopt, and each adoption is
-# recorded in CLAUDE_CODE_EXTENSIONS below with the reason. Anything outside
-# both sets is a typo or a field the author assumed existed, and fails.
+# The standard defines six frontmatter fields. Anything else is a typo or a
+# field the author assumed existed, and fails.
 #
-#   1. Frontmatter carries no key outside the two allowed sets.
+#   1. Frontmatter carries no key outside those six.
 #   2. 'name' obeys the standard's grammar and matches its directory.
 #   3. 'description' is present, within limits, third-person, tag-free.
 #   4. 'compatibility' and 'metadata' hold the shapes the standard gives
@@ -26,31 +23,14 @@ else
 	REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 fi
 
-python3 - "$REPO_ROOT" <<'PY'
-import glob
+PYTHONDONTWRITEBYTECODE=1 PYTHONSAFEPATH=1 PYTHONPATH="$(cd "$(dirname "$0")" && pwd)" python3 - "$REPO_ROOT" <<'PY'
 import os
 import re
 import sys
 
+from _common import bad, error_count, ok, parse_frontmatter, skill_files, split_frontmatter
+
 root = sys.argv[1]
-
-GREEN, RED, RESET = "\033[32m", "\033[31m", "\033[0m"
-# Quiet by default; WISDOM_VERBOSE=1 restores the per-item PASS lines. Same
-# reasoning as scripts/test and scripts/validate.
-WISDOM_VERBOSE = os.environ.get("WISDOM_VERBOSE", "") not in ("", "0")
-errors = 0
-
-
-def ok(msg):
-    if WISDOM_VERBOSE:
-        print(f"  {GREEN}PASS{RESET} {msg}")
-
-
-def bad(msg):
-    global errors
-    print(f"  {RED}FAIL{RESET} {msg}")
-    errors += 1
-
 
 # ---------------------------------------------------------------- the policy
 
@@ -63,23 +43,6 @@ STANDARD_FIELDS = {
     "metadata",
     "allowed-tools",
 }
-
-# Claude Code extensions this marketplace has decided to use. Each entry states
-# why, because the cost of an extension is that the skill stops being portable:
-# claude.ai uploads and the Skills API reject unknown keys outright rather than
-# ignoring them. Add to this set only with the same kind of reason.
-CLAUDE_CODE_EXTENSIONS = {
-    # Runs mechanical, high-frequency skills on a cheaper tier.
-    "model": "pins the tier for cost, on skills whose work is mechanical",
-    # Without it, 'model' moves the session for the rest of the turn rather
-    # than just the skill -- so any skill an agent invokes mid-turn needs it.
-    "context": "redirects a 'model' pin at a forked subagent, not the session",
-    # A forked skill is backgrounded by default; agent callers need the result
-    # in the same turn they asked for it.
-    "background": "keeps a forked skill's result inline for its caller",
-}
-
-ALLOWED_FIELDS = STANDARD_FIELDS | set(CLAUDE_CODE_EXTENSIONS)
 
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 NAME_MAX = 64
@@ -107,70 +70,6 @@ FIRST_SECOND_PERSON_RE = re.compile(r"^\s*(I\b|I'|You\b|Your\b|We\b|Our\b|This s
 MD_LINK_RE = re.compile(r"\[[^\]]*\]\(([^)]+)\)")
 
 
-# ------------------------------------------------------------ the YAML subset
-#
-# Not a YAML parser: just enough of one to read the frontmatter shapes this
-# repo uses, so the check has no dependency the repo does not already have.
-# Anything it cannot read is reported rather than skipped.
-
-
-def split_frontmatter(path):
-    """Return (frontmatter_lines, body_lines), or (None, None) if unterminated."""
-    lines = open(path, encoding="utf-8").read().splitlines()
-    if not lines or lines[0].strip() != "---":
-        return None, None
-    for i in range(1, len(lines)):
-        if lines[i].strip() == "---":
-            return lines[1:i], lines[i + 1 :]
-    return None, None
-
-
-def parse_frontmatter(lines):
-    """Map top-level keys to a str, a dict, or a list.
-
-    Handles the three shapes present here: a scalar, a folded block ('>-',
-    whose lines rejoin with a single space), and an indented block that is
-    either a mapping or a sequence.
-    """
-    fields, i = {}, 0
-    while i < len(lines):
-        line = lines[i]
-        if not line.strip() or line.lstrip().startswith("#"):
-            i += 1
-            continue
-        m = re.match(r"^([A-Za-z0-9_-]+):(.*)$", line)
-        if not m:
-            i += 1
-            continue
-        key, rest = m.group(1), m.group(2).strip()
-        block, i = [], i + 1
-        while i < len(lines) and (not lines[i].strip() or lines[i].startswith(" ")):
-            block.append(lines[i])
-            i += 1
-        while block and not block[-1].strip():
-            block.pop()
-
-        if rest in (">-", ">", "|", "|-"):
-            joiner = "\n" if rest.startswith("|") else " "
-            fields[key] = joiner.join(b.strip() for b in block)
-        elif rest:
-            fields[key] = rest.strip("'\"")
-        elif block and block[0].lstrip().startswith("- "):
-            fields[key] = [b.strip()[2:].strip() for b in block]
-        elif block:
-            sub = {}
-            for b in block:
-                sm = re.match(r"^\s+([A-Za-z0-9_-]+):(.*)$", b)
-                if sm:
-                    sub[sm.group(1)] = sm.group(2).strip().strip("'\"")
-                else:
-                    sub[b.strip()] = None  # unreadable -> reported by the check
-            fields[key] = sub
-        else:
-            fields[key] = ""
-    return fields
-
-
 # --------------------------------------------------------------- the checks
 
 
@@ -180,14 +79,9 @@ def rel(path):
 
 def check_fields(label, fields):
     for key in fields:
-        if key in ALLOWED_FIELDS:
+        if key in STANDARD_FIELDS:
             continue
-        bad(
-            f"{label}: unknown frontmatter key '{key}'"
-            " (allowed: the six standard fields, plus the Claude Code"
-            " extensions this repo has adopted -- see CLAUDE_CODE_EXTENSIONS"
-            " in scripts/check-skill-spec)"
-        )
+        bad(f"{label}: unknown frontmatter key '{key}' (allowed: the six standard fields)")
     for key in ("name", "description"):
         if not fields.get(key):
             bad(f"{label}: required field '{key}' is missing or empty")
@@ -233,32 +127,8 @@ def check_description(label, fields):
         )
 
 
-# allowed-tools is the one field here that deliberately does not follow the
-# standard, which types it as a space-separated string. Seventy of this repo's
-# grants contain a space -- Bash(git status:*) -- so a space-separated string
-# cannot express them, and the only space-free spelling, Bash(git:*), widens the
-# grant from one subcommand to all of git.
-#
-# That leaves a comma-separated string or a YAML list, and both are readable by
-# Claude Code. The list wins on how each fails elsewhere: a comma string gets
-# split on spaces into 'Bash(git' and 'status:*),' -- tool patterns that match
-# nothing, silently dropping a permission grant. A list at worst reaches a
-# consumer that cannot use it as given.
-#
-# What that consumer does with it has moved. The reason recorded here used to
-# be that a strict reader rejects a list loudly on its type, and a loud failure
-# on a permissions field beats a quiet one. As of September 2026 the observed
-# direction is the opposite: tools are normalising a list into a string for
-# spec compliance and treating it as legacy input, which is the quiet handling
-# the list was chosen to avoid. The evidence is one implementation's change
-# rather than the standard itself -- the field is still typed as a
-# space-separated string and still marked Experimental -- so the choice stands,
-# but on a narrower claim: the list expresses grants the standard's type cannot,
-# and the alternative drops permissions in silence.
-#
-# Revisit when either of these happens, not before:
-#   - the standard moves allowed-tools out of Experimental, or retypes it
-#   - Claude Code itself stops accepting a list
+# allowed-tools departs from the standard's space-separated string: a grant like
+# Bash(git status:*) holds a space, and a string would silently drop it.
 def check_shapes(label, fields):
     compat = fields.get("compatibility")
     if compat is not None:
@@ -329,7 +199,7 @@ def check_body(label, path, body):
 # ------------------------------------------------------------------- the run
 
 print("==> Checking SKILL.md against the Agent Skills standard")
-paths = sorted(glob.glob(os.path.join(root, "plugins", "*", "skills", "*", "SKILL.md")))
+paths = skill_files(root)
 # An empty glob is a layout the check no longer understands -- unless the
 # marketplace registers no plugin at all, which is a repo with nothing to ship.
 if not paths:
@@ -353,8 +223,8 @@ for path in paths:
     check_body(label, path, body)
     ok(label)
 
-if errors:
-    print(f"==> {errors} standard violation(s)")
+if error_count():
+    print(f"==> {error_count()} standard violation(s)")
     sys.exit(1)
 print("==> All skills follow the Agent Skills standard")
 PY
