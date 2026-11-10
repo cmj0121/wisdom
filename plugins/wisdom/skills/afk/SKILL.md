@@ -33,11 +33,13 @@ will get no ping.
 2. **Decide the ordinary yourself.** An obstacle with a reasonable way round, or a choice
    that is easy to reverse, is yours to make. Note each decision and its reason, and list
    them in the final report.
-3. **Stop for three things only:** the task is complete; a question only the user can
-   answer; or the next action is hard to undo or faces outward (a push, a release, a
-   deletion, a message sent in the user's name) and the user has not asked for it in this
-   conversation. One they did ask for is carried out, and any permission prompt it raises
-   still reaches them.
+3. **Stop for four things only:** the task is complete; a question only the user can
+   answer; the user's `hold and wait`; or the next action is hard to undo or faces outward
+   (a push, a release, a deletion, a message sent in the user's name) and the user has not
+   asked for it in this conversation. One they did ask for is carried out, and any
+   permission prompt it raises still reaches them. A hold overrides rule 1: until
+   `keep go on`, end each turn with `HOLD: HELD` in place of rule 5's line (the ping reads
+   "stopped").
 4. **Ask in plain text.** End the turn with the question written in the message, not
    through a dialog tool — the hook carries the message's last line into the notification.
 5. **End every turn with one fixed line.** The last line of any message that ends a turn is
