@@ -72,20 +72,26 @@ v3 從零重寫，圍繞三條規則。
 
 ### 輸出
 
-| Skill      | 目的                                            | Magic word       |
-| ---------- | ----------------------------------------------- | ---------------- |
-| `diagram`  | 為已定案的結構畫 ASCII 圖                       | `draw a diagram` |
-| `assets`   | 一輪一個確認過的修改，逐步產出媒體素材          | `build assets`   |
-| `compact`  | 把上一個回答重新整理成精簡表格                  | `compact it`     |
-| `brief`    | 讓回答保持簡短，一次只討論一個主題              | `brief me`       |
-| `afk`      | 一路做到完成，做完或需要你時才通知              | `afk mode`       |
-| `lingua`   | 以你選定的語言回答，並依專案記住                | `reply in`       |
-| `shortcut` | 列出所有 magic word，或手動派送 hook 漏掉的那個 | —                |
+| Skill      | 目的                                            | Magic word                    |
+| ---------- | ----------------------------------------------- | ----------------------------- |
+| `diagram`  | 為已定案的結構畫 ASCII 圖                       | `draw a diagram`              |
+| `assets`   | 一輪一個確認過的修改，逐步產出媒體素材          | `build assets`                |
+| `compact`  | 把上一個回答重新整理成精簡表格                  | `compact it`                  |
+| `brief`    | 讓回答保持簡短，一次只討論一個主題              | `brief me`                    |
+| `afk`      | 一路做到完成，做完或需要你時才通知              | `afk mode`                    |
+| `hold`     | 停下目前的任務與背景工作，之後再接著做          | `hold and wait`, `keep go on` |
+| `lingua`   | 以你選定的語言回答，並依專案記住                | `reply in`                    |
+| `shortcut` | 列出所有 magic word，或手動派送 hook 漏掉的那個 | —                             |
 
 `afk` 在 agent 停下時讓終端機響鈴（bell + OSC 9）；`afk off` 結束。它不會改變 permission
 mode：權限請求仍會讓 agent 停下，那就是「需要你」的通知。Terminal.app 不顯示 OSC 9，因此改由
 通知中心送出訊息，列在 Script Editor 名下——請允許它的通知。在 tmux 中，除非開啟
 passthrough，否則只有響鈴會通過。若你設定了 Claude Code 自己的通知管道，它也會一併通知。
+
+`hold` 在下一個回合交界才生效：正在執行的步驟會先跑完，只有 Esc 能中斷它。`hold and wait`
+會停下任務的背景 agent、workflow 與 shell 並記錄下來；`keep go on` 從記錄的步驟接著做。有
+`PLAN.md` 時，hold 記錄在其中，經過 compaction 仍會保留；沒有的話，compaction 可能讓長時間的
+hold 遺失。`afk` 會讓位給 hold。
 
 ## smith 如何運作
 

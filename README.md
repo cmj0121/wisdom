@@ -75,15 +75,16 @@ other skills in turn. Every skill also works on its own.
 
 ### Output
 
-| Skill      | Purpose                                                | Magic word       |
-| ---------- | ------------------------------------------------------ | ---------------- |
-| `diagram`  | Draw an ASCII diagram of a decided structure           | `draw a diagram` |
-| `assets`   | Build media assets one confirmed change per round      | `build assets`   |
-| `compact`  | Re-render the previous answer as a dense table         | `compact it`     |
-| `brief`    | Keep answers short and discuss one topic at a time     | `brief me`       |
-| `afk`      | Work to the end and ping you when done or needed       | `afk mode`       |
-| `lingua`   | Answer in your chosen language, remembered per project | `reply in`       |
-| `shortcut` | List every magic word, or dispatch one the hook missed | —                |
+| Skill      | Purpose                                                | Magic word                    |
+| ---------- | ------------------------------------------------------ | ----------------------------- |
+| `diagram`  | Draw an ASCII diagram of a decided structure           | `draw a diagram`              |
+| `assets`   | Build media assets one confirmed change per round      | `build assets`                |
+| `compact`  | Re-render the previous answer as a dense table         | `compact it`                  |
+| `brief`    | Keep answers short and discuss one topic at a time     | `brief me`                    |
+| `afk`      | Work to the end and ping you when done or needed       | `afk mode`                    |
+| `hold`     | Stop the task and its background work; resume it later | `hold and wait`, `keep go on` |
+| `lingua`   | Answer in your chosen language, remembered per project | `reply in`                    |
+| `shortcut` | List every magic word, or dispatch one the hook missed | —                             |
 
 `afk` rings the terminal (bell + OSC 9) when the agent stops; `afk off` ends it. It does not
 change the permission mode: a permission request still stops the agent, and is the
@@ -91,6 +92,12 @@ needs-you ping. Terminal.app shows no OSC 9, so there the message arrives throug
 Notification Center, listed under Script Editor — allow its notifications. Under tmux only
 the bell gets through unless passthrough is on. Claude Code's own notification channel, if
 you set one, pings as well.
+
+`hold` acts at the next turn boundary: a step already running finishes first, and only Esc
+interrupts it. `hold and wait` stops the task's background agents, workflows and shells and
+records them; `keep go on` resumes from the recorded step. With a `PLAN.md` the hold is
+recorded there and survives compaction; without one, a compaction can lose a long hold. `afk`
+yields to a hold.
 
 ## How smith runs
 
