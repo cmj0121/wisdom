@@ -1,6 +1,6 @@
 ---
 name: smith
-description: Drives a piece of work from idea to merge, calling plan, then design, build, review and commit. Use for substantial work; plan alone stops at the plan.
+description: Drives a piece of work from idea to merge, calling plan, then architecture, build, review and commit. Use for substantial work; plan alone stops at the plan.
 license: MIT
 metadata:
   shortcut: "smith"
@@ -18,8 +18,8 @@ it with the right input, read its result, decide what happens next.
 - **The plan files are the memory.** `PLAN.md` is Smith's view; `PLAN_DETAILS.md` holds what a
   subagent needs. Neither is committed, so a worktree lacks both: paste Setup, the unit's section
   and its decisions into the prompt, with the main checkout's absolute path to both as a fallback.
-  Subagents only read them; Smith writes them, itself or through an inline `wisdom:design`, and
-  updates `PLAN.md` before each step: a hook re-injects it after compaction.
+  Subagents only read them; Smith writes them, itself or through an inline
+  `wisdom:architecture`, and updates `PLAN.md` before each step: a hook re-injects it after compaction.
 - **Delegate every unit step.** Each skill run on a unit — code, review, fix, commit — goes to a
   subagent through `Agent`. Ask each to return only its fixed result line, plus one line per finding
   or failure on `WARN` or `FAIL`, no prose summary; a code subagent adds its Report block and any
@@ -48,13 +48,13 @@ Run `wisdom:plan` on the idea. Then have a subagent run `wisdom:challenge` on th
 **Checkpoint 1:** show the goal, the units and the open risks, plus `Tests deferred`, recorded as a
 decision, when the plan is large enough for tests to wait. Wait for approval.
 
-## 2. Design
+## 2. Architecture
 
-Run every `design` unit here, never in Build, and mark it `done` in `PLAN.md`. Run `wisdom:design`
-also when the plan adds a public interface (API, route, CLI flag, schema, file format) or a
-dependency, and `wisdom:spec` when the builder would otherwise have to guess. A unit that changes a
-visual interface gets `frontend-design:frontend-design` if installed — say so when not. With no
-`design` unit and an unchanged interface, skip this step.
+Run every `architecture` unit here, never in Build, and mark it `done` in `PLAN.md`. Run
+`wisdom:architecture` also when the plan adds a public interface (API, route, CLI flag, schema, file
+format) or a dependency, and `wisdom:spec` when the builder would otherwise have to guess. A unit
+that changes a visual interface gets `frontend-design:frontend-design` if installed — say so when
+not. With no `architecture` unit and an unchanged interface, skip this step.
 
 ## 3. Build
 
@@ -81,8 +81,8 @@ Create the branch first: `git checkout -b feat/<three-word-slug>`. Order the uni
    | `review: FAIL` | `SendMessage` the findings to the unit's code subagent, then re-review |
    | `review: SKIP` | the unit left no diff: stop and tell the user; it is not `done`        |
 
-   A finding that says the design is wrong: run `wisdom:design` inline, then `SendMessage` the new
-   Interface to the code subagent.
+   A finding that says the design is wrong: run `wisdom:architecture` inline, then `SendMessage` the
+   new Interface to the code subagent.
 
 4. **Commit.** `SendMessage` the code subagent to `git add` the `Files` its report names, then run
    `wisdom:commit` in its worktree; a new subagent does so there, told those files, if it cannot be

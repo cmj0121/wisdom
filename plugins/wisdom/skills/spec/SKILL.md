@@ -9,11 +9,11 @@ metadata:
 # Spec
 
 Write down a decided design so someone else can build it. Record — do not re-decide. An
-open design question goes back to `wisdom:design`.
+open design question goes back to `wisdom:architecture`.
 
 ## Steps
 
-1. **Collect the decision:** the prompt, the output of `design`, or its `PLAN.md` row and
+1. **Collect the decision:** the prompt, the output of `architecture`, or its `PLAN.md` row and
    `PLAN_DETAILS.md` Interface. Read only the code the spec's interfaces touch.
 2. **Ask** about any gap that would force the builder to guess — an unstated error case, a
    missing field, an unclear limit. Do not fill it in yourself.
