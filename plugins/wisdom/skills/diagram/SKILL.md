@@ -8,7 +8,7 @@ metadata:
 
 # Diagram
 
-Draw a structure that is already decided. Deciding it is `wisdom:design`'s job; a missing
+Draw a structure that is already decided. Deciding it is `wisdom:architecture`'s job; a missing
 piece of the structure is a question to ask, not a box to invent.
 
 ## Steps

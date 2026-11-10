@@ -92,5 +92,5 @@ No line budget: a builder reads only its unit and the decisions it follows.
 
 - Both files are working files: never commit them.
 - Updating existing files: change the rows that moved, keep the rest.
-- A unit that needs an interface decided first gets a `design` unit ahead of it; leave its
-  decision's Interface as `—` for `design` to fill.
+- A unit that needs an interface decided first gets an `architecture` unit ahead of it; leave its
+  decision's Interface as `—` for `architecture` to fill.
