@@ -40,15 +40,15 @@ v3 從零重寫，圍繞三條規則。
 
 ### 建構
 
-| Skill    | 目的                                                             | Magic word    |
-| -------- | ---------------------------------------------------------------- | ------------- |
-| `plan`   | 把想法寫成 `PLAN.md` 與 `PLAN_DETAILS.md`：工作單元、決策、setup | `plan it`     |
-| `design` | 決定架構、API 或技術選型，並列出取捨                             | `design it`   |
-| `spec`   | 為已定案的設計撰寫技術規格                                       | `write spec`  |
-| `code`   | 實作一個工作單元及其測試                                         | `code it`     |
-| `test`   | 執行專案的測試套件並回報結果                                     | `run tests`   |
-| `review` | 審查一份 diff 的正確性與品質                                     | `review it`   |
-| `docs`   | 撰寫或更新面向使用者的文件                                       | `document it` |
+| Skill          | 目的                                                             | Magic word     |
+| -------------- | ---------------------------------------------------------------- | -------------- |
+| `plan`         | 把想法寫成 `PLAN.md` 與 `PLAN_DETAILS.md`：工作單元、決策、setup | `plan it`      |
+| `architecture` | 決定架構、API 或技術選型，優先採用成熟方案                       | `architect it` |
+| `spec`         | 為已定案的設計撰寫技術規格                                       | `write spec`   |
+| `code`         | 實作一個工作單元及其測試                                         | `code it`      |
+| `test`         | 執行專案的測試套件並回報結果                                     | `run tests`    |
+| `review`       | 審查一份 diff 的正確性與品質                                     | `review it`    |
+| `docs`         | 撰寫或更新面向使用者的文件                                       | `document it`  |
 
 ### 交付
 
@@ -92,7 +92,7 @@ passthrough，否則只有響鈴會通過。若你設定了 Claude Code 自己�
 有框的步驟在獨立的 subagent 中執行；`smith ─` 開頭的步驟由 Smith 自己執行；`★` 會停下來等你。
 
 ```text
-① Plan & Design
+① Plan & Architecture
 
   smith ─ wisdom:plan ──> PLAN.md + PLAN_DETAILS.md
                 │
@@ -108,7 +108,7 @@ passthrough，否則只有響鈴會通過。若你設定了 Claude Code 自己�
   ★ Checkpoint 1 · user approves plan
                 │
                 ▼
-  smith ─ wisdom:design / wisdom:spec ──> design units marked done
+  smith ─ wisdom:architecture / wisdom:spec ──> architecture units marked done
                 │
                 ▼
              ② Build
@@ -125,7 +125,7 @@ passthrough，否則只有響鈴會通過。若你設定了 Claude Code 自己�
   └──────────────────────┘ └──────────────────────┘
              └───────────┬────────────┘
                          ▼
-  smith ─ routes VERDICT lines ──design wrong──> smith ─ wisdom:design
+  smith ─ routes VERDICT lines ──design wrong──> smith ─ wisdom:architecture
                          │
                          ├──FAIL──> same code agent fixes ──> same reviewer re-checks
                          │ PASS
@@ -177,7 +177,7 @@ passthrough，否則只有響鈴會通過。若你設定了 Claude Code 自己�
 - 互相獨立的工作單元平行執行，每個 `code` 各自在獨立的 git worktree 中，只跑自己的測試；
   每個 batch merge 後才跑一次完整測試。`smith` 自己執行，只有失敗時才委派出去。
 - `review` 回傳一行 verdict；失敗時 `smith` 把它送回同一個 `code` subagent（設計有問題時則
-  送回 `design`），通過後由它 commit。
+  送回 `architecture`），通過後由它 commit。
 - merge 前，`history` 先分類尚未 push 分支的檔案與 commit，再呼叫 `reshape.py`，在暫時的
   worktree 中重建成線性歷史；與起點的 diff 為空，所以不必重跑 review。不論 `history` 結果為何，
   `smith` 接著都會重跑測試，因為檢查步驟產生的 commit 尚未測試過。

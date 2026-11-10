@@ -43,15 +43,15 @@ other skills in turn. Every skill also works on its own.
 
 ### Build
 
-| Skill    | Purpose                                                                    | Magic word    |
-| -------- | -------------------------------------------------------------------------- | ------------- |
-| `plan`   | Turn an idea into `PLAN.md` and `PLAN_DETAILS.md`: units, decisions, setup | `plan it`     |
-| `design` | Decide an architecture, API or tech choice, with trade-offs                | `design it`   |
-| `spec`   | Write a technical specification for an agreed design                       | `write spec`  |
-| `code`   | Implement one unit of work with its tests                                  | `code it`     |
-| `test`   | Run the project's test suite and report the result                         | `run tests`   |
-| `review` | Review a diff for correctness and quality                                  | `review it`   |
-| `docs`   | Write or update user-facing documentation                                  | `document it` |
+| Skill          | Purpose                                                                    | Magic word     |
+| -------------- | -------------------------------------------------------------------------- | -------------- |
+| `plan`         | Turn an idea into `PLAN.md` and `PLAN_DETAILS.md`: units, decisions, setup | `plan it`      |
+| `architecture` | Decide an architecture, API or tech choice, preferring vetted code         | `architect it` |
+| `spec`         | Write a technical specification for an agreed design                       | `write spec`   |
+| `code`         | Implement one unit of work with its tests                                  | `code it`      |
+| `test`         | Run the project's test suite and report the result                         | `run tests`    |
+| `review`       | Review a diff for correctness and quality                                  | `review it`    |
+| `docs`         | Write or update user-facing documentation                                  | `document it`  |
 
 ### Ship
 
@@ -97,7 +97,7 @@ you set one, pings as well.
 A boxed step runs in its own subagent; a `smith ─` step is Smith itself; `★` waits for you.
 
 ```text
-① Plan & Design
+① Plan & Architecture
 
   smith ─ wisdom:plan ──> PLAN.md + PLAN_DETAILS.md
                 │
@@ -113,7 +113,7 @@ A boxed step runs in its own subagent; a `smith ─` step is Smith itself; `★`
   ★ Checkpoint 1 · user approves plan
                 │
                 ▼
-  smith ─ wisdom:design / wisdom:spec ──> design units marked done
+  smith ─ wisdom:architecture / wisdom:spec ──> architecture units marked done
                 │
                 ▼
              ② Build
@@ -130,7 +130,7 @@ A boxed step runs in its own subagent; a `smith ─` step is Smith itself; `★`
   └──────────────────────┘ └──────────────────────┘
              └───────────┬────────────┘
                          ▼
-  smith ─ routes VERDICT lines ──design wrong──> smith ─ wisdom:design
+  smith ─ routes VERDICT lines ──design wrong──> smith ─ wisdom:architecture
                          │
                          ├──FAIL──> same code agent fixes ──> same reviewer re-checks
                          │ PASS
@@ -184,7 +184,7 @@ A boxed step runs in its own subagent; a `smith ─` step is Smith itself; `★`
   own tests; the full suite runs once per merged batch. `smith` runs it itself and delegates
   only a failure.
 - `review` returns a one-line verdict; `smith` routes a failure back to the same `code`
-  subagent (or to `design` when the design is at fault), which commits once it passes.
+  subagent (or to `architecture` when the design is at fault), which commits once it passes.
 - Before the merge, `history` classifies the unpushed branch's files and commits, then calls
   `reshape.py`, which rebuilds it as linear history in a temporary worktree; its empty diff
   against the start is why reviews are not run again. `smith` then re-runs the suite whatever
