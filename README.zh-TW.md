@@ -25,8 +25,9 @@ v3 從零重寫，圍繞三條規則。
 3. **更少的 token。** `description` 每個 session 都會載入，所以只寫一句短句；body 在每次
    執行時載入，同樣保持精簡；只有部分執行才需要的內容放在 `references/`，需要時才讀。不設
    人設、不做角色扮演、不重複探索專案：由計畫檔把 context 往下傳遞。
-   兩個 hook 讓長 session 不偏離：一個在每次 prompt 重申 `lingua` 語言，另一個在仍有未完成
-   的 unit 時，於壓縮後重新注入 `PLAN.md`。
+   數個 hook 讓長 session 不偏離：一個在每次 prompt 重申 `lingua` 語言。存在 `PLAN.md` 時，
+   壓縮只保留計畫檔沒有的內容，壓縮後重新注入 `PLAN.md`；`/clear` 後會問你要用 `smith`
+   繼續這份計畫，還是刪除它的檔案。
 
 ## Skills
 
@@ -190,6 +191,7 @@ hold 遺失。`afk` 會讓位給 hold。
 - `smith` 會在兩個 checkpoint 停下：核准計畫、核准 merge；此外，需要你的回答或難以復原的選擇、
   有工作未經 review 或未經測試，或修復失敗兩輪時也會停下；完整流程見
   [它的 skill](plugins/wisdom/skills/smith/SKILL.md)。除非你要求，它不會打 tag、發佈或 push。
+  batch 之間與 Checkpoint 2 時，它會印出一行可直接貼上的 `/compact ...`。
 
 ## Token 預算
 
