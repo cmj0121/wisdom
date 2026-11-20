@@ -272,6 +272,38 @@ for name, body in (
     write(plan, body)
     expect(f"compact ignores a PLAN.md {name}", "plan-restore.py", {"source": "compact", "cwd": project}, "", home)
 
+print("==> Testing the PreCompact entry")
+COMPACT = "plan-compact.py"
+
+
+def compact_note(path):
+    return (
+        f"If you are running wisdom:smith, its plan is in {path}; otherwise ignore this. "
+        "PLAN.md is re-injected from disk after compaction, so do not restate it. "
+        "Keep only what it lacks: the current step, any question awaiting the user, "
+        "and decisions not yet written to it. Drop merged units' reports and diffs. "
+        "The user's own /compact instructions, if any, take precedence."
+    )
+
+
+pre = {"hook_event_name": "PreCompact", "trigger": "auto", "custom_instructions": None, "cwd": project}
+write(plan, plan_body)
+expect("PreCompact steers the summary for an open plan", COMPACT, pre, compact_note(plan), home)
+expect("a manual compact is steered too", COMPACT, {**pre, "trigger": "manual"}, compact_note(plan), home)
+expect(
+    "the project dir locates the plan without a cwd", COMPACT,
+    {k: v for k, v in pre.items() if k != "cwd"}, compact_note(plan), home,
+    CLAUDE_PROJECT_DIR=project,
+)
+write(plan, done_body)
+expect("PreCompact steers for a stale all-done plan", COMPACT, pre, compact_note(plan), home)
+write(plan, "# Notes\n\n| Id | Status |\n| -- | ------ |\n| U1 | todo |\n")
+expect("PreCompact ignores a PLAN.md that is not a plan", COMPACT, pre, "", home)
+os.remove(plan)
+expect("PreCompact without a plan is silent", COMPACT, pre, "", home)
+for raw in (b"{not json", b"", b"[1, 2]", b"\xff\xfe"):
+    expect(f"malformed event {raw!r} is silent at PreCompact", COMPACT, raw, "", home)
+
 print("==> Testing the hook wiring")
 config = json.load(open(os.path.join(hooks, "hooks.json")))["hooks"]
 commands = [h["command"] for group in config["UserPromptSubmit"] for h in group["hooks"]]
@@ -287,6 +319,15 @@ if starts == {"*": [SESSION], "compact": ["plan-restore.py"]}:
     ok("SessionStart runs lingua, and the plan restore on compact")
 else:
     bad(f"SessionStart runs {starts}")
+precompact = [
+    (group.get("matcher"), h["command"], h.get("timeout"))
+    for group in config.get("PreCompact", [])
+    for h in group["hooks"]
+]
+if precompact == [(None, f"python3 ${{CLAUDE_PLUGIN_ROOT}}/hooks/{COMPACT}", 10)]:
+    ok("PreCompact runs the plan note on every trigger")
+else:
+    bad(f"PreCompact runs {precompact}")
 
 # A session that loaded the previous hooks.json still runs this path.
 expect("the retired prompt path is silent", "lingua-prompt.py", prompt("smith"), "", lingua_home)
@@ -315,6 +356,7 @@ for name, helper in broken.items():
         write(os.path.join(copy, "_plan.py"), helper)
     expect(f"plan-restore.py with a {name} helper is silent", "plan-restore.py",
            {"source": "compact", "cwd": project}, "", home, hooks=copy)
+    expect(f"{COMPACT} with a {name} helper is silent", COMPACT, pre, "", home, hooks=copy)
 
 if os.path.exists(os.path.join(hooks, "__pycache__")):
     bad("the hooks left a __pycache__ in the plugin")
