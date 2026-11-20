@@ -27,8 +27,10 @@ v3 is a rewrite from scratch around three rules.
    sentence. A body is loaded each time its skill runs, so it stays short too; anything only
    some runs need lives in `references/` and is read only then. No personas, no role-play
    framing, no repeated project discovery: the plan file carries the context forward.
-   Two hooks keep a long session on course: one repeats the `lingua` language on every
-   prompt, the other re-injects `PLAN.md` after compaction while a unit is unfinished.
+   Hooks keep a long session on course: one repeats the `lingua` language on every prompt.
+   While a `PLAN.md` exists, compaction is told to keep only what the plan does not hold
+   and `PLAN.md` is re-injected after it; after `/clear` you are asked whether to continue
+   the plan with `smith` or delete its files.
 
 ## Skills
 
@@ -199,7 +201,8 @@ A boxed step runs in its own subagent; a `smith ─` step is Smith itself; `★`
 - `smith` stops at two checkpoints, to approve the plan and the merge, and also when it needs
   your answer or a hard-to-undo choice, when work is left unreviewed or untested, or after two
   failed fix rounds; [its skill](plugins/wisdom/skills/smith/SKILL.md) has the full routing. It
-  never tags, releases or pushes unless you ask.
+  never tags, releases or pushes unless you ask. Between batches and at Checkpoint 2 it prints
+  a ready `/compact ...` line to paste.
 
 ## Token budget
 

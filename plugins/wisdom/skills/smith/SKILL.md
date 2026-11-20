@@ -23,8 +23,7 @@ it with the right input, read its result, decide what happens next.
 - **Delegate every unit step.** Each skill run on a unit — code, review, fix, commit — goes to a
   subagent through `Agent`. Ask each to return only its fixed result line, plus one line per finding
   or failure on `WARN` or `FAIL`, no prose summary; a code subagent adds its Report block and any
-  worktree path and branch. Smith reads those lines, never a diff; once a unit is merged, drop its
-  reports.
+  worktree path and branch. Smith reads those lines, never a diff, and drops a merged unit's reports.
 - **No missing input is filled in.** A skill Smith routes on that returns no fixed result line is a
   gap: retry it once, then stop and tell the user; a review still without one leaves its unit
   unreviewed. Never write a silent skill's result yourself.
@@ -41,8 +40,7 @@ it with the right input, read its result, decide what happens next.
 Run `wisdom:plan` on the idea. Then have a subagent run `wisdom:challenge` on the plan:
 
 - `challenge: GO` → note its top items as risks in `PLAN.md`.
-- `challenge: PAUSE` → revise the named items, then `SendMessage` the same challenger to re-check
-  once.
+- `challenge: PAUSE` → revise the named items, then `SendMessage` that challenger to re-check once.
 - `challenge: RECONSIDER` → bring the finding to the user first.
 
 **Checkpoint 1:** show the goal, the units and the open risks, plus `Tests deferred`, recorded as a
@@ -96,9 +94,10 @@ Create the branch first: `git checkout -b feat/<three-word-slug>`. Order the uni
    `log=$(mktemp); ( set -e; <Test> ) >"$log" 2>&1; echo "exit $?"; tail -n 20 "$log"`. A one-unit
    batch built on the feature branch, whose `Tests` line is already a full-suite run, takes that
    instead.
-   - Exit 0 → set `PLAN_DETAILS.md` Baseline to `PASS at <short SHA>` before the next batch.
-   - No `exit N` line, or a suite beyond Bash's foreground limit → it could not run: stop and tell
-     the user.
+   - Exit 0 → set `PLAN_DETAILS.md` Baseline to `PASS at <short SHA>` before the next batch; if one
+     remains, print one line without stopping:
+     `` At your next prompt: `/compact keep PLAN.md state and <goal>; drop unit reports and diffs` ``.
+   - No `exit N` line, or a suite past Bash's foreground limit → it could not run: stop, tell the user.
    - Non-zero → a subagent runs `wisdom:test` to name the failures.
    - `test: FAIL` → a new code subagent on the feature branch gets the failures and the `Files` of
      the units they touch; review, `git add` its report's `Files` and commit, run the suite again.
@@ -140,8 +139,9 @@ returns here.
 
 **Checkpoint 2:** show `git log --oneline main..HEAD`, the `HISTORY:` result, the verdict of every
 unit (from `PLAN.md`) and check, and anything accepted with a warning. A commit made after this goes
-through `wisdom:review` and step 5 before it is re-shown. Wait for approval, then (a conflict goes
-as in step 3's Merge):
+through `wisdom:review` and step 5 before it is re-shown. Ask for approval, then add one line:
+`` `/compact keep PLAN.md state, the HISTORY result, checks and accepted WARNs; drop unit reports and diffs` ``.
+On approval (a conflict goes as in step 3's Merge):
 
 ```bash
 git checkout main

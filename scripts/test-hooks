@@ -251,6 +251,83 @@ expect(
 )
 expect("startup does not restore a plan", "plan-restore.py", {"source": "startup", "cwd": project}, "", home)
 
+done_body = "## Units\n\n| Id | Status |\n| -- | ------ |\n| U1 | done |\n| U2 | done |\n"
+write(plan, done_body)
+expect(
+    "compact restores a plan whose units are all done", "plan-restore.py",
+    {"source": "compact", "cwd": project},
+    wrapped(
+        "SessionStart",
+        f"Context was compacted. If you are running wisdom:smith, its state is below "
+        f"(from {plan}); builders' details are in {os.path.join(project, 'PLAN_DETAILS.md')}. "
+        f"Otherwise ignore it.\n\n{done_body}",
+    ),
+    home,
+)
+for name, body in (
+    ("without a Units heading", "# Notes\n\n| Id | Status |\n| -- | ------ |\n| U1 | todo |\n"),
+    ("whose Units table has no Status column", "## Units\n\n| Id | Owner |\n| -- | ----- |\n| U1 | me |\n"),
+    ("whose Units table has no rows", "## Units\n\n| Id | Status |\n| -- | ------ |\n"),
+):
+    write(plan, body)
+    expect(f"compact ignores a PLAN.md {name}", "plan-restore.py", {"source": "compact", "cwd": project}, "", home)
+
+details = write(os.path.join(project, "PLAN_DETAILS.md"), "# Details\n")
+clear = {"source": "clear", "cwd": project}
+write(plan, plan_body)
+expect(
+    "clear points at an earlier plan without restoring it", "plan-restore.py", clear,
+    wrapped(
+        "SessionStart",
+        f"A wisdom:plan PLAN.md from an earlier run is at {plan}; it was not restored. "
+        "In your first reply, ask the user whether to continue it with wisdom:smith "
+        "or delete PLAN.md and PLAN_DETAILS.md.",
+    ),
+    home,
+)
+if os.path.isfile(plan) and os.path.isfile(details):
+    ok("clear leaves PLAN.md and PLAN_DETAILS.md in place")
+else:
+    bad("clear removed a plan file")
+expect("resume does not restore a plan", "plan-restore.py", {"source": "resume", "cwd": project}, "", home)
+write(plan, "# Notes\n\n| Id | Status |\n| -- | ------ |\n| U1 | todo |\n")
+expect("clear ignores a PLAN.md that is not a plan", "plan-restore.py", clear, "", home)
+os.remove(plan)
+expect("clear without a plan is silent", "plan-restore.py", clear, "", home)
+os.remove(details)
+
+print("==> Testing the PreCompact entry")
+COMPACT = "plan-compact.py"
+
+
+def compact_note(path):
+    return (
+        f"If you are running wisdom:smith, its plan is in {path}; otherwise ignore this. "
+        "PLAN.md is re-injected from disk after compaction, so do not restate it. "
+        "Keep only what it lacks: the current step, any question awaiting the user, "
+        "and decisions not yet written to it. Drop merged units' reports and diffs. "
+        "The user's own /compact instructions, if any, take precedence."
+    )
+
+
+pre = {"hook_event_name": "PreCompact", "trigger": "auto", "custom_instructions": None, "cwd": project}
+write(plan, plan_body)
+expect("PreCompact steers the summary for an open plan", COMPACT, pre, compact_note(plan), home)
+expect("a manual compact is steered too", COMPACT, {**pre, "trigger": "manual"}, compact_note(plan), home)
+expect(
+    "the project dir locates the plan without a cwd", COMPACT,
+    {k: v for k, v in pre.items() if k != "cwd"}, compact_note(plan), home,
+    CLAUDE_PROJECT_DIR=project,
+)
+write(plan, done_body)
+expect("PreCompact steers for a stale all-done plan", COMPACT, pre, compact_note(plan), home)
+write(plan, "# Notes\n\n| Id | Status |\n| -- | ------ |\n| U1 | todo |\n")
+expect("PreCompact ignores a PLAN.md that is not a plan", COMPACT, pre, "", home)
+os.remove(plan)
+expect("PreCompact without a plan is silent", COMPACT, pre, "", home)
+for raw in (b"{not json", b"", b"[1, 2]", b"\xff\xfe"):
+    expect(f"malformed event {raw!r} is silent at PreCompact", COMPACT, raw, "", home)
+
 print("==> Testing the hook wiring")
 config = json.load(open(os.path.join(hooks, "hooks.json")))["hooks"]
 commands = [h["command"] for group in config["UserPromptSubmit"] for h in group["hooks"]]
@@ -262,10 +339,19 @@ starts = {
     group["matcher"]: [h["command"].rsplit("/", 1)[-1] for h in group["hooks"]]
     for group in config["SessionStart"]
 }
-if starts == {"*": [SESSION], "compact": ["plan-restore.py"]}:
-    ok("SessionStart runs lingua, and the plan restore on compact")
+if starts == {"*": [SESSION], "compact|clear": ["plan-restore.py"]}:
+    ok("SessionStart runs lingua, and the plan restore on compact or clear")
 else:
     bad(f"SessionStart runs {starts}")
+precompact = [
+    (group.get("matcher"), h["command"], h.get("timeout"))
+    for group in config.get("PreCompact", [])
+    for h in group["hooks"]
+]
+if precompact == [(None, f"python3 ${{CLAUDE_PLUGIN_ROOT}}/hooks/{COMPACT}", 10)]:
+    ok("PreCompact runs the plan note on every trigger")
+else:
+    bad(f"PreCompact runs {precompact}")
 
 # A session that loaded the previous hooks.json still runs this path.
 expect("the retired prompt path is silent", "lingua-prompt.py", prompt("smith"), "", lingua_home)
@@ -285,6 +371,16 @@ for name, helper in broken.items():
         write(os.path.join(copy, "_lingua.py"), helper)
     for script, event in ((PROMPT, prompt("smith")), (SESSION, {"cwd": project})):
         expect(f"{script} with a {name} helper is silent", script, event, "", home, hooks=copy)
+
+write(plan, plan_body)
+for name, helper in broken.items():
+    copy = os.path.join(work, f"hooks-plan-{name}")
+    shutil.copytree(hooks, copy, ignore=shutil.ignore_patterns("_plan.py", "__pycache__"))
+    if helper is not None:
+        write(os.path.join(copy, "_plan.py"), helper)
+    expect(f"plan-restore.py with a {name} helper is silent", "plan-restore.py",
+           {"source": "compact", "cwd": project}, "", home, hooks=copy)
+    expect(f"{COMPACT} with a {name} helper is silent", COMPACT, pre, "", home, hooks=copy)
 
 if os.path.exists(os.path.join(hooks, "__pycache__")):
     bad("the hooks left a __pycache__ in the plugin")
