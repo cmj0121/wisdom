@@ -272,6 +272,30 @@ for name, body in (
     write(plan, body)
     expect(f"compact ignores a PLAN.md {name}", "plan-restore.py", {"source": "compact", "cwd": project}, "", home)
 
+details = write(os.path.join(project, "PLAN_DETAILS.md"), "# Details\n")
+clear = {"source": "clear", "cwd": project}
+write(plan, plan_body)
+expect(
+    "clear points at an earlier plan without restoring it", "plan-restore.py", clear,
+    wrapped(
+        "SessionStart",
+        f"A wisdom:plan PLAN.md from an earlier run is at {plan}; it was not restored. "
+        "In your first reply, ask the user whether to continue it with wisdom:smith "
+        "or delete PLAN.md and PLAN_DETAILS.md.",
+    ),
+    home,
+)
+if os.path.isfile(plan) and os.path.isfile(details):
+    ok("clear leaves PLAN.md and PLAN_DETAILS.md in place")
+else:
+    bad("clear removed a plan file")
+expect("resume does not restore a plan", "plan-restore.py", {"source": "resume", "cwd": project}, "", home)
+write(plan, "# Notes\n\n| Id | Status |\n| -- | ------ |\n| U1 | todo |\n")
+expect("clear ignores a PLAN.md that is not a plan", "plan-restore.py", clear, "", home)
+os.remove(plan)
+expect("clear without a plan is silent", "plan-restore.py", clear, "", home)
+os.remove(details)
+
 print("==> Testing the PreCompact entry")
 COMPACT = "plan-compact.py"
 
@@ -315,8 +339,8 @@ starts = {
     group["matcher"]: [h["command"].rsplit("/", 1)[-1] for h in group["hooks"]]
     for group in config["SessionStart"]
 }
-if starts == {"*": [SESSION], "compact": ["plan-restore.py"]}:
-    ok("SessionStart runs lingua, and the plan restore on compact")
+if starts == {"*": [SESSION], "compact|clear": ["plan-restore.py"]}:
+    ok("SessionStart runs lingua, and the plan restore on compact or clear")
 else:
     bad(f"SessionStart runs {starts}")
 precompact = [

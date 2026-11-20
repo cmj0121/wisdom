@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Plan-restore SessionStart hook.
 
-After an auto-compact, re-injects the project's `PLAN.md` so a running
-`wisdom:smith` recovers its state. Acts whenever the file is a wisdom:plan
-plan (a `## Units` table with a `Status` column and at least one row), whatever
-its units' status; silent no-op otherwise.
+After a compaction, re-injects the project's `PLAN.md` so a running
+`wisdom:smith` recovers its state. After a /clear, injects one line naming the
+plan instead, so the user decides whether to continue it or delete it; the
+files are never touched. Acts whenever the file is a wisdom:plan plan (a
+`## Units` table with a `Status` column and at least one row), whatever its
+units' status; silent no-op otherwise.
 """
 import json
 import os
@@ -21,7 +23,7 @@ def main() -> int:
         data = json.load(sys.stdin) if not sys.stdin.isatty() else {}
     except (json.JSONDecodeError, ValueError):
         return 0
-    if not isinstance(data, dict) or data.get("source") != "compact":
+    if not isinstance(data, dict) or data.get("source") not in ("compact", "clear"):
         return 0
 
     cwd = data.get("cwd") or os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
@@ -35,11 +37,18 @@ def main() -> int:
         return 0
 
     details = os.path.join(cwd, "PLAN_DETAILS.md")
-    context = (
-        f"Context was compacted. If you are running wisdom:smith, its state is below "
-        f"(from {plan}); builders' details are in {details}. Otherwise ignore it.\n\n"
-        f"{content}"
-    )
+    if data["source"] == "clear":
+        context = (
+            f"A wisdom:plan PLAN.md from an earlier run is at {plan}; it was not restored. "
+            "In your first reply, ask the user whether to continue it with wisdom:smith "
+            "or delete PLAN.md and PLAN_DETAILS.md."
+        )
+    else:
+        context = (
+            f"Context was compacted. If you are running wisdom:smith, its state is below "
+            f"(from {plan}); builders' details are in {details}. Otherwise ignore it.\n\n"
+            f"{content}"
+        )
     print(json.dumps({
         "hookSpecificOutput": {
             "hookEventName": "SessionStart",

@@ -1,5 +1,5 @@
 {
-  "description": "Load the per-project lingua language at session start; tell compaction what to keep beside the smith plan and restore the plan after it; repeat the language and dispatch magic words on every prompt; notify on stop or a permission request while afk mode is on.",
+  "description": "Load the per-project lingua language at session start; tell compaction what to keep beside the smith plan and restore the plan after it, or point at it after a /clear; repeat the language and dispatch magic words on every prompt; notify on stop or a permission request while afk mode is on.",
   "hooks": {
     "SessionStart": [
       {
@@ -13,7 +13,7 @@
         ]
       },
       {
-        "matcher": "compact",
+        "matcher": "compact|clear",
         "hooks": [
           {
             "type": "command",
