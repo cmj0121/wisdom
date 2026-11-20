@@ -127,10 +127,11 @@ for entry in plugins:
             bad(f"plugin.json name '{pj.get('name', '')}' != marketplace.json name '{name}'")
 
     # The hooks swallow a missing helper by design, so only this notices it gone.
-    if os.path.isfile(os.path.join(plugin_dir, "hooks", "_lingua.py")):
-        ok("hooks/_lingua.py exists")
-    else:
-        bad("missing hooks/_lingua.py")
+    for helper in ("_lingua.py", "_plan.py"):
+        if os.path.isfile(os.path.join(plugin_dir, "hooks", helper)):
+            ok(f"hooks/{helper} exists")
+        else:
+            bad(f"missing hooks/{helper}")
 
     if os.path.isfile(os.path.join(plugin_dir, "LICENSE")):
         ok("LICENSE exists")

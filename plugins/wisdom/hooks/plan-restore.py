@@ -2,47 +2,21 @@
 """Plan-restore SessionStart hook.
 
 After an auto-compact, re-injects the project's `PLAN.md` so a running
-`wisdom:smith` recovers its state. Acts only when the plan has wisdom:plan's
-`## Units` table with a `Status` column and at least one unit not `done`;
-silent no-op otherwise.
+`wisdom:smith` recovers its state. Acts whenever the file is a wisdom:plan
+plan (a `## Units` table with a `Status` column and at least one row), whatever
+its units' status; silent no-op otherwise.
 """
 import json
 import os
 import sys
 
-
-def cells(line: str) -> list:
-    return [c.strip() for c in line.strip().strip("|").split("|")]
-
-
-def has_open_unit(content: str) -> bool:
-    lines = content.splitlines()
-    try:
-        start = next(i for i, l in enumerate(lines) if l.strip() == "## Units")
-    except StopIteration:
-        return False
-
-    table = []
-    for line in lines[start + 1:]:
-        if line.strip().startswith("|"):
-            table.append(line)
-        elif table or line.startswith("#") or line.strip():
-            break
-    if len(table) < 3:
-        return False
-
-    header = cells(table[0])
-    if "Status" not in header:
-        return False
-    col = header.index("Status")
-    for row in table[2:]:
-        row_cells = cells(row)
-        if col < len(row_cells) and row_cells[col] != "done":
-            return True
-    return False
+sys.dont_write_bytecode = True
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
 def main() -> int:
+    from _plan import is_plan
+
     try:
         data = json.load(sys.stdin) if not sys.stdin.isatty() else {}
     except (json.JSONDecodeError, ValueError):
@@ -57,7 +31,7 @@ def main() -> int:
             content = f.read()
     except (OSError, ValueError):
         return 0
-    if not has_open_unit(content):
+    if not is_plan(content):
         return 0
 
     details = os.path.join(cwd, "PLAN_DETAILS.md")
@@ -76,4 +50,8 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        main()
+    except Exception:
+        pass
+    sys.exit(0)

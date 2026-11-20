@@ -251,6 +251,27 @@ expect(
 )
 expect("startup does not restore a plan", "plan-restore.py", {"source": "startup", "cwd": project}, "", home)
 
+done_body = "## Units\n\n| Id | Status |\n| -- | ------ |\n| U1 | done |\n| U2 | done |\n"
+write(plan, done_body)
+expect(
+    "compact restores a plan whose units are all done", "plan-restore.py",
+    {"source": "compact", "cwd": project},
+    wrapped(
+        "SessionStart",
+        f"Context was compacted. If you are running wisdom:smith, its state is below "
+        f"(from {plan}); builders' details are in {os.path.join(project, 'PLAN_DETAILS.md')}. "
+        f"Otherwise ignore it.\n\n{done_body}",
+    ),
+    home,
+)
+for name, body in (
+    ("without a Units heading", "# Notes\n\n| Id | Status |\n| -- | ------ |\n| U1 | todo |\n"),
+    ("whose Units table has no Status column", "## Units\n\n| Id | Owner |\n| -- | ----- |\n| U1 | me |\n"),
+    ("whose Units table has no rows", "## Units\n\n| Id | Status |\n| -- | ------ |\n"),
+):
+    write(plan, body)
+    expect(f"compact ignores a PLAN.md {name}", "plan-restore.py", {"source": "compact", "cwd": project}, "", home)
+
 print("==> Testing the hook wiring")
 config = json.load(open(os.path.join(hooks, "hooks.json")))["hooks"]
 commands = [h["command"] for group in config["UserPromptSubmit"] for h in group["hooks"]]
@@ -285,6 +306,15 @@ for name, helper in broken.items():
         write(os.path.join(copy, "_lingua.py"), helper)
     for script, event in ((PROMPT, prompt("smith")), (SESSION, {"cwd": project})):
         expect(f"{script} with a {name} helper is silent", script, event, "", home, hooks=copy)
+
+write(plan, plan_body)
+for name, helper in broken.items():
+    copy = os.path.join(work, f"hooks-plan-{name}")
+    shutil.copytree(hooks, copy, ignore=shutil.ignore_patterns("_plan.py", "__pycache__"))
+    if helper is not None:
+        write(os.path.join(copy, "_plan.py"), helper)
+    expect(f"plan-restore.py with a {name} helper is silent", "plan-restore.py",
+           {"source": "compact", "cwd": project}, "", home, hooks=copy)
 
 if os.path.exists(os.path.join(hooks, "__pycache__")):
     bad("the hooks left a __pycache__ in the plugin")
