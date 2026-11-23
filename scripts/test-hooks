@@ -35,8 +35,9 @@ NOT_USER = (
     "[SYSTEM NOTIFICATION",
 )
 RULE = (
-    "lingua: reply in zh-TW; keep code, identifiers, commands and paths in en. "
-    "Skip if the user said `lingua off` this session."
+    "lingua: reply in zh-TW in every line the user reads, progress notes between tool "
+    "calls and AskUserQuestion questions and options included; keep code, identifiers, "
+    "commands and paths in en. Skip if the user said `lingua off` this session."
 )
 CONFIG = "---\nrespond_in: zh-TW # reply language\nkeep_terms_in: en\n---\n"
 
@@ -147,6 +148,19 @@ for prefix in NOT_USER:
         f"{prefix} gives no lingua line", PROMPT,
         {"prompt": f"{prefix} smith", "cwd": cwd_with_dot}, "", lingua_home,
     )
+cwd_with_underscore = "/tmp/my_project"
+write(os.path.join(lingua_home, ".claude", "projects", "-tmp-my-project", "memory", "lingua.md"), CONFIG)
+expect(
+    "the slug replaces _ as well", PROMPT, {"prompt": "hello", "cwd": cwd_with_underscore},
+    wrapped("UserPromptSubmit", RULE), lingua_home,
+)
+nested = '---\nname: ""\nmetadata:\n  node_type: memory\n  respond_in: zh-TW\n  keep_terms_in: en\n---\n'
+write(os.path.join(work, "m", "memory", "lingua.md"), nested)
+expect(
+    "a respond_in nested under metadata still gives the rule", PROMPT,
+    prompt("hello", transcript_path=os.path.join(work, "m", "s.jsonl")),
+    wrapped("UserPromptSubmit", RULE), home,
+)
 write(os.path.join(work, "r", "memory", "lingua.md"), CONFIG.replace("keep_terms_in", "refine_question: true\nkeep_terms_in"))
 expect(
     "the rule restates when asked", PROMPT,

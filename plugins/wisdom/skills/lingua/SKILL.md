@@ -17,8 +17,10 @@ never changes what is answered.
 
 ## Config
 
-`~/.claude/projects/<project-path>/memory/lingua.md`, where `<project-path>` is the working
-directory with `/` and `.` replaced by `-`. Never committed.
+`lingua.md` in the project's auto-memory directory, the one the system prompt names as
+holding `MEMORY.md`; use that path whenever it is shown. Otherwise it is
+`~/.claude/projects/<slug>/memory/`, where `<slug>` is the working directory with every
+non-alphanumeric character replaced by `-` (so it starts with `-`). Never committed.
 
 ```yaml
 ---
@@ -40,7 +42,8 @@ long sessions do not drift.
    whether to restate questions, whether to keep technical terms untranslated — then write
    the file and confirm in one line. Never guess a language from the one the user writes in.
 2. **Apply** for the rest of the session:
-   - write every reply in `respond_in`;
+   - write every line the user reads in `respond_in` — replies, progress notes between
+     tool calls, and AskUserQuestion questions and options included;
    - keep code, identifiers, commands, paths and technical terms verbatim in
      `keep_terms_in`, applying `glossary`;
    - with `refine_question: true`, open with a one-line restatement of the question in

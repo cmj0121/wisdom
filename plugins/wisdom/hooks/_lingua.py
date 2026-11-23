@@ -35,7 +35,7 @@ def read_config(event: dict) -> tuple:
 
     # Fallback: derive the slug from cwd.
     cwd = event.get("cwd") or os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
-    slug = cwd.replace("/", "-").replace(".", "-")
+    slug = re.sub(r"[^A-Za-z0-9]", "-", cwd)
     candidates.append(
         os.path.join(os.path.expanduser("~"), ".claude", "projects", slug, "memory", "lingua.md")
     )
@@ -70,8 +70,9 @@ def rule(config: str) -> str:
     keep_terms_in = _value(block, "keep_terms_in") or "en"
 
     text = (
-        f"lingua: reply in {respond_in}; keep code, identifiers, commands and paths in "
-        f"{keep_terms_in}"
+        f"lingua: reply in {respond_in} in every line the user reads, progress notes "
+        "between tool calls and AskUserQuestion questions and options included; keep code, "
+        f"identifiers, commands and paths in {keep_terms_in}"
     )
     if _value(block, "refine_question").lower() == "true":
         text += "; restate the question in one line first"

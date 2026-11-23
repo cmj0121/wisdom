@@ -28,9 +28,9 @@ it with the right input, read its result, decide what happens next.
   gap: retry it once, then stop and tell the user; a review still without one leaves its unit
   unreviewed. Never write a silent skill's result yourself.
 - **Two failed rounds** on the same unit or the same suite: stop and bring it to the user.
-- **Language.** Write both checkpoints and the report in `respond_in` from the `lingua` preference
-  in context, else the user's language, whatever the skills returned. Keep prompts to skills and
-  subagents in English.
+- **Language.** Checkpoints, the report, every progress line between steps and every question to
+  the user are in `respond_in` (the `lingua` preference in context, else the user's language), held
+  for the whole run, not only after a user prompt. Prompts to skills and subagents stay English.
 - **Keep the branch** as simple and linear as possible.
 - **Never tag, release or push** unless the user asks in this conversation; a release is
   `wisdom:release`.
